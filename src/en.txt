@@ -1,0 +1,812 @@
+Modo Rendimiento	Performance mode
+El renderizador más ligero del juego.	The game's lightest renderer.
+Apagar VSync	Turn off VSync
+Quita la espera al monitor, que suma retraso.	Stops waiting for the monitor, which adds delay.
+NVIDIA Reflex en On + Boost	NVIDIA Reflex On + Boost
+Menos retraso entre el clic y la pantalla. Confírmalo en los ajustes del juego.	Less delay between click and screen. Check it in the game settings.
+Apagar desenfoque de movimiento	Turn off motion blur
+Imagen más nítida al girar.	Sharper picture when you turn.
+Apagar ray tracing	Turn off ray tracing
+El ajuste gráfico más caro.	The most expensive graphics setting.
+Apagar Nanite	Turn off Nanite
+Geometría simple en vez de detalle infinito.	Simple geometry instead of endless detail.
+Apagar generación de fotogramas	Turn off frame generation
+Sube los FPS que ves, pero añade retraso.	Raises the FPS you see but adds delay.
+Apagar resolución dinámica	Turn off dynamic resolution
+La nitidez no cambia en mitad de una pelea.	Sharpness doesn't change mid-fight.
+Apagar hierba	Turn off grass
+Menos que dibujar y mejor visibilidad.	Less to draw and better visibility.
+Apagar aceleración del ratón en el juego	Turn off in-game mouse acceleration
+El mismo gesto siempre mueve lo mismo.	The same motion always moves the same amount.
+Lobby a 60 FPS	Lobby at 60 FPS
+El PC descansa y llega más frío a la partida.	Your PC rests and starts the match cooler.
+Mallas en bajo	Meshes on low
+Modelos más simples en modo Rendimiento.	Simpler models in Performance mode.
+Sombras en bajo	Shadows on low
+Calidad gráfica mínima del juego.	The game's lowest graphics quality.
+Iluminación global en bajo	Global illumination on low
+Reflejos en bajo	Reflections on low
+Posprocesado en bajo	Post-processing on low
+Efectos en bajo	Effects on low
+Suavizado en bajo	Anti-aliasing on low
+Texturas en bajo	Textures on low
+Vegetación en bajo	Foliage on low
+Sombreado en bajo	Shading on low
+Terreno en bajo	Terrain on low
+Distancia de dibujado en bajo	View distance on low
+Los jugadores y construcciones se ven igual de lejos.	Players and builds are still visible just as far.
+Fortnite usa la gráfica potente	Fortnite uses the powerful GPU
+Con dos gráficas, Windows usa siempre la potente.	With two GPUs, Windows always uses the powerful one.
+Modo Juego	Game Mode
+Windows aparta tareas y actualizaciones mientras juegas.	Windows holds back tasks and updates while you play.
+Programación de GPU por hardware	Hardware GPU scheduling
+La tarjeta gestiona su propia cola.	The card manages its own queue.
+Optimización para juegos en ventana	Windowed games optimization
+Menos retraso en ventana y sin bordes.	Less delay in windowed and borderless.
+Frecuencia variable para juegos	Variable refresh rate for games
+Extiende G-Sync y FreeSync a juegos que no lo piden.	Extends G-Sync and FreeSync to games that don't ask for it.
+Apagar Auto HDR	Turn off Auto HDR
+Se ahorra un paso de conversión de color.	Skips a color conversion step.
+Apagar Game DVR	Turn off Game DVR
+El grabador de Windows deja de engancharse al juego.	The Windows recorder stops hooking into the game.
+Apagar captura de Game Bar	Turn off Game Bar capture
+Sin captura de clips de Windows. Medal sigue igual.	No Windows clip capture. Medal still works.
+Apagar grabación en segundo plano	Turn off background recording
+Windows no graba los últimos segundos todo el tiempo.	Windows doesn't record the last few seconds all the time.
+Game DVR bloqueado	Game DVR blocked
+Evita que una actualización lo vuelva a activar.	Keeps an update from turning it back on.
+Game Bar no se abre con el mando	Controller doesn't open Game Bar
+El botón Xbox queda para el juego.	The Xbox button stays for the game.
+Apagar avisos de Game Bar	Turn off Game Bar tips
+Sin panel de bienvenida al abrir un juego.	No welcome panel when you open a game.
+NVIDIA a máximo rendimiento en Fortnite	NVIDIA maximum performance in Fortnite
+La gráfica no baja de frecuencia durante la partida.	The GPU doesn't lower its clock during a match.
+Caché de sombreadores sin límite	Unlimited shader cache
+Menos tirones por recompilar. Usa más disco.	Fewer stutters from recompiling. Uses more disk.
+Filtrado de texturas en alto rendimiento	High performance texture filtering
+Menos trabajo de textura, solo en Fortnite.	Less texture work, only in Fortnite.
+Apagar telemetría del panel NVIDIA	Turn off NVIDIA panel telemetry
+El panel de control no envía datos de uso.	The control panel doesn't send usage data.
+Plan Alto rendimiento	High performance plan
+La CPU sube de frecuencia sin esperar. Razer Cortex lo cambia al jugar; apaga también su servicio.	The CPU raises its clock without waiting. Razer Cortex changes it when you play; turn off its service too.
+CPU sin bajar de frecuencia	CPU never lowers its clock
+Estado mínimo al 100 %. Más consumo en reposo.	Minimum state at 100%. More power use at idle.
+Apagar aparcado de núcleos	Turn off core parking
+Todos los núcleos listos.	Every core ready.
+Turbo agresivo	Aggressive turbo
+La CPU acelera antes.	The CPU speeds up sooner.
+Preferencia de CPU en rendimiento	CPU performance preference
+El procesador prioriza velocidad sobre ahorro.	The processor favors speed over saving power.
+Refrigeración activa	Active cooling
+Sube ventiladores antes que bajar frecuencia.	Raises fans before lowering clocks.
+Apagar ahorro PCIe	Turn off PCIe power saving
+La gráfica y el SSD no entran en ahorro.	The GPU and SSD don't go into power saving.
+Apagar suspensión de USB	Turn off USB suspend
+Ratón y teclado nunca se duermen.	Mouse and keyboard never sleep.
+Apagar ahorro de enlace USB 3	Turn off USB 3 link power saving
+Igual que el anterior, para puertos USB 3.	Same as above, for USB 3 ports.
+Wi-Fi sin ahorro de energía	Wi-Fi without power saving
+La antena no se duerme entre paquetes.	The antenna doesn't sleep between packets.
+El disco nunca se apaga	Disk never turns off
+Sin pausas por despertar el disco.	No pauses from waking the disk.
+El PC no se suspende solo	PC never sleeps on its own
+No se duerme en colas o descargas largas.	Doesn't sleep in queues or long downloads.
+Apagar temporizadores de activación	Turn off wake timers
+Nada despierta el PC por su cuenta.	Nothing wakes the PC by itself.
+Apagar limitación de energía	Turn off power throttling
+Windows no frena procesos para ahorrar.	Windows doesn't slow processes to save power.
+Apagar inicio rápido	Turn off fast startup
+Cada encendido arranca limpio, sin restos de la sesión anterior.	Every boot starts clean, with nothing left from the last session.
+Apagar integridad de memoria	Turn off memory integrity
+Sube FPS en juegos limitados por CPU, pero quita una defensa de Windows. Algunos anticheat la exigen.	Raises FPS in CPU-limited games but removes a Windows defense. Some anti-cheats require it.
+Apagar aceleración del ratón	Turn off mouse acceleration
+Mejorar precisión del puntero, desactivado.	Enhance pointer precision, off.
+Sin Teclas especiales	No Sticky Keys
+Pulsar Shift cinco veces no te saca del juego.	Pressing Shift five times doesn't pull you out of the game.
+Sin Teclas filtro	No Filter Keys
+Mantener Shift no activa el filtro.	Holding Shift doesn't turn on the filter.
+Sin Teclas de alternancia	No Toggle Keys
+Mantener Bloq Num no abre un aviso.	Holding Num Lock doesn't open a prompt.
+Sin Teclas de ratón	No Mouse Keys
+Alt + Shift + Bloq Num deja de abrir un aviso.	Alt + Shift + Num Lock no longer opens a prompt.
+Sin atajo de contraste alto	No high contrast shortcut
+Alt + Shift + ImprPant no cambia toda la pantalla.	Alt + Shift + PrtScn doesn't change the whole screen.
+Sin atajo del Narrador	No Narrator shortcut
+Win + Ctrl + Enter no lo abre.	Win + Ctrl + Enter doesn't open it.
+Sin atajo de cambio de idioma	No language switch shortcut
+Alt + Shift y Ctrl + Shift no cambian el teclado.	Alt + Shift and Ctrl + Shift don't change the keyboard.
+Retraso de teclado mínimo	Minimum keyboard delay
+La repetición empieza antes.	Repeat starts sooner.
+Repetición de teclado máxima	Maximum keyboard repeat
+Repite más rápido al mantener una tecla.	Repeats faster when you hold a key.
+Sin compartir actualizaciones	Don't share updates
+Tu PC no sube actualizaciones a otros.	Your PC doesn't upload updates to others.
+Descargas de fondo al 20 %	Background downloads at 20%
+Las actualizaciones no afectan al ping.	Updates don't affect your ping.
+Ethernet: apagar ahorro EEE	Ethernet: turn off EEE saving
+El puerto no se duerme. Solo por cable.	The port doesn't sleep. Wired only.
+Ethernet: apagar Green Ethernet	Ethernet: turn off Green Ethernet
+Potencia de señal constante. Solo por cable.	Constant signal power. Wired only.
+Ethernet: apagar Giga Lite	Ethernet: turn off Giga Lite
+Evita enlaces degradados. Solo por cable.	Avoids degraded links. Wired only.
+Ethernet: apagar moderación de interrupciones	Ethernet: turn off interrupt moderation
+Menos espera por paquete a cambio de CPU. Solo por cable.	Less wait per packet at the cost of CPU. Wired only.
+Ethernet: apagar control de flujo	Ethernet: turn off flow control
+El router no puede pausar tu tráfico. Solo por cable.	The router can't pause your traffic. Wired only.
+Apagar activación por red	Turn off wake on LAN
+La tarjeta no queda escuchando para despertar el PC.	The card doesn't keep listening to wake the PC.
+Apps de la Tienda sin segundo plano	Store apps don't run in the background
+Dejan de correr cerradas. Pueden no mostrar avisos.	They stop running when closed. They may not show notifications.
+Apagar widgets	Turn off widgets
+Quita el panel de noticias y sus procesos.	Removes the news panel and its processes.
+Edge no arranca con Windows	Edge doesn't start with Windows
+Edge deja de cargarse antes de abrirlo.	Edge stops loading before you open it.
+Edge no sigue abierto al cerrarlo	Edge doesn't stay open after closing
+Sin procesos de Edge de fondo.	No Edge background processes.
+Edge no precarga pestañas	Edge doesn't preload tabs
+Menos memoria usada por adelantado.	Less memory used in advance.
+Chrome no sigue abierto al cerrarlo	Chrome doesn't stay open after closing
+Sin procesos de Chrome de fondo.	No Chrome background processes.
+Brave no sigue abierto al cerrarlo	Brave doesn't stay open after closing
+Sin procesos de Brave de fondo.	No Brave background processes.
+No reabrir apps al iniciar sesión	Don't reopen apps at sign-in
+Windows no reabre lo que tenías antes.	Windows doesn't reopen what you had before.
+Apagar Recall	Turn off Recall
+Windows no guarda capturas de lo que haces.	Windows doesn't save snapshots of what you do.
+Apagar Click to Do	Turn off Click to Do
+Sin análisis de pantalla por IA.	No AI screen analysis.
+Apagar Copilot	Turn off Copilot
+Quita Copilot de Windows.	Removes Copilot from Windows.
+Apagar continuar desde el móvil	Turn off resume from phone
+Windows no busca tu móvil para continuar tareas.	Windows doesn't look for your phone to continue tasks.
+Apagar vínculo con móvil	Turn off phone link
+Sin sincronización entre dispositivos.	No sync between devices.
+Portapapeles sin nube	Clipboard without cloud
+Lo que copias se queda en este PC.	What you copy stays on this PC.
+Mapas sin descargas automáticas	Maps without automatic downloads
+Sin tráfico de mapas sin conexión.	No offline map traffic.
+Windows Update no cambia controladores	Windows Update doesn't change drivers
+No reemplaza el controlador de la gráfica. Se actualiza a mano.	Doesn't replace the GPU driver. It is updated by hand.
+Sin instaladores de periféricos	No peripheral installers
+Conectar un ratón no instala su programa solo.	Plugging in a mouse doesn't install its program.
+La placa no instala programas	Motherboard doesn't install programs
+Bloquea el software que la BIOS mete en Windows.	Blocks the software the BIOS puts into Windows.
+El mantenimiento no despierta el PC	Maintenance doesn't wake the PC
+Se hace igual, pero con el PC encendido.	It still runs, but while the PC is on.
+Apagar SysMain	Turn off SysMain
+Precarga programas en memoria. Con un SSD rápido aporta poco.	Preloads programs into memory. Little use with a fast SSD.
+Apagar índice de búsqueda	Turn off search indexing
+Menos lecturas de disco; la búsqueda del menú va más lenta.	Fewer disk reads; menu search gets slower.
+Apagar telemetría de Windows	Turn off Windows telemetry
+El servicio que recoge y envía diagnósticos.	The service that collects and sends diagnostics.
+Apagar inventario de compatibilidad	Turn off compatibility inventory
+Revisa qué programas tienes instalados.	Checks which programs you have installed.
+Apagar seguimiento de vínculos	Turn off link tracking
+Vigila accesos directos movidos entre discos.	Watches shortcuts moved between disks.
+Apagar geolocalización	Turn off location
+Las apps no sabrán dónde estás.	Apps won't know where you are.
+Apagar servicio de IA local	Turn off local AI service
+Infraestructura de funciones de IA de Windows.	Infrastructure for Windows AI features.
+Apagar asistente de compatibilidad	Turn off compatibility assistant
+Vigila programas antiguos mientras se ejecutan.	Watches old programs while they run.
+Apagar cola de impresión	Turn off print spooler
+Solo si no usas impresora ni imprimes a PDF.	Only if you don't use a printer or print to PDF.
+Apagar contador de datos de red	Turn off network data counter
+Ajustes deja de mostrar el consumo por app.	Settings stops showing usage per app.
+Apagar Razer Chroma SDK	Turn off Razer Chroma SDK
+Sin efectos de luces dentro de los juegos.	No lighting effects inside games.
+Razer Cortex no arranca solo	Razer Cortex doesn't start by itself
+Evita que Cortex aplique sus propios tweaks encima.	Keeps Cortex from applying its own tweaks on top.
+Apagar actualizador de G HUB	Turn off G HUB updater
+El ratón sigue igual; las actualizaciones, a mano.	The mouse works the same; updates are manual.
+Apagar evaluador de compatibilidad	Turn off compatibility appraiser
+Analiza todo el PC y puede usar mucha CPU.	Scans the whole PC and can use a lot of CPU.
+Apagar copia de datos de compatibilidad	Turn off compatibility data backup
+Recoge datos de tus programas.	Collects data about your programs.
+Apagar análisis de apps de inicio	Turn off startup app analysis
+Revisa qué arranca con Windows.	Checks what starts with Windows.
+Apagar envío de datos de disco	Turn off disk data sending
+Manda datos de comprobación de disco.	Sends disk check data.
+Apagar programa de experiencia del cliente	Turn off customer experience program
+Recoge y envía uso de Windows.	Collects and sends Windows usage.
+Apagar censo del dispositivo	Turn off device census
+Envía datos del hardware.	Sends hardware data.
+Apagar encuestas de Windows	Turn off Windows surveys
+Prepara las preguntas de opinión.	Prepares feedback questions.
+Apagar informes de uso de funciones	Turn off feature usage reports
+Informes de uso de funciones.	Feature usage reports.
+Apagar prueba de rendimiento WinSAT	Turn off WinSAT benchmark
+Un benchmark de fondo que puede saltar en cualquier momento.	A background benchmark that can start at any time.
+Apagar análisis de eficiencia energética	Turn off power efficiency analysis
+Mide el consumo del PC en segundo plano.	Measures the PC's power use in the background.
+Apagar avisos de mapas	Turn off map notices
+Avisos de la app Mapas.	Notices from the Maps app.
+Apagar copia de la lista de apps	Turn off app list backup
+Sube qué apps tienes a tu cuenta.	Uploads your list of apps to your account.
+Apagar envío de informes de error	Turn off error report sending
+Manda fallos acumulados.	Sends queued crash reports.
+Apagar tareas de control parental	Turn off parental control tasks
+Tareas de seguridad familiar. No recomendado con Family Safety.	Family safety tasks. Not recommended with Family Safety.
+Apagar descarga de imágenes de temas	Turn off theme image downloads
+Baja fondos sincronizados.	Downloads synced wallpapers.
+Apagar notificaciones emergentes	Turn off pop-up notifications
+Nada salta encima del juego. Discord usa las suyas.	Nothing pops up over the game. Discord uses its own.
+Sin notificaciones de sugerencias	No suggestion notifications
+Windows no recomienda cosas.	Windows doesn't recommend things.
+Sin recordatorios de copia	No backup reminders
+No insiste con OneDrive.	Doesn't push OneDrive.
+Sin pantalla de terminar configuración	No finish setup screen
+No aparece tras actualizar.	Doesn't appear after updating.
+Sin bienvenida tras actualizar	No welcome after updating
+No abre la experiencia de novedades.	Doesn't open the what's new experience.
+Sin consejos de Windows	No Windows tips
+Quita trucos y consejos.	Removes tips and tricks.
+Sin avisos de cuenta en Inicio	No account notices in Start
+El menú no pide copias ni suscripciones.	The menu doesn't ask for backups or subscriptions.
+Sin avisos de cuenta en Ajustes	No account notices in Settings
+Ajustes no muestra ofertas de cuenta.	Settings doesn't show account offers.
+Sin publicidad en el Explorador	No ads in File Explorer
+Quita avisos del proveedor de nube.	Removes cloud provider notices.
+Sin preguntas de opinión	No feedback questions
+Windows no pide valoraciones.	Windows doesn't ask for ratings.
+El volumen no baja con llamadas	Volume doesn't drop on calls
+El juego no se silencia cuando hablan.	The game isn't muted when people talk.
+Apagar reproducción automática	Turn off AutoPlay
+Conectar un USB no abre ventanas.	Plugging in a USB doesn't open windows.
+Sin sonido de inicio	No startup sound
+Arranque en silencio.	Silent boot.
+Sin apps instaladas solas	No self-installed apps
+Windows no instala juegos promocionados.	Windows doesn't install promoted games.
+Sin apps preinstaladas nuevas	No new preinstalled apps
+Las cuentas nuevas no traen extras.	New accounts don't come with extras.
+Sin contenido promocionado	No promoted content
+Bloquea el contenido para consumidores.	Blocks consumer content.
+Sin entrega de contenido	No content delivery
+Apaga el canal que trae sugerencias.	Turns off the channel that brings suggestions.
+Sin sugerencias en Inicio	No suggestions in Start
+El menú muestra solo lo tuyo.	The menu shows only your things.
+Sin sugerencias en Ajustes	No suggestions in Settings
+Ajustes deja de recomendar.	Settings stops recommending.
+Sin datos en la pantalla de bloqueo	No facts on the lock screen
+Quita curiosidades y consejos.	Removes trivia and tips.
+Sin sugerencias de terceros	No third-party suggestions
+Spotlight no recomienda otras marcas.	Spotlight doesn't recommend other brands.
+Apagar identificador de publicidad	Turn off advertising ID
+Las apps no te siguen para anuncios.	Apps don't track you for ads.
+Sin experiencias personalizadas	No tailored experiences
+No usa tus diagnósticos para anuncios.	Doesn't use your diagnostics for ads.
+Sin webs recomendadas en Inicio	No recommended sites in Start
+El menú no mira tu historial de Edge.	The menu doesn't look at your Edge history.
+Inicio no busca en Bing	Start doesn't search Bing
+Resultados locales y más rápidos.	Local, faster results.
+Sin destacados de búsqueda	No search highlights
+El cuadro no descarga imágenes del día.	The search box doesn't download daily images.
+La búsqueda no mira la nube	Search doesn't look in the cloud
+No consulta tu cuenta al escribir.	Doesn't query your account as you type.
+Sin historial de búsqueda	No search history
+No guarda lo que buscas.	Doesn't save what you search.
+Diagnóstico al mínimo	Minimum diagnostics
+Solo los datos obligatorios de tu edición.	Only the data your edition requires.
+Sin nombre del PC en diagnósticos	No PC name in diagnostics
+No envía el nombre del equipo.	Doesn't send the computer name.
+Sin registros extra	No extra logs
+Limita registros de diagnóstico.	Limits diagnostic logs.
+Sin volcados completos	No full dumps
+Limita volcados de memoria enviados.	Limits memory dumps sent.
+Apagar rastreo DiagTrack	Turn off DiagTrack tracing
+No graba eventos desde el arranque.	Doesn't record events from boot.
+Apagar telemetría de aplicaciones	Turn off app telemetry
+No mide qué programas usas.	Doesn't measure which programs you use.
+Apagar recolector de inventario	Turn off inventory collector
+No envía la lista de programas.	Doesn't send the list of programs.
+Apagar grabador de pasos	Turn off steps recorder
+No captura pasos del usuario.	Doesn't capture user steps.
+Apagar experiencia del cliente	Turn off customer experience
+Política del programa CEIP.	CEIP program policy.
+Apagar informes de error	Turn off error reporting
+Un juego que falla se cierra sin esperar al informe.	A crashed game closes without waiting for the report.
+Apagar historial de actividad	Turn off activity history
+No registra ni sube lo que abres.	Doesn't log or upload what you open.
+Sin datos de escritura	No typing data
+No mejora el teclado con lo que escribes.	Doesn't improve the keyboard with what you type.
+Sin leer contactos para predicción	Don't read contacts for prediction
+El teclado no revisa tus contactos.	The keyboard doesn't check your contacts.
+Apagar voz en línea	Turn off online speech
+No envía audio a la nube.	Doesn't send audio to the cloud.
+Apagar activación por voz	Turn off voice activation
+Ninguna app escucha de fondo.	No app listens in the background.
+Apagar estadísticas de escritura	Turn off typing stats
+Sin Typing Insights.	No Typing Insights.
+Apagar transparencias	Turn off transparency
+Menos trabajo de GPU en el escritorio.	Less GPU work on the desktop.
+Apagar animaciones de ventanas	Turn off window animations
+Minimizar y cambiar de ventana es instantáneo.	Minimizing and switching windows is instant.
+Apagar animaciones de la barra	Turn off taskbar animations
+La barra de tareas responde sin animación.	The taskbar responds without animation.
+Menús sin espera	Menus without delay
+Se abren a los 50 ms en vez de 400.	They open in 50 ms instead of 400.
+Sin sombras en iconos	No icon shadows
+Escritorio más ligero.	Lighter desktop.
+Selección sin transparencia	Selection without transparency
+Arrastrar en el escritorio va más ligero.	Dragging on the desktop is lighter.
+Apagar vista previa del escritorio	Turn off desktop peek
+Sin miniatura al rozar la esquina.	No preview when you touch the corner.
+Apps de inicio sin espera	Startup apps without delay
+Windows no retrasa tus programas al arrancar.	Windows doesn't delay your programs at boot.
+Búsqueda	Search
+Energía y CPU	Power and CPU
+Gráficos y captura	Graphics and capture
+Interfaz	Interface
+Interrupciones	Interruptions
+Publicidad	Ads
+Ratón y teclado	Mouse and keyboard
+Red	Network
+Segundo plano	Background
+Servicios	Services
+Tareas programadas	Scheduled tasks
+Telemetría	Telemetry
+Efecto bajo	Low impact
+Efecto medio	Medium impact
+Efecto alto	High impact
+Reinicia el juego	Restart the game
+Reinicia el PC	Restart the PC
+Reinicia la sesión	Sign in again
+el juego	the game
+el PC	the PC
+la sesión	your session
+Avanzado	Advanced
+Riesgo	Risk
+Activado	On
+Sin activar	Off
+A medias	Partly
+Recomendado.	Recommended.
+No recomendado.	Not recommended.
+Mi PC	My PC
+Jugar	Play
+Mis FPS	My FPS
+Mejoras	Upgrades
+Todos	All
+Recomendados	Recommended
+Gráfica	Graphics
+Procesador	Processor
+Memoria	Memory
+Disco	Disk
+Pantalla	Display
+Sin escanear	Not scanned
+No se pudo leer	Couldn't be read
+Sin gráfica dedicada	No dedicated GPU
+Memoria de vídeo sin leer	Video memory not read
+{0}. {1} núcleos, {2} hilos	{0}. {1} cores, {2} threads
+{0}. {1} núcleos, {2} hilos, portátil	{0}. {1} cores, {2} threads, laptop
+{0}. {1} GB de vídeo	{0}. {1} GB of video memory
+{0}. {1} GB de vídeo, {2} gráficas	{0}. {1} GB of video memory, {2} GPUs
+{0}. {1} MHz, {2} módulos	{0}. {1} MHz, {2} sticks
+{0}. {1} MHz, 1 módulo	{0}. {1} MHz, 1 stick
+{0}. {1}, {2} GB libres en {3}	{0}. {1}, {2} GB free on {3}
+Disco duro	Hard drive
+Por cable	Wired
+Por Wi-Fi	Wi-Fi
+Sin conexión	Offline
+Prepara tu PC para jugar	Get your PC ready to play
+Analiza los componentes y recomienda solo los tweaks adecuados. Antes de aplicar cambios se muestra la lista y se guarda una copia.	Analyzes the components and recommends only suitable tweaks. Before applying changes, the list is shown and a copy is saved.
+Escanear PC	Scan PC
+Escaneando…	Scanning…
+Escaneando el PC…	Scanning the PC…
+Escanear otra vez	Scan again
+Volver a escanear	Scan again
+Ver lista	View list
+Todo listo	All set
+Activar 1 recomendado	Turn on 1 recommended
+Activar {0} recomendados	Turn on {0} recommended
+PC optimizado	PC optimized
+Recomendado para este PC	Recommended for this PC
+Todo lo recomendado está activado.	Everything recommended is on.
+{0} tweaks recomendados para estos componentes. Los otros {1} son opcionales o no aplican.	{0} tweaks recommended for these components. The other {1} are optional or don't apply.
+de {0} tweaks activados	of {0} tweaks on
+de {0} recomendados activados	of {0} recommended on
+Activar todo	Turn on all
+Deshacer todo	Undo all
+Activa todos los tweaks menos los de riesgo	Turns on every tweak except the risky ones
+Quita lo que activó Tweakeroo. Lo que ya estaba así antes no se toca	Removes what Tweakeroo turned on. Anything that was already that way stays
+Activar estos	Turn these on
+Activa los tweaks de esta lista menos los de riesgo	Turns on the tweaks in this list except the risky ones
+Deshacer	Undo
+Quita lo que activó Tweakeroo en esta lista	Removes what Tweakeroo turned on in this list
+Solo sin activar	Only off
+Buscar un tweak (Ctrl + F)	Find a tweak (Ctrl + F)
+Buscar un tweak	Find a tweak
+Búsqueda: {0} tweaks	Search: {0} tweaks
+Búsqueda: 1 tweak	Search: 1 tweak
+Sin resultados para “{0}”. Usa una palabra más corta.	No results for “{0}”. Use a shorter word.
+Todo activado en esta sección.	Everything is on in this section.
+Guardados	Saves
+Copias del estado del PC. Restaurar vuelve a cualquiera de ellas.	Copies of the PC's state. Restore goes back to any of them.
+Nombre de la copia	Copy name
+Guardar estado actual	Save current state
+Restaurar	Restore
+Borrar	Delete
+Sí, restaurar	Yes, restore
+Sí, borrar	Yes, delete
+Original	Original
+Guardado manual	Manual save
+Antes de activar {0}	Before turning on {0}
+Antes de prender {0}	Before turning on {0}
+Antes de deshacer {0}	Before undoing {0}
+Antes de restaurar	Before restoring
+Igual que ahora	Same as now
+1 ajuste distinto	1 setting differs
+{0} ajustes distintos	{0} settings differ
+Color: {0}	Color: {0}
+Glaciar	Glacier
+Medianoche	Midnight
+Grafito	Graphite
+Bosque	Forest
+Marfil	Ivory
+Ciruela	Plum
+Abre Fortnite con la resolución elegida. Al cerrarlo, la pantalla y la configuración se restauran.	Opens Fortnite at the selected resolution. When it closes, the screen and settings are restored.
+Abrir Fortnite	Open Fortnite
+Restaurar resolución	Restore resolution
+FPS estimados	Estimated FPS
+Última partida	Last match
+Memoria libre	Free memory
+Resolución	Resolution
+Elegir resolución	Choose resolution
+Personalizada	Custom
+Ancho	Width
+Alto	Height
+Usar esta	Use this one
+Límite de FPS	FPS limit
+Minimizar Tweakeroo mientras juegas	Minimize Tweakeroo while you play
+Programas con más uso de memoria	Programs using the most memory
+Cerrar los que no se usen libera memoria antes de jugar.	Closing the ones not in use frees memory before playing.
+La primera vez que se usa una resolución se pide confirmación. Sin respuesta en 15 segundos, se restaura la anterior. Tweakeroo debe quedar abierto durante la partida. En torneos oficiales Epic puede forzar 16:9.	The first time a resolution is used, confirmation is required. With no response in 15 seconds, the previous one is restored. Tweakeroo must stay open during the match. In official tournaments Epic may force 16:9.
+Normal, {0} Hz	Normal, {0} Hz
+Stretched, {0} Hz	Stretched, {0} Hz
+Personalizada, {0} Hz	Custom, {0} Hz
+Admite casi cualquier resolución menor que la de la pantalla. Se crea en modo de prueba y solo se guarda al confirmarla.	Accepts almost any resolution smaller than the screen's. It is created in test mode and only saved once confirmed.
+Esta gráfica no permite crear resoluciones desde la app. Créala en el panel del fabricante y aparecerá en la lista.	This GPU doesn't allow creating resolutions from the app. Create it in the manufacturer's panel and it will appear in the list.
+El ancho y el alto deben ser números.	Width and height must be numbers.
+Mínimo 800 × 600: por debajo no caben los menús de Fortnite.	Minimum 800 × 600: below that Fortnite's menus don't fit.
+Máximo: la resolución de la pantalla, {0}.	Maximum: the screen resolution, {0}.
+El de Fortnite	Fortnite's own
+Sin cambios	No change
+Igual que la pantalla	Same as the screen
+Sin límite	No limit
+Menos retraso, más calor	Less delay, more heat
+Sin estirar: los personajes se ven normales.	Not stretched: characters look normal.
+Personajes {0} % más anchos y {1} % menos de visión lateral.	Characters {0}% wider and {1}% less side vision.
+Jugar a {0}	Play at {0}
+Jugando a {0}	Playing at {0}
+Abriendo Fortnite…	Opening Fortnite…
+Conservar ({0})	Keep ({0})
+¿Conservar esta resolución? Sin confirmación se restaura la anterior.	Keep this resolution? Without confirmation the previous one is restored.
+Abriendo Fortnite. La resolución se restaura al cerrarlo; Tweakeroo debe quedar abierto.	Opening Fortnite. The resolution is restored when it closes; Tweakeroo must stay open.
+No se pudo abrir Fortnite: {0}	Couldn't open Fortnite: {0}
+Sin respuesta: resolución restaurada.	No response: resolution restored.
+Fortnite cerrado: resolución restaurada.	Fortnite closed: resolution restored.
+Fortnite no se abrió en 10 minutos: resolución restaurada.	Fortnite didn't open in 10 minutes: resolution restored.
+Pantalla restaurada. La configuración de Fortnite se restaura al cerrar el juego.	Screen restored. Fortnite's settings are restored when the game closes.
+Resolución restaurada.	Resolution restored.
+No se pudo preparar el stretched: {0}	Couldn't set up stretched: {0}
+La pantalla no ofrece ninguna resolución más estrecha. Para usar stretched, crea 1720 × 1080 en el panel de la gráfica y reinicia la app.	The screen offers no narrower resolution. To use stretched, create 1720 × 1080 in the GPU's panel and restart the app.
+Fortnite está abierto. Ciérralo e inténtalo de nuevo.	Fortnite is open. Close it and try again.
+No se encontró la configuración de Fortnite. Abre el juego una vez e inténtalo de nuevo.	Fortnite's settings weren't found. Open the game once and try again.
+Windows no aplicó {0}.	Windows didn't apply {0}.
+La pantalla no aceptó {0} a {1} Hz (código {2}).	The screen didn't accept {0} at {1} Hz (code {2}).
+La gráfica no aceptó esa resolución (código {0}).	The GPU didn't accept that resolution (code {0}).
+No se pudo restaurar la resolución (código {0}). Se restaura al reiniciar el PC.	Couldn't restore the resolution (code {0}). It is restored when the PC restarts.
+Windows no devolvió la resolución de la pantalla.	Windows didn't return the screen resolution.
+No se encontró la pantalla principal.	The main screen wasn't found.
+Tweakeroo debe quedar abierto hasta cerrar Fortnite para restaurar la resolución.	Tweakeroo must stay open until Fortnite closes to restore the resolution.
+FPS reales	Real FPS
+Se leen de los registros de Fortnite, segundo a segundo, sin modificar el juego.	Read from Fortnite's logs, second by second, without modifying the game.
+No hay partidas de más de un minuto en los registros de Fortnite.	There are no matches over a minute in Fortnite's logs.
+No se pudieron leer los registros de Fortnite: {0}	Couldn't read Fortnite's logs: {0}
+Última partida: {0}, {1}, con límite de {2} FPS	Last match: {0}, {1}, limited to {2} FPS
+Última partida: {0}, {1}, sin límite	Last match: {0}, {1}, no limit
+FPS la mitad del tiempo o más	FPS half the time or more
+en los peores momentos	in the worst moments
+máximo	maximum
+Pantalla nativa	Native screen
+Antes y después de los tweaks	Before and after tweaks
+Partidas	Matches
+Cuándo	When
+Peores	Worst
+Máximo	Maximum
+Límite	Limit
+Creativo	Creative
+Recarga	Reload
+Otro modo	Other mode
+“Peores”: los FPS bajan de este valor 1 de cada 20 segundos.	“Worst”: FPS drop below this value 1 in every 20 seconds.
+Sin datos suficientes de esta gráfica o procesador para una estimación fiable.	Not enough data on this GPU or processor for a reliable estimate.
+Aproximado, en modo Rendimiento y sin límite de FPS. A la resolución nativa limita la gráfica.	Approximate, in Performance mode with no FPS limit. At native resolution the GPU is the limit.
+Aproximado, en modo Rendimiento y sin límite de FPS. A la resolución nativa limita el procesador.	Approximate, in Performance mode with no FPS limit. At native resolution the processor is the limit.
+Al activar tweaks se comparan aquí los FPS de antes y de después.	After tweaks are turned on, before and after FPS are compared here.
+La comparación requiere dos partidas antes y dos después del último cambio grande, del mismo modo y con el mismo límite de FPS.	The comparison requires two matches before and two after the last big change, in the same mode and with the same FPS limit.
+Antes del último cambio grande: {0} FPS en {1} partidas. Después: {2} FPS en {3} partidas. Modo: {4}, sin límite.	Before the last big change: {0} FPS over {1} matches. After: {2} FPS over {3} matches. Mode: {4}, no limit.
+Antes del último cambio grande: {0} FPS en {1} partidas. Después: {2} FPS en {3} partidas. Modo: {4}, con límite de {5} FPS. Con límite, una mejora puede no verse: conviene comparar también los peores momentos.	Before the last big change: {0} FPS over {1} matches. After: {2} FPS over {3} matches. Mode: {4}, limited to {5} FPS. With a limit, an improvement may not show: the worst moments should be compared too.
+Mejoras para este PC	Upgrades for this PC
+Analiza la configuración y los FPS. Primero las mejoras gratis; las compras, solo si el cambio es notable.	Analyzes the setup and FPS. Free improvements first; purchases only if the change is noticeable.
+Revisar PC	Check PC
+Revisar otra vez	Check again
+Abrir ajustes	Open settings
+Gratis	Free
+Compras opcionales	Optional purchases
+Correcto	OK
+Configuración correcta	Setup is fine
+Mejoras disponibles	Available improvements
+Ninguna mejora gratis pendiente y ninguna compra recomendada.	No free improvements pending and no recommended purchases.
+Ninguna mejora gratis pendiente y 1 compra recomendada.	No free improvements pending and 1 recommended purchase.
+Ninguna mejora gratis pendiente y {0} compras recomendadas.	No free improvements pending and {0} recommended purchases.
+1 mejora gratis y ninguna compra recomendada.	1 free improvement and no recommended purchases.
+1 mejora gratis y 1 compra recomendada.	1 free improvement and 1 recommended purchase.
+1 mejora gratis y {0} compras recomendadas.	1 free improvement and {0} recommended purchases.
+{0} mejoras gratis y ninguna compra recomendada.	{0} free improvements and no recommended purchases.
+{0} mejoras gratis y 1 compra recomendada.	{0} free improvements and 1 recommended purchase.
+{0} mejoras gratis y {1} compras recomendadas.	{0} free improvements and {1} recommended purchases.
+Próximas compras	Next purchases
+Ordenadas por impacto. Ninguna es urgente.	Sorted by impact. None is urgent.
+La pantalla usa {0} Hz y admite {1}	The screen uses {0} Hz and supports {1}
+Es la mejora gratis más notable. Se cambia en Frecuencia de actualización.	It's the most noticeable free improvement. Change it under Refresh rate.
+Pantalla a {0} Hz	Screen at {0} Hz
+Es el máximo disponible a {0}.	It's the maximum available at {0}.
+RAM a {0} MHz	RAM at {0} MHz
+Si el kit admite más velocidad, se activa EXPO o XMP en la BIOS.	If the kit supports more speed, EXPO or XMP is enabled in the BIOS.
+RAM DDR{0} a {1} MHz	DDR{0} RAM at {1} MHz
+Supera la velocidad básica: el kit está bien configurado.	Above the base speed: the kit is set up correctly.
+Un solo módulo de RAM	A single RAM module
+Con dos iguales la memoria trabaja en doble canal. En Fortnite ayuda sobre todo a los bajones.	With two matching sticks memory runs in dual channel. In Fortnite it mostly helps with drops.
+Ampliar a 16 GB de RAM	Upgrade to 16 GB of RAM
+Con {0} GB, Windows y el juego compiten por memoria.	With {0} GB, Windows and the game fight for memory.
+Antigüedad del driver de la gráfica: {0} meses	GPU driver age: {0} months
+Se actualiza desde la app de NVIDIA. No es urgente si todo funciona bien.	Update it from the NVIDIA app. Not urgent if everything works well.
+Se actualiza desde la app de la gráfica. No es urgente si todo funciona bien.	Update it from the GPU's app. Not urgent if everything works well.
+Driver de la gráfica reciente	Recent GPU driver
+Fecha: {0}.	Date: {0}.
+Conexión por cable recomendada	Wired connection recommended
+El Wi-Fi provoca picos de ping que ningún tweak elimina. Sin cable, es mejor la banda de 5 o 6 GHz.	Wi-Fi causes ping spikes no tweak removes. Without a cable, the 5 or 6 GHz band is better.
+Conexión por cable	Wired connection
+Es la conexión más estable.	It's the most stable connection.
+Mover Fortnite a un SSD	Move Fortnite to an SSD
+Cargas más rápidas y menos tirones al aparecer el mapa. No sube los FPS.	Faster loads and fewer stutters as the map appears. Doesn't raise FPS.
+Quedan {0} GB libres en el disco de Windows	{0} GB free on the Windows disk
+Se recomiendan al menos 30 GB para cachés y actualizaciones.	At least 30 GB is recommended for caches and updates.
+Requisito de torneos pendiente: {0}	Pending tournament requirement: {0}
+Epic lo exige en torneos de PC. Se activa en la BIOS; no es necesario fuera de torneos.	Epic requires it in PC tournaments. It's enabled in the BIOS; not needed outside tournaments.
+Listo para torneos	Ready for tournaments
+Secure Boot, TPM 2.0 e IOMMU están activos.	Secure Boot, TPM 2.0 and IOMMU are on.
+Un monitor de 144 Hz o más	A 144 Hz or faster monitor
+El PC genera bastantes más FPS de los {0} que muestra la pantalla. Es la compra más notable.	The PC produces far more FPS than the {0} the screen shows. It's the most noticeable purchase.
+Ninguna compra necesaria para subir FPS	No purchase needed to raise FPS
+Las últimas partidas rondan {0} FPS y la pantalla muestra {1} Hz.	The last matches are around {0} FPS and the screen shows {1} Hz.
+Se estiman entre {0} y {1} FPS y la pantalla muestra {2} Hz.	Estimated between {0} and {1} FPS and the screen shows {2} Hz.
+Más FPS apenas se notarían.	More FPS would barely be noticeable.
+Bajar la resolución o usar stretched	Lower the resolution or use stretched
+En un portátil la gráfica y el procesador no se cambian: es lo que más FPS aporta.	On a laptop the GPU and processor can't be replaced: this adds the most FPS.
+Cuello de botella: la gráfica	Bottleneck: the GPU
+Antes de comprar, conviene bajar la resolución.	Before buying, lowering the resolution is advised.
+Compra recomendada: RTX 5060, RX 9060 XT o superior.	Recommended purchase: RTX 5060, RX 9060 XT or better.
+Cuello de botella: el procesador	Bottleneck: the processor
+Placa AM5: un Ryzen X3D (7800X3D o 9800X3D) es el mayor salto sin cambiar nada más.	AM5 board: a Ryzen X3D (7800X3D or 9800X3D) is the biggest jump without changing anything else.
+Placa AM4: un Ryzen 7 5700X3D o 5800X3D es lo mejor que admite, quizá tras actualizar la BIOS.	AM4 board: a Ryzen 7 5700X3D or 5800X3D is the best it takes, maybe after a BIOS update.
+Placa LGA1700: un i5 o i7 de 13.ª o 14.ª generación, quizá tras actualizar la BIOS.	LGA1700 board: a 13th or 14th gen i5 or i7, maybe after a BIOS update.
+Comprueba qué procesadores admite la placa; si es antigua, puede requerir cambiar también placa y RAM.	Check which processors the board supports; if it's old, a new board and RAM may be required too.
+Gráfica: {0} o {1}	GPU: {0} or {1}
+RX 9060 XT de 16 GB	RX 9060 XT 16 GB
+Es el cuello de botella a {0}. Estimación: de unos {1} a unos {2} FPS.	It's the bottleneck at {0}. Estimate: from about {1} to about {2} FPS.
+Ahora no es el cuello de botella. Estimación: de unos {0} a unos {1} FPS.	It isn't the bottleneck now. Estimate: from about {0} to about {1} FPS.
+Procesador: {0}	Processor: {0}
+Ryzen 7 7800X3D o 9800X3D	Ryzen 7 7800X3D or 9800X3D
+Ryzen 7 5700X3D o 5800X3D	Ryzen 7 5700X3D or 5800X3D
+un i5 o i7 de 13.ª o 14.ª generación	a 13th or 14th gen i5 or i7
+uno más rápido	a faster one
+Ahora no limita, pero mejoraría los peores momentos, los más notables en las peleas.	It isn't a limit now, but it would improve the worst moments, the most noticeable in fights.
+Es el cuello de botella a {0}.	It's the bottleneck at {0}.
+La placa no limita: admite procesadores más rápidos.	The board isn't a limit: it supports faster processors.
+La placa está al final de su plataforma: admite un último salto antes de cambiar placa y RAM.	The board is at the end of its platform: it takes one last jump before a new board and RAM.
+Con esta placa, cambiar de procesador probablemente requiere cambiar también placa y RAM.	With this board, a new processor probably requires a new board and RAM too.
+Monitor de {0} Hz	{0} Hz monitor
+Sin límite el PC ronda {0} FPS y la pantalla solo muestra {1}. No sube los FPS, pero muestra los que ya genera.	Without a limit the PC does around {0} FPS and the screen only shows {1}. It doesn't raise FPS, but shows the ones already produced.
+Monitor: sin cambios recomendados	Monitor: no change recommended
+Para aprovechar más de {0} Hz primero hay que subir los FPS.	To use more than {0} Hz, FPS must rise first.
+Permite jugar con Discord y el navegador abiertos sin tirones.	Allows playing with Discord and the browser open without stutters.
+Disco: un SSD NVMe	Disk: an NVMe SSD
+Cargas más rápidas. No sube los FPS.	Faster loads. Doesn't raise FPS.
+Red: un cable hasta el router	Network: a cable to the router
+Económico y notable en el ping. Si no llega, un adaptador por la instalación eléctrica puede servir.	Inexpensive and noticeable in ping. If it won't reach, a powerline adapter may work.
+Placa: {0}	Motherboard: {0}
+RAM: {0}	RAM: {0}
+Con riesgo: activación solo manual.	Risky: manual activation only.
+Conexión por cable.	Wired connection.
+Sin conexión por cable.	No wired connection.
+Conexión por cable y CPU con margen.	Wired connection and CPU with headroom.
+CPU con poco margen.	CPU with little headroom.
+Conexión por Wi-Fi.	Wi-Fi connection.
+Sin conexión por Wi-Fi.	No Wi-Fi connection.
+La CPU X3D doble necesita el plan Equilibrado.	The dual X3D CPU needs the Balanced plan.
+En un portátil gasta batería y calienta.	On a laptop it drains the battery and heats up.
+PC de mesa con {0} núcleos.	Desktop PC with {0} cores.
+La CPU ya sube de frecuencia sola; solo daría más calor.	The CPU already boosts on its own; it would only add heat.
+En un portátil gasta batería.	On a laptop it drains the battery.
+PC de mesa: no hay batería que cuidar.	Desktop PC: no battery to care for.
+Detectadas {0} gráficas.	{0} GPUs detected.
+Una sola gráfica.	A single GPU.
+Compatible con la gráfica NVIDIA.	Supported by the NVIDIA GPU.
+Solo funciona con NVIDIA.	Only works with NVIDIA.
+Detectados {0} GB de vídeo.	{0} GB of video memory detected.
+Con {0} GB de vídeo apenas cambia los FPS.	With {0} GB of video memory it barely changes FPS.
+No se pudo leer la memoria de vídeo.	Couldn't read the video memory.
+Alivia la CPU de {0} núcleos.	Relieves the {0}-core CPU.
+Los {0} núcleos son suficientes.	The {0} cores are enough.
+Solo con monitor G-Sync o FreeSync; no se puede detectar.	Only with a G-Sync or FreeSync monitor; it can't be detected.
+SSD con {0} GB libres.	SSD with {0} GB free.
+Falta espacio o velocidad de disco.	Not enough disk space or speed.
+{0} y {1} GB: precarga innecesaria.	{0} and {1} GB: preloading not needed.
+Con este disco y memoria todavía ayuda.	With this disk and memory it still helps.
+Con {0} GB conviene liberar memoria.	With {0} GB it's worth freeing memory.
+Con {0} GB no es necesario.	With {0} GB it isn't needed.
+El disco es rápido.	The disk is fast.
+En un disco duro haría más lento el arranque.	On a hard drive it would slow down boot.
+Se nota en cualquier PC.	You notice it on any PC.
+Un escritorio ligero ayuda en este PC.	A lighter desktop helps on this PC.
+Innecesario en este PC.	Not needed on this PC.
+Opcional: quita una función de Windows.	Optional: removes a Windows feature.
+Mejor respuesta en partida.	Better response in matches.
+Adecuado para esta gráfica.	Suitable for this GPU.
+Seguro en cualquier PC.	Safe on any PC.
+Conexión por Wi-Fi: se quita el ahorro de la antena y se omiten los ajustes de cable. Un cable de red ayuda más que cualquier tweak.	Wi-Fi connection: the antenna's power saving is turned off and wired settings are skipped. A network cable helps more than any tweak.
+Conexión por cable: se quitan los ahorros de energía de la tarjeta de red.	Wired connection: the network card's power saving is turned off.
+CPU X3D doble: se mantiene el plan Equilibrado, que usa los núcleos correctos.	Dual X3D CPU: the Balanced plan is kept, which uses the right cores.
+Portátil: se omite lo que gasta batería.	Laptop: whatever drains the battery is skipped.
+PC de mesa: energía en rendimiento.	Desktop PC: power set to performance.
+Gráfica NVIDIA: se incluyen Reflex y el perfil de máximo rendimiento para Fortnite.	NVIDIA GPU: Reflex and the maximum performance profile for Fortnite are included.
+Equipo justo: también se aligera el escritorio.	Modest PC: the desktop is lightened too.
+Equipo potente: la apariencia de Windows no cambia, no aporta FPS.	Powerful PC: Windows' looks stay the same, they add no FPS.
+Leyendo el estado del PC…	Reading the PC's state…
+Listo. Los interruptores muestran el estado real del PC.	Ready. The switches show the PC's real state.
+Estado actual guardado como Original. Se puede restaurar en cualquier momento.	Current state saved as Original. It can be restored at any time.
+No se pudieron leer los datos de la app y no se hará ningún cambio. Revisa {0}. Detalle: {1}	Couldn't read the app's data, so no changes will be made. Check {0}. Detail: {1}
+No se pudo crear el guardado original y no se hará ningún cambio. Detalle: {0}	Couldn't create the original save, so no changes will be made. Detail: {0}
+Hay cambios en curso. Espera a que terminen.	Changes are in progress. Wait for them to finish.
+Hay un cambio en curso. Espera a que termine.	A change is in progress. Wait for it to finish.
+Cierra Fortnite primero: la resolución aún no se ha restaurado.	Close Fortnite first: the resolution hasn't been restored yet.
+No se pudo leer: {0}. Sin esos datos no hay recomendaciones; repite el escaneo.	Couldn't read: {0}. Without that data there are no recommendations; scan again.
+Escaneo completado. Los resultados están en Recomendados.	Scan complete. The results are in Recommended.
+No se pudo actualizar el estado: {0}	Couldn't refresh the state: {0}
+No se pudo guardar la paleta: {0}	Couldn't save the palette: {0}
+Windows no creó un punto de restauración; los guardados de la app siguen disponibles.	Windows didn't create a restore point; the app's saves are still available.
+¿Activar de todas formas?	Turn on anyway?
+No se cambió: {0}.	Not changed: {0}.
+{0}: activado.	{0}: on.
+{0}: quitado.	{0}: off.
+{0}: activado. Reinicia {1} para que haga efecto.	{0}: on. Restart {1} for it to take effect.
+{0}: quitado. Reinicia {1} para que haga efecto.	{0}: off. Restart {1} for it to take effect.
+Fortnite está abierto: {0} ajustes del juego quedaron sin tocar.	Fortnite is open: {0} game settings were left alone.
+No queda nada por activar en esta sección.	Nothing left to turn on in this section.
+Nada que deshacer: lo activado ya estaba así antes de usar Tweakeroo. Se puede quitar uno a uno.	Nothing to undo: what is on was already like that before Tweakeroo. It can be turned off one by one.
+Guardando el estado actual…	Saving the current state…
+Activando {0} de {1}: {2}	Turning on {0} of {1}: {2}
+Deshaciendo {0} de {1}: {2}	Undoing {0} of {1}: {2}
+Ningún cambio aplicado: falló el guardado previo: {0}	No changes applied: the previous save failed: {0}
+{0} activados.	{0} turned on.
+{0} deshechos.	{0} undone.
+{0} fallaron y quedaron como estaban; el motivo está en cada fila.	{0} failed and were left as they were; the reason is on each row.
+Reinicia el PC para completar los cambios.	Restart the PC to finish the changes.
+Guardando…	Saving…
+Guardado: {0}.	Saved: {0}.
+No se pudo guardar: {0}	Couldn't save: {0}
+Restaurando {0}…	Restoring {0}…
+Borrando {0}…	Deleting {0}…
+Borrado: {0}.	Deleted: {0}.
+1 ajuste restaurado.	1 setting restored.
+{0} ajustes restaurados.	{0} settings restored.
+No se pudo con {0}: {1}	Couldn't do {0}: {1}
+Reinicia el PC para completar.	Restart the PC to finish.
+No se pudo abrir: {0}	Couldn't open it: {0}
+No se pudo cambiar el idioma: {0}	Couldn't change the language: {0}
+Cierra Fortnite primero: el juego sobrescribe su configuración al salir.	Close Fortnite first: the game overwrites its settings when it exits.
+El controlador NVIDIA no ofrece esta función.	The NVIDIA driver doesn't offer this feature.
+El controlador NVIDIA devolvió el error {0}.	The NVIDIA driver returned error {0}.
+Windows no aceptó el cambio.	Windows didn't accept the change.
+El guardado original no se borra.	The original save can't be deleted.
+Cierra Fortnite antes de restaurar.	Close Fortnite before restoring.
+Tweakeroo ya está abierto.	Tweakeroo is already open.
+Versión {0}	Version {0}
+Qué hace	What it does
+Términos	Terms
+Instalar	Install
+Optimización de Windows para Fortnite	Windows optimization for Fortnite
+Gratis, sin anuncios y con todos los cambios reversibles.	Free, no ads, and every change is reversible.
+Análisis de componentes	Component analysis
+Escanea el PC y recomienda los ajustes adecuados entre más de 170.	Scans the PC and recommends suitable settings from over 170.
+Copia del estado original	Copy of the original state
+Cada ajuste se desactiva con su interruptor y el estado original se puede restaurar en cualquier momento.	Each setting has its own switch, and the original state can be restored at any time.
+Fortnite en stretched	Fortnite in stretched
+Abre el juego con la resolución elegida y restaura la anterior al cerrarlo.	Opens the game at the selected resolution and restores the previous one when it closes.
+Medición de FPS	FPS measurement
+Se leen de los registros del juego, sin modificarlo, e incluyen recomendaciones de mejora.	Read from the game's logs, without modifying it, with upgrade recommendations.
+Continuar	Continue
+Términos y privacidad	Terms and privacy
+Tweakeroo cambia ajustes de Windows. Lee los términos antes de continuar.	Tweakeroo changes Windows settings. Read the terms before continuing.
+He leído y acepto los términos y la privacidad	I have read and accept the terms and privacy
+Aceptar y seguir	Accept and continue
+Todo listo para instalar	Ready to install
+Se añade al menú Inicio y a Aplicaciones de Windows, desde donde se desinstala. No cambia ningún ajuste hasta que se active.	Added to the Start menu and Windows Apps, where it can be uninstalled. No setting changes until it is turned on.
+Carpeta	Folder
+Crear un acceso directo en el escritorio	Create a desktop shortcut
+Instalando…	Installing…
+Actualizar a {0}	Update to {0}
+Abrir Tweakeroo	Open Tweakeroo
+Reintentar	Try again
+Instalación completada. Tweakeroo está en el menú Inicio. El archivo descargado se puede borrar.	Installation complete. Tweakeroo is in the Start menu. The downloaded file can be deleted.
+No se pudo instalar: {0}	Couldn't install: {0}
+Desinstalar Tweakeroo	Uninstall Tweakeroo
+Opciones para los cambios aplicados.	Options for the applied changes.
+Restaurar el PC al estado Original	Restore the PC to the Original state
+Borrar también los guardados y el historial de FPS	Also delete the saves and FPS history
+Desinstalar	Uninstall
+Desinstalando…	Uninstalling…
+Cerrar	Close
+Tweakeroo se ha desinstalado.	Tweakeroo has been uninstalled.
+Cierra Fortnite y vuelve a intentarlo.	Close Fortnite and try again.
+No se pudo: {0}	Couldn't do it: {0}
+No se pudieron restaurar {0} ajustes; los guardados se conservan.	Couldn't restore {0} settings; the saves are kept.
+No se pudo restaurar 1 ajuste; los guardados se conservan.	Couldn't restore 1 setting; the saves are kept.
+Nueva versión disponible: {0}	New version available: {0}
+Qué trae	What's new
+Actualizar ahora	Update now
+Más tarde	Later
+Descargando…	Downloading…
+Versión instalada: {0}. Los guardados y ajustes se conservan.	Installed version: {0}. Saves and settings are kept.
+No se actualizó: {0}	Not updated: {0}
+El archivo descargado no coincide con el firmado. No se aplicó ningún cambio.	The downloaded file doesn't match the signed one. No changes were applied.
+La descarga no es segura.	The download isn't secure.
+La descarga es demasiado grande.	The download is too large.
+Temporizador de 0,5 ms al jugar	0.5 ms timer while playing
+Se aplica al abrir Fortnite desde Jugar, con Tweakeroo abierto. Su efecto en el retraso no está demostrado.	Applied when Fortnite is opened from Play, with Tweakeroo open. Its effect on delay is not proven.
+Opcional: su efecto en el retraso no está demostrado.	Optional: its effect on delay is not proven.
+Normal	Normal
+Stretched	Stretched
+Macros	Macros
+Macros de edición para freebuild. Solo funcionan en Creativo, con Fortnite en primer plano y Tweakeroo abierto. En cualquier otro modo quedan apagadas.	Edit macros for freebuilding. They only work in Creative, with Fortnite in the foreground and Tweakeroo open. They stay off in any other mode.
+Uso bajo tu propio riesgo	Use at your own risk
+Epic prohíbe las macros en torneos y usarlas, también en Creativo, puede llevar a sanciones en la cuenta. Tweakeroo no las oculta ni evita la detección.	Epic forbids macros in tournaments and using them, also in Creative, can lead to account penalties. Tweakeroo doesn't hide them or avoid detection.
+Acepto el riesgo	I accept the risk
+Edición rápida	Quick edit
+Mantener: entra a editar y selecciona. Soltar: confirma.	Hold: enters edit and selects. Release: confirms.
+Doble edición	Double edit
+Igual que la rápida y, al soltar, edita otra vez donde apunta la mira.	Same as quick edit and, on release, edits again where the crosshair points.
+Editar y resetear	Edit and reset
+Igual que la rápida y, al soltar, devuelve la pieza a su forma.	Same as quick edit and, on release, returns the piece to its shape.
+Reset	Reset
+Un toque devuelve la pieza a su forma.	One tap returns the piece to its shape.
+Teclas en Fortnite	Keys in Fortnite
+Deben ser las mismas que en los ajustes del juego. La tecla de cada macro no debe tener otra función en Fortnite.	They must match the game's settings. Each macro's key must have no other function in Fortnite.
+Editar	Edit
+Seleccionar	Select
+Resetear	Reset
+Confirmar edición al soltar está activado en Fortnite	Confirm Edit on Release is on in Fortnite
+Pausa entre acciones	Pause between actions
+Puede fallar	May fail
+Más segura	Safer
+Lenta	Slow
+Elegir tecla	Choose key
+Pulsa una tecla…	Press a key…
+Clic izquierdo	Left click
+Clic derecho	Right click
+Clic central	Middle click
+Botón lateral 1	Side button 1
+Botón lateral 2	Side button 2
+Estado: {0}	Status: {0}
+Apagadas	Off
+Activas	Active
+En espera: Fortnite no está en primer plano	Waiting: Fortnite isn't in the foreground
+En espera: Fortnite no está en Creativo	Waiting: Fortnite isn't in Creative
+Los clics izquierdo y derecho no se pueden usar como tecla de macro.	Left and right click can't be used as a macro key.
+Esa tecla ya se usa en Fortnite para editar.	That key is already used in Fortnite to edit.
+Esa tecla ya es de otra macro.	That key already belongs to another macro.
+Elige primero una tecla para esta macro.	Choose a key for this macro first.
+Rueda arriba	Wheel up
+Rueda abajo	Wheel down
+La rueda solo se puede usar en las teclas de Fortnite.	The wheel can only be used for the Fortnite keys.
+La rueda no se puede mantener: elige otra tecla para seleccionar.	The wheel can't be held: choose another key to select.

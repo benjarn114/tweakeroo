@@ -1,0 +1,57 @@
+# Tweakeroo terms of use
+Version 3, November 22, 2026.
+By installing or using Tweakeroo you accept these terms. If you don't agree, don't install it. This is a translation; if there is any difference, the Spanish version applies.
+
+# 1. What it is
+Tweakeroo is a free application made by one person, with no company behind it. It changes Windows and Fortnite settings, opens the game at the resolution you choose, shows your FPS and gives advice about your PC.
+
+# 2. What you can do with it
+You can install and use it for free on your computers, and share the official download link. You can't sell it, charge for installing it, publish copies, modified or not, or pass it off as yours. You can keep using every version you get for free, forever. Future versions could be paid. The source code is published so you can read it and build it for yourself, under the repository's LICENSE file.
+
+# 3. What it changes on your PC
+It only changes what you turn on. It needs administrator permission because it changes the registry, services, scheduled tasks, the power plan, the network card, the NVIDIA profile and Fortnite's settings. Before the first change it saves a copy called Original and lets you go back to it. It also tries to create a Windows restore point, but on some computers Windows doesn't allow it. If you create a custom resolution, it is stored in your graphics driver.
+
+# 4. Risks
+Changing system settings can cause failures, loss of features or different results depending on the computer. Settings marked Risk can lower Windows security. Back up what matters to you and create a restore point before you start. You decide what to turn on, and you do so at your own responsibility.
+
+# 5. No performance promises
+Estimated FPS are approximate. No specific improvement in FPS, delay or game results is promised. Purchase advice is only a guide.
+
+# 6. Warranty and liability
+The application is provided as is, without warranties. As far as the law allows, its author is not liable for damage, data loss, loss of access to accounts or services, or other harm arising from its use. Nothing here limits the rights the law gives you that cannot be waived.
+
+# 7. Games, anti-cheat and tournaments
+Tweakeroo doesn't inject code into the game or read its memory. Each game and each tournament sets its own rules and can change them. Check them before competing, especially those about resolution. Following them is up to you.
+
+# 7.1. Macros
+The Macros section is optional and off by default. It is meant for practice in Creative and sends nothing in other modes. It sends keyboard and mouse presses, which Epic forbids in tournaments and which can lead to penalties or losing the account, also in Creative. It doesn't hide its use from the anti-cheat. If you turn it on, you accept that risk.
+
+# 8. Trademarks
+Tweakeroo is not affiliated with Epic Games, Microsoft, NVIDIA, AMD or Intel, nor endorsed by them. Fortnite and the other names are trademarks of their owners and are used only to say what the application works with.
+
+# 9. Minors
+If you are a minor where you live, ask your parent or the person responsible for the computer for permission before installing it.
+
+# 10. Updates
+When it opens, Tweakeroo checks whether there is a new version. It shows you what's new and only updates if you accept. Every update carries a digital signature that the application checks before installing it.
+
+# 11. Uninstalling
+You can remove it from Windows Apps. The uninstaller offers to return the PC to the Original state. If you delete the file by hand, the changes you turned on stay.
+
+# 12. Changes and contact
+If these terms change in an important way, the application will show them to you again. For questions or problems, write through the same place where you got the application.
+
+# Privacy
+Tweakeroo has no accounts, ads or analytics, and doesn't send your data to its author.
+
+# What it reads on your PC
+Your parts, the settings it can change, Fortnite's settings and the logs the game leaves. From the logs it only keeps the date, mode, length and FPS of each match. If you turn on a macro, it checks whether the keys you chose are pressed and reads the game's log to know whether you are in Creative; it doesn't store what you press. To show what uses the most memory, it looks at the names of open programs and doesn't store them.
+
+# Where it keeps it
+On your PC, in your user's AppData\Local\Tweakeroo folder. Nobody else receives it. You can delete it when uninstalling or by removing that folder.
+
+# Internet connections
+Its only connection of its own is to look for and download updates on GitHub. Like any website, GitHub receives your IP address and handles it under its privacy policy. Opening Fortnite uses Epic's launcher, which has its own terms.
+
+# Thanks
+Some settings were chosen by consulting public projects such as WinUtil, Win11Debloat, ReviOS, privacy.sexy and PC-Tuning. Tweakeroo is not affiliated with them.
