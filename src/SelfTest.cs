@@ -171,6 +171,46 @@ namespace Tablero
                 Is(Review.For(new Hw(), new List<Match>()).All(c => c.Kind != Kind.Comprar), "sin datos no aconseja comprar");
                 Is(Review.Real(new List<Match> { new Match { Median = 60, Cap = 60 } }, 144) == 0, "un limite bajo no cuenta como FPS reales");
 
+                // teclas de Fortnite: se queda con el juego del jugador, no con el de fabrica
+                {
+                    MemoryStream mem = new MemoryStream();
+                    Action<string> fs = x => { mem.Write(BitConverter.GetBytes(x.Length + 1), 0, 4); byte[] by = Encoding.ASCII.GetBytes(x + "\0"); mem.Write(by, 0, by.Length); };
+                    Action<string, string, string> act = (nm, k1, k2) => { fs("ActionName"); fs("NameProperty"); fs(nm); fs("KeyBind1"); fs("KeyName"); fs("NameProperty"); fs(k1); fs("KeyBind2"); fs("KeyName"); fs("NameProperty"); fs(k2); };
+                    Action<string, string> set = (e1, r1) => { fs("UserActionBindings"); fs("ArrayProperty"); for (int i = 0; i < 120; i++) act("Accion" + i, "None", "None"); act("PerformBuildingEditInteraction", e1, "MouseScrollDown"); act("EditSelect", "LeftMouseButton", "None"); act("BuildingEditReset", r1, "None"); act("Reload", "R", "None"); };
+                    fs("bEditConfirmOnReleaseEnabled"); fs("BoolProperty"); mem.Write(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0x10 }, 0, 9);
+                    set("G", "RightMouseButton"); set("E", "MouseScrollDown"); fs("CustomGamepadActionBindings"); fs("ArrayProperty"); act("PerformBuildingEditInteraction", "Gamepad_X", "None"); fs("UserActionBindings"); fs("ArrayProperty"); act("PerformBuildingEditInteraction", "Q", "None"); fs("CustomGamepadActionBindings"); fs("ArrayProperty"); for (int i = 0; i < 120; i++) act("Mando" + i, "Gamepad_Y", "None");
+                    Binds bd = Binds.Parse(mem.ToArray());
+                    Is(bd != null && bd.Edit == 'E' && bd.Select == 1 && bd.Reset == Macros.WheelDown && bd.HasConfirm && bd.Confirm, "teclas leidas");
+                    Is(bd.Conflict('R') == "Reload" && bd.Conflict('P') == null, "tecla ocupada");
+                    MemoryStream z = new MemoryStream(); z.Write(Encoding.ASCII.GetBytes("ECFD"), 0, 4); z.Write(new byte[] { 1, 2, 3, 0x78, 0x9c }, 0, 5);
+                    using (System.IO.Compression.DeflateStream df = new System.IO.Compression.DeflateStream(z, System.IO.Compression.CompressionMode.Compress, true)) df.Write(mem.ToArray(), 0, (int)mem.Length);
+                    byte[] back = Binds.Inflate(z.ToArray()); Is(back != null && Binds.Parse(back).Edit == 'E', "archivo comprimido");
+                    Is(Binds.Inflate(new byte[200]) == null && Binds.Inflate(new byte[0]) == null && Binds.Parse(new byte[5000]) == null, "archivo raro");
+                }
+                // red: cuentas y donde esta el problema
+                {
+                    PingStats ps = PingStats.Of(new[] { 20, 22, 20, -1, 80, 20 });
+                    Is(ps.Sent == 6 && ps.Lost == 1 && ps.Median == 20 && ps.Max == 80 && ps.Spikes == 1 && Math.Abs(ps.Jitter - 124.0 / 4) < 0.01, "cuentas de ping: " + ps.Jitter);
+                    Is(PingStats.Of(new[] { -1, -1 }).Silent && PingStats.Of(new int[0]).Loss == 0, "ping sin respuesta");
+                    Func<int, int, PingStats> good = (many, v) => PingStats.Of(Enumerable.Repeat(v, many).ToList());
+                    PingStats ok = good(50, 5), far = good(50, 140), off = good(50, -1), lossy = PingStats.Of(Enumerable.Range(0, 50).Select(i => i % 10 == 0 ? -1 : 20).ToList());
+                    Func<PingStats, PingStats, PingStats, bool, string> vd = (x, y, z1, wf) => NetTest.Verdict(new NetResult { Router = x, Internet = y, Epic = z1, Wifi = wf });
+                    Is(vd(lossy, lossy, lossy, true).StartsWith("El problema empieza en el Wi-Fi") && vd(lossy, lossy, lossy, false).StartsWith("El problema empieza en el cable"), "fallo en casa");
+                    Is(vd(ok, lossy, lossy, true).Contains("proveedor de internet") && vd(off, lossy, lossy, true).StartsWith("El router no contesta"), "fallo del proveedor");
+                    Is(vd(ok, ok, lossy, true).Contains("ruta hasta Epic") && vd(ok, ok, far, true).Contains("140 ms") && vd(ok, ok, ok, true) == "Conexión estable.", "ruta, distancia y bien");
+                    Is(vd(ok, off, off, true).StartsWith("Sin respuesta de internet") && vd(ok, ok, off, true).StartsWith("Los servidores de Epic no contestan"), "sin respuesta");
+                    Func<string, int, System.Threading.Tasks.Task<int>> png = NetTest.Ping;
+                    try
+                    {
+                        NetTest.Ping = (h, ms2) => System.Threading.Tasks.Task.FromResult(h.Contains("-eu.") ? 30 : h.Contains("-br.") ? 90 : -1);
+                        Is(System.Threading.Tasks.Task.Run(() => NetTest.Nearest()).Result == "eu", "region mas cercana");
+                        NetTest.Ping = (h, ms2) => System.Threading.Tasks.Task.FromResult(-1); Is(System.Threading.Tasks.Task.Run(() => NetTest.Nearest()).Result == null, "ninguna region contesta");
+                    }
+                    finally { NetTest.Ping = png; }
+                    Is(Wifi.Advice(true, 50, 6, new List<string> { "steam" }).Count(c => c.Kind == Kind.Gratis) == 4 && Wifi.Advice(false, 0, 0, new List<string>()).All(c => c.Kind == Kind.Bien), "consejos de red");
+                    NetResult nr = new NetResult { Date = "2026-11-22 20:00:00", Router = ok, Internet = ok, Epic = far, Region = "br" }; NetTest.Save(dir, nr); Is(NetTest.Load(dir).Epic.Median == 140, "medicion guardada"); File.WriteAllText(Path.Combine(dir, "red.json"), "{x"); Is(NetTest.Load(dir) == null, "medicion ilegible");
+                }
+
                 // ajustes: lo raro vuelve a lo normal, y exportar e importar no cuela nada
                 Prefs wasP = Prefs.Now; int wasL = Fx.Level; bool lang = L.En;
                 try
@@ -216,12 +256,19 @@ namespace Tablero
 
                 // macros: que mandan, y que solo lo hacen en Creativo con Fortnite delante
                 MacroConfig mc = Macros.Default();
-                Func<List<Act>, string> seq = x => string.Join(" ", x.Select(a => Macros.KeyName(a.Vk)[0] == 'C' ? (a.Vk == 1 ? "L" : "R") + (a.Down ? "+" : "-") : Macros.KeyName(a.Vk) + (a.Down ? "+" : "-")));
-                Is(seq(Macros.Press(mc, "doble")) == "F+ F- L+" && seq(Macros.Release(mc, "doble")) == "L- F+ F- L+ L-", "doble con confirmar al soltar: " + seq(Macros.Release(mc, "doble")));
-                Is(seq(Macros.Release(mc, "editreset")) == "L- F+ F- R+ R-" && seq(Macros.Press(mc, "reset")) == "F+ F- R+ R-" && Macros.Release(mc, "reset").Count == 0, "reset");
+                Func<List<Act>, string> seq = x => string.Join(" ", x.Select(c => c.Vk < 0 ? "(" + -c.Vk + ")" : Macros.KeyName(c.Vk)[0] == 'C' ? (c.Vk == 1 ? "L" : "R") + (c.Down ? "+" : "-") : Macros.KeyName(c.Vk) + (c.Down ? "+" : "-")));
+                // un toque: las dos ediciones salen al pulsar, aunque no se suelte la tecla, y con su pausa en medio
+                Is(seq(Macros.Press(mc, "doble")) == "F+ F- L+ L- (80) F+ F- L+ L-" && Macros.Release(mc, "doble").Count == 0, "doble de un toque: " + seq(Macros.Press(mc, "doble")));
+                Is(seq(Macros.Press(mc, "edit")) == "F+ F- L+ L-" && seq(Macros.Press(mc, "editreset")) == "F+ F- L+ L- (80) F+ F- R+ R-" && seq(Macros.Press(mc, "reset")) == "F+ F- R+ R-", "un toque, las demas");
                 mc.ConfirmOnRelease = false;
-                Is(seq(Macros.Release(mc, "edit")) == "L- F+ F-" && seq(Macros.Release(mc, "doble")) == "L- F+ F- F+ F- L+ L- F+ F-" && seq(Macros.Press(mc, "reset")) == "F+ F- R+ R- F+ F-", "sin confirmar al soltar");
-                foreach (string id in Macros.Ids) Is(Macros.Press(mc, id).Concat(Macros.Release(mc, id)).GroupBy(a => a.Vk).All(g => g.Count(a => a.Down) == g.Count(a => !a.Down)), "ninguna tecla queda pulsada: " + id);
+                Is(seq(Macros.Press(mc, "doble")) == "F+ F- L+ L- F+ F- (80) F+ F- L+ L- F+ F-", "doble sin confirmar al soltar: " + seq(Macros.Press(mc, "doble")));
+                mc.ConfirmOnRelease = true; mc.Hold = true;
+                Is(seq(Macros.Press(mc, "doble")) == "F+ F- L+" && seq(Macros.Release(mc, "doble")) == "L- (80) F+ F- L+ L-", "doble manteniendo: " + seq(Macros.Release(mc, "doble")));
+                Is(seq(Macros.Press(mc, "reset")) == "F+ F- R+ R-" && Macros.Release(mc, "reset").Count == 0, "reset manteniendo");
+                mc.ConfirmOnRelease = false;
+                Is(seq(Macros.Release(mc, "edit")) == "L- F+ F-", "manteniendo sin confirmar al soltar");
+                Is(Macros.Clean(new MacroConfig { Edit = 69, Select = 1, Reset = 2, Keys = new Dictionary<string, int>(), On = new List<string>() }).Gap == 80, "una configuracion vieja coge la pausa normal");
+                foreach (string id in Macros.Ids) Is(Macros.Press(mc, id).Concat(Macros.Release(mc, id)).Where(c => c.Vk > 0).GroupBy(a => a.Vk).All(g => g.Count(a => a.Down) == g.Count(a => !a.Down)), "ninguna tecla queda pulsada: " + id);
                 mc.Reset = Macros.WheelDown; Macros.Save(dir, mc); Is(Macros.Load(dir).Reset == Macros.WheelDown, "rueda guardada");
                 mc.Select = Macros.WheelUp; Macros.Save(dir, mc); Is(Macros.Load(dir).Select == 1, "seleccionar con rueda no vale");
                 const string pre = "[2026.11.22-20.51.53:033][191]";
@@ -235,14 +282,15 @@ namespace Tablero
                     string lf = Path.Combine(FpsLog.Folder, "FortniteGame.log");
                     List<Act> sent = new List<Act>(); bool trig = false, front = true;
                     Macros.Send = a => { lock (sent) sent.Add(a); }; Macros.IsDown = vk => vk == 5 && trig; Macros.Front = () => front;
-                    mc = Macros.Default(); mc.Keys["doble"] = 5; mc.On.Add("doble"); mc.Delay = 5;
+                    mc = Macros.Default(); mc.Keys["doble"] = 5; mc.On.Add("doble"); mc.Delay = 5; mc.Gap = 40;
                     File.WriteAllText(lf, pre + "LogWorld: Bringing World /Delilah/Maps/D.D up for play\n");
                     Macros.Use(mc); System.Threading.Thread.Sleep(300); Is(Macros.Status == "Apagadas", "sin aceptar no arranca");
                     mc.Accepted = true; Macros.Use(mc); trig = true; System.Threading.Thread.Sleep(900); Is(sent.Count == 0 && Macros.Status.StartsWith("En espera"), "en ranked no manda nada");
                     trig = false; File.AppendAllText(lf, pre + "LogWorld: Bringing World /VKPlay/Maps/X.X up for play\n"); System.Threading.Thread.Sleep(900);
                     front = false; System.Threading.Thread.Sleep(600); trig = true; System.Threading.Thread.Sleep(500); Is(sent.Count == 0, "sin Fortnite delante no manda nada"); trig = false; front = true; System.Threading.Thread.Sleep(900);
-                    trig = true; System.Threading.Thread.Sleep(300); trig = false; System.Threading.Thread.Sleep(300);
-                    lock (sent) Is(Macros.Status == "Activas" && seq(sent) == "F+ F- L+ L- F+ F- L+ L-", "doble edicion en creativo: " + seq(sent));
+                    trig = true; System.Threading.Thread.Sleep(500); // sin soltar
+                    lock (sent) Is(Macros.Status == "Activas" && seq(sent) == "F+ F- L+ L- F+ F- L+ L-", "doble edicion en creativo sin soltar la tecla: " + seq(sent));
+                    trig = false; System.Threading.Thread.Sleep(300); lock (sent) Is(sent.Count == 8, "soltar no repite"); mc.Hold = true; Macros.Use(mc); System.Threading.Thread.Sleep(100);
                     trig = true; System.Threading.Thread.Sleep(300); File.AppendAllText(lf, pre + "LogLoad: LoadMap: /Game/Maps/Frontend\n"); System.Threading.Thread.Sleep(900);
                     lock (sent) Is(!sent[sent.Count - 1].Down && sent[sent.Count - 1].Vk == 1 && sent.Count(a => a.Down) == sent.Count(a => !a.Down), "al salir de creativo suelta el clic");
                     File.WriteAllText(Path.Combine(dir, "macros.json"), "{roto"); Is(Macros.Load(dir).On.Count == 0, "macros ilegibles");
@@ -338,6 +386,12 @@ namespace Tablero
                     L.T(FpsLog.Compare(new List<Match>(), null)); L.T(FpsLog.Compare(new List<Match>(), "2026")); L.T(FpsLog.Compare(new List<Match> { mk("2026-01-03", 300), mk("2026-01-04", 320), mk("2026-01-01", 200), mk("2026-01-02", 220) }, "2026-01-02 12:00"));
                     string xaml; using (StreamReader rd = new StreamReader(System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("Window.xaml"))) xaml = rd.ReadToEnd();
                     L.Xaml(xaml);
+                    foreach (Check c in Wifi.Advice(true, 50, 6, new List<string> { "steam" }).Concat(Wifi.Advice(true, 90, 36, new List<string>())).Concat(Wifi.Advice(false, 0, 0, new List<string>()))) { L.T(c.Title); L.T(c.Text); }
+                    for (int i = 0; i < NetTest.Regions.GetLength(0); i++) L.T("Servidores de Epic: " + NetTest.Regions[i, 1]);
+                    { PingStats k = PingStats.Of(Enumerable.Repeat(5, 9).ToList()), f = PingStats.Of(Enumerable.Repeat(150, 9).ToList()), o = PingStats.Of(Enumerable.Repeat(-1, 9).ToList()), m = PingStats.Of(new[] { 5, -1, 5, 90 });
+                      foreach (PingStats x1 in new[] { k, f, o, m }) foreach (PingStats x2 in new[] { k, o, m }) foreach (PingStats x3 in new[] { k, f, o, m }) foreach (bool wf in new[] { true, false }) L.T(NetTest.Verdict(new NetResult { Router = x1, Internet = x2, Epic = x3, Wifi = wf }));
+                      L.T(NetTest.Compare(new NetResult { Date = "2026-11-22 20:00:00", Epic = m }, null)); NetTile tl = new NetTile(); tl.Show(m); L.T(tl.Sub); tl.Show(o); L.T(tl.Main); }
+                    foreach (string x in new[] { "Conexión", "Router", "Internet", "Servidores de Epic", "Midiendo…", "Medir otra vez", "Midiendo durante 15 segundos. Lo más fiable es hacerlo sin descargas y, otra vez, mientras se juega.", "Activo ahora.", "Se activa al abrir Fortnite.", "Un toque", "Mantener", "No se encontraron las teclas de Fortnite. Elígelas a mano.", "Teclas leídas de Fortnite: editar E, resetear Clic derecho.", "Entra a editar, selecciona y confirma.", "Edita, confirma y edita otra vez donde apunta la mira.", "Edita, confirma y devuelve la pieza a su forma." }) L.T(x);
                     foreach (string x in new[] { "Todas", "Sin rebotes", "Apagadas", "Jugar", "Borrar historial de FPS", "Borrar escaneo", "Volver al estado Original", "Restablecer Ajustes", "Pulsa otra vez para confirmar", "Escaneo borrado. Se pedirá otra vez al volver a abrir.", "El PC ya está en el estado Original.", "Ajustes restablecidos.", "Datos copiados. No incluyen nada personal.", "Historial de FPS borrado.", "Ajustes exportados. No incluyen los tweaks.", "No se pudo importar: El archivo no es una copia de ajustes de Tweakeroo.", "Es la versión más reciente.", "No hay dónde buscar actualizaciones.", "Historial de versiones", "Términos y privacidad", "Abrir", "Salir", "La primera vez que se usa una resolución se pide confirmación. Sin respuesta en 30 segundos, se restaura la anterior. Tweakeroo debe quedar abierto durante la partida. En torneos oficiales Epic puede forzar 16:9." }) L.T(x);
                     string[] same = { "Tweakeroo", "Español", "English", "Fortnite", "FPS" };
                     List<string> miss = L.Missing.Where(x => !same.Contains(x)).ToList();

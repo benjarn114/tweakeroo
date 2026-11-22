@@ -773,11 +773,11 @@ Uso bajo tu propio riesgo	Use at your own risk
 Epic prohíbe las macros en torneos y usarlas, también en Creativo, puede llevar a sanciones en la cuenta. Tweakeroo no las oculta ni evita la detección.	Epic forbids macros in tournaments and using them, also in Creative, can lead to account penalties. Tweakeroo doesn't hide them or avoid detection.
 Acepto el riesgo	I accept the risk
 Edición rápida	Quick edit
-Mantener: entra a editar y selecciona. Soltar: confirma.	Hold: enters edit and selects. Release: confirms.
+Entra a editar, selecciona y confirma.	Enters edit, selects and confirms.
 Doble edición	Double edit
-Igual que la rápida y, al soltar, edita otra vez donde apunta la mira.	Same as quick edit and, on release, edits again where the crosshair points.
+Edita, confirma y edita otra vez donde apunta la mira.	Edits, confirms and edits again where the crosshair points.
 Editar y resetear	Edit and reset
-Igual que la rápida y, al soltar, devuelve la pieza a su forma.	Same as quick edit and, on release, returns the piece to its shape.
+Edita, confirma y devuelve la pieza a su forma.	Edits, confirms and returns the piece to its shape.
 Reset	Reset
 Un toque devuelve la pieza a su forma.	One tap returns the piece to its shape.
 Teclas en Fortnite	Keys in Fortnite
@@ -863,3 +863,79 @@ No hay dónde buscar actualizaciones.	There is nowhere to check for updates.
 El archivo no es una copia de ajustes de Tweakeroo.	The file isn't a Tweakeroo settings copy.
 Abrir	Open
 Salir	Exit
+Conexión	Connection
+Mide el ping, los tirones y los paquetes perdidos, y dice dónde está el problema: tu red, el proveedor o la ruta hasta Epic.	Measures ping, stutters and lost packets, and tells where the problem is: your network, the provider or the route to Epic.
+Medir conexión	Test connection
+Medir otra vez	Test again
+Midiendo…	Testing…
+Midiendo durante 15 segundos.	Testing for 15 seconds.
+Lo más fiable es hacerlo sin descargas y, otra vez, mientras se juega.	It's most reliable without downloads and, again, while playing.
+Tweaks de red	Network tweaks
+Router	Router
+Internet	Internet
+Servidores de Epic	Epic servers
+Servidores de Epic: {0}	Epic servers: {0}
+Brasil	Brazil
+Norteamérica este	North America East
+Norteamérica centro	North America Central
+Norteamérica oeste	North America West
+Europa	Europe
+Oriente Medio	Middle East
+Asia	Asia
+Oceanía	Oceania
+Sin respuesta	No response
+Variación {0} ms, pérdida {1} %, peor {2} ms	Jitter {0} ms, loss {1}%, worst {2} ms
+Prueba anterior ({0}): {1} ms, variación {2} ms, pérdida {3} %.	Previous test ({0}): {1} ms, jitter {2} ms, loss {3}%.
+Mientras se juega	While playing
+Wi-Fi estable	Steady Wi-Fi
+Con Fortnite abierto, Windows deja de buscar otras redes, que es una causa de tirones. Al cerrarlo vuelve a lo normal. Algunas tarjetas no lo respetan.	With Fortnite open, Windows stops looking for other networks, one cause of stutters. It goes back to normal when it closes. Some cards don't respect it.
+Activo ahora.	Active now.
+Se activa al abrir Fortnite.	Turns on when Fortnite opens.
+Estado de la red	Network status
+Tweakeroo no pasa el tráfico por otros servidores, como hace ExitLag, así que no acorta la distancia hasta Epic. Al medir hace ping al router, a 1.1.1.1 y a los servidores de medición de Epic.	Tweakeroo doesn't send your traffic through other servers, as ExitLag does, so it doesn't shorten the distance to Epic. When testing, it pings the router, 1.1.1.1 and Epic's measuring servers.
+Sin respuesta de internet.	No response from the internet.
+Comprueba la conexión.	Check the connection.
+El problema empieza en el Wi-Fi: hay pérdidas o picos hasta el router.	The problem starts in the Wi-Fi: there are losses or spikes up to the router.
+Un cable, o acercarse al router, es lo que más ayuda.	A cable, or getting closer to the router, helps the most.
+El problema empieza en el cable o el router: hay pérdidas o picos dentro de casa.	The problem starts in the cable or the router: there are losses or spikes at home.
+Prueba otro cable u otro puerto.	Try another cable or port.
+El router no contesta a la prueba, así que puede ser tu red o tu proveedor.	The router doesn't answer the test, so it can be your network or your provider.
+La red de casa va bien; las pérdidas o picos están en el proveedor de internet.	The home network is fine; the losses or spikes are at the internet provider.
+Cierra descargas y, si sigue, avisa al proveedor con estos datos.	Close downloads and, if it continues, tell the provider with these details.
+Los servidores de Epic no contestan a la prueba.	Epic's servers don't answer the test.
+El resto de la conexión va bien.	The rest of the connection is fine.
+La red de casa y el proveedor van bien; las pérdidas o picos están en la ruta hasta Epic.	The home network and the provider are fine; the losses or spikes are on the route to Epic.
+Conexión estable.	Stable connection.
+El ping alto viene de la distancia al servidor: {0} ms.	The high ping comes from the distance to the server: {0} ms.
+Wi-Fi en 2,4 GHz	2.4 GHz Wi-Fi
+La banda de 5 GHz tiene menos interferencias.	The 5 GHz band has less interference.
+Si el router la ofrece, es mejor conectarse a ella.	If the router offers it, connecting to it is better.
+Wi-Fi en 5 o 6 GHz	5 or 6 GHz Wi-Fi
+Es la banda con menos interferencias.	It's the band with the least interference.
+Señal Wi-Fi: {0} %	Wi-Fi signal: {0}%
+Por debajo del 70 % aparecen pérdidas.	Below 70% losses appear.
+Acercar el PC o el router ayuda más que cualquier ajuste.	Moving the PC or the router closer helps more than any setting.
+La señal es suficiente.	The signal is good enough.
+Programas que pueden usar la red: {0}	Programs that may use the network: {0}
+Una descarga o subida llena la conexión y sube el ping.	A download or upload fills the connection and raises the ping.
+Conviene cerrarlos o pausarlos antes de jugar.	Closing or pausing them before playing is advised.
+Ningún programa conocido de descargas abierto	No known download program open
+Si hay tirones, mira también otros equipos de la casa.	If there are stutters, also check other devices at home.
+Wi-Fi: sin cambiar de antena	Wi-Fi: no roaming
+La tarjeta busca menos otras antenas, que es cuando hay tirones. Solo tarjetas Realtek y si el PC no se mueve.	The card looks for other antennas less often, which is when stutters happen. Realtek cards only and if the PC doesn't move.
+Prioridad de red para Fortnite	Network priority for Fortnite
+Marca los paquetes del juego como urgentes. Solo ayuda si el router respeta la marca.	Marks the game's packets as urgent. It only helps if the router respects the mark.
+Conexión por Wi-Fi en un PC de mesa.	Wi-Fi connection on a desktop PC.
+En un portátil conviene que cambie de antena al moverse.	On a laptop, switching antenna when moving is better.
+Opcional: depende del router.	Optional: depends on the router.
+Leer mis teclas de Fortnite	Read my Fortnite keys
+No se encontraron las teclas de Fortnite.	Fortnite's keys weren't found.
+Elígelas a mano.	Choose them by hand.
+Teclas leídas de Fortnite: editar {0}, resetear {1}.	Keys read from Fortnite: edit {0}, reset {1}.
+Esa tecla ya hace algo en Fortnite y hará las dos cosas: {0}	That key already does something in Fortnite and will do both: {0}
+Al pulsar la tecla de la macro	When the macro key is pressed
+Un toque manda toda la secuencia. Mantener deja arrastrar para elegir varias casillas y sigue al soltar.	One tap sends the whole sequence. Hold lets you drag to select several tiles and continues on release.
+Un toque	One tap
+Mantener	Hold
+Pausa antes de la segunda acción	Pause before the second action
+Si la segunda edición no sale, sube este valor. Depende del ping y de los FPS.	If the second edit doesn't happen, raise this value. It depends on ping and FPS.

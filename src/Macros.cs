@@ -19,6 +19,8 @@ namespace Tablero
         public int Select { get; set; }
         public int Reset { get; set; }
         public int Delay { get; set; }             // ms entre acciones
+        public int Gap { get; set; }               // ms antes de la segunda accion: el juego tarda en dejar editar otra vez
+        public bool Hold { get; set; }             // mantener para arrastrar; si no, un toque lo manda todo
         public Dictionary<string, int> Keys { get; set; } // tecla de cada macro; 0 = sin tecla
         public List<string> On { get; set; }
     }
@@ -34,7 +36,7 @@ namespace Tablero
         public static readonly string[] Ids = { "edit", "doble", "reset", "editreset" };
 
         // ---- Guardado ----
-        public static MacroConfig Default() { return new MacroConfig { ConfirmOnRelease = true, Edit = 0x46, Select = 1, Reset = 2, Delay = 20, Keys = new Dictionary<string, int>(), On = new List<string>() }; }
+        public static MacroConfig Default() { return new MacroConfig { ConfirmOnRelease = true, Edit = 0x46, Select = 1, Reset = 2, Delay = 20, Gap = 80, Keys = new Dictionary<string, int>(), On = new List<string>() }; }
         static string FileOf(string dir) { return Path.Combine(dir, "macros.json"); }
         public static MacroConfig Load(string dir)
         {
@@ -48,6 +50,7 @@ namespace Tablero
         {
             if (c == null || c.Keys == null || c.On == null || !(Valid(c.Edit) || Wheel(c.Edit)) || !Valid(c.Select) || !(Valid(c.Reset) || Wheel(c.Reset))) return Default();
             c.Delay = Math.Max(5, Math.Min(200, c.Delay));
+            c.Gap = c.Gap < 20 || c.Gap > 500 ? 80 : c.Gap;
             foreach (string k in c.Keys.Keys.ToList()) if (!Ids.Contains(k) || !Valid(c.Keys[k])) c.Keys.Remove(k);
             c.On.RemoveAll(x => !c.Keys.ContainsKey(x));
             return c;
@@ -83,8 +86,17 @@ namespace Tablero
 
         // ---- Que pulsa cada macro ----
         static void Tap(List<Act> a, int vk) { a.Add(new Act(vk, true)); a.Add(new Act(vk, false)); }
-        // Al pulsar la tecla: entra a editar y mantiene la seleccion para poder arrastrar.
+        // Una espera va en la lista como tecla negativa.
+        static Act Wait(int ms) { return new Act(-ms, false); }
+        // Con un toque sale todo al pulsar; manteniendo, se entra a editar y se puede arrastrar hasta soltar.
         public static List<Act> Press(MacroConfig c, string id)
+        {
+            List<Act> a = Start(c, id);
+            if (!c.Hold) a.AddRange(End(c, id));
+            return a;
+        }
+        public static List<Act> Release(MacroConfig c, string id) { return c.Hold ? End(c, id) : new List<Act>(); }
+        static List<Act> Start(MacroConfig c, string id)
         {
             List<Act> a = new List<Act>();
             Tap(a, c.Edit);
@@ -92,14 +104,15 @@ namespace Tablero
             else a.Add(new Act(c.Select, true));
             return a;
         }
-        // Al soltarla: confirma y, segun la macro, hace la segunda edicion o el reset.
-        public static List<Act> Release(MacroConfig c, string id)
+        // Confirma y, segun la macro, hace la segunda edicion o el reset.
+        static List<Act> End(MacroConfig c, string id)
         {
             List<Act> a = new List<Act>();
             if (id == "reset") return a;
             a.Add(new Act(c.Select, false));
             if (!c.ConfirmOnRelease) Tap(a, c.Edit);
             if (id == "edit") return a;
+            a.Add(Wait(c.Gap));
             Tap(a, c.Edit);
             Tap(a, id == "doble" ? c.Select : c.Reset);
             if (!c.ConfirmOnRelease) Tap(a, c.Edit);
@@ -222,7 +235,12 @@ namespace Tablero
 
         static void Do(List<Act> list, int delay)
         {
-            foreach (Act a in list) { Send(a); Thread.Sleep(delay); }
+            foreach (Act a in list)
+            {
+                if (a.Vk < 0) { Thread.Sleep(-a.Vk); continue; }
+                Send(a);
+                Thread.Sleep(delay);
+            }
         }
 
         static void Loop()
@@ -245,7 +263,7 @@ namespace Tablero
                     }
                     if (!active)
                     {
-                        if (held.Count > 0) { Send(new Act(c.Select, false)); held.Clear(); }
+                        if (held.Count > 0) { if (c.Hold) Send(new Act(c.Select, false)); held.Clear(); }
                         if (fine) { timeEndPeriod(1); fine = false; }
                         Thread.Sleep(200);
                         continue;
@@ -263,7 +281,7 @@ namespace Tablero
             }
             finally
             {
-                if (held.Count > 0) Send(new Act(cfg.Select, false));
+                if (held.Count > 0 && cfg.Hold) Send(new Act(cfg.Select, false));
                 if (fine) timeEndPeriod(1);
             }
         }

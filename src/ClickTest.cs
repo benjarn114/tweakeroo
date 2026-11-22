@@ -55,7 +55,7 @@ namespace Tablero
         static void Press(Button b) { ((IInvokeProvider)new ButtonAutomationPeer(b).GetPattern(PatternInterface.Invoke)).Invoke(); w0.Dispatcher.Invoke(new Action(() => { }), System.Windows.Threading.DispatcherPriority.Background); }
         static Window w0;
         static Res screen = new Res { W = 2560, H = 1440, Hz = 200 };
-        static bool running;
+        static bool running, steady;
         static int opened, tries, saved, reverts;
         const string ini = "[/Script/FortniteGame.FortGameUserSettings]\r\nFullscreenMode=0\r\nResolutionSizeX=2560\r\nResolutionSizeY=1440\r\n";
         static void Fakes(string dir)
@@ -69,6 +69,9 @@ namespace Tablero
             Display.Accepts = r => true;
             Custom.Available = () => true; Custom.Try = r => { tries++; screen = r; }; Custom.Save = () => saved++; Custom.Revert = () => { reverts++; screen = native; };
             FpsLog.Folder = Path.Combine(dir, "sin-registros");
+            Binds.Folder = Path.Combine(dir, "sin-teclas");
+            NetTest.Ping = (h, ms) => Task.FromResult(h.Contains("-br.") ? 41 : h == "1.1.1.1" ? 20 : h == "10.0.0.1" ? 2 : -1); NetTest.Router = () => "10.0.0.1"; Ui.NetTries = 10; Ui.NetPause = 5;
+            Wifi.Steady = on => { steady = on; return true; };
         }
         public static async Task<string> Run(Window w, Ui ui)
         {
@@ -76,15 +79,15 @@ namespace Tablero
             try
             {
                 ListBox nav = (ListBox)w.FindName("Circuits");
-                Is(string.Join(",", nav.Items.Cast<Circuit>().Select(c => c.Name)) == "Jugar,Mi PC,Mis FPS,Macros,Mejoras", "menu corto al abrir");
+                Is(string.Join(",", nav.Items.Cast<Circuit>().Select(c => c.Name)) == "Jugar,Mi PC,Mis FPS,Conexión,Macros,Mejoras", "menu corto al abrir");
                 await Task.Delay(400);
                 Is(((UIElement)w.FindName("SkelPage")).Visibility != Visibility.Visible && ((UIElement)w.FindName("SkelSaves")).Visibility != Visibility.Visible, "los skeletons se van");
                 // una lista desactivada no puede traer el fondo blanco de Windows
                 foreach (string n in new[] { "Saves", "Rows", "Resolutions" }) Is(((ListBox)w.FindName(n)).Template == w.Resources[n == "Resolutions" ? "BareList" : "PlainList"], "plantilla de " + n);
-                Go(w, "Mejoras"); Key(nav, System.Windows.Input.Key.Right); Is(nav.Items.Count > 5, "Mejoras se despliega");
-                Key(nav, System.Windows.Input.Key.Left); await Task.Delay(500); Is(nav.Items.Count == 5, "Mejoras se pliega");
+                Go(w, "Mejoras"); Key(nav, System.Windows.Input.Key.Right); Is(nav.Items.Count > 6, "Mejoras se despliega");
+                Key(nav, System.Windows.Input.Key.Left); await Task.Delay(500); Is(nav.Items.Count == 6, "Mejoras se pliega");
                 Key(nav, System.Windows.Input.Key.Enter); Key(nav, System.Windows.Input.Key.Enter); Key(nav, System.Windows.Input.Key.Enter); await Task.Delay(500);
-                Is(nav.Items.Count == 5 + 2 && nav.Items.Cast<Circuit>().Distinct().Count() == nav.Items.Count, "abrir y cerrar rapido no duplica");
+                Is(nav.Items.Count == 6 + 2 && nav.Items.Cast<Circuit>().Distinct().Count() == nav.Items.Count, "abrir y cerrar rapido no duplica");
                 Go(w, "Todos");
                 await Task.Delay(700);
                 await Click(w, RowBtn(w, "a")); Is(V("a") == "d:1", "prender uno");
@@ -162,13 +165,23 @@ namespace Tablero
                 Press(ks); live.Captured(Macros.WheelUp); Is((string)ks.Content == "Clic izquierdo", "la rueda no sirve para seleccionar");
                 Press(kb(ed)); live.Captured(Macros.WheelUp); Is(!ed.On, "la rueda no sirve para lanzar macros");
                 ac.IsChecked = false; ac.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent)); Is(Macros.Status == "Apagadas" && !body.IsEnabled, "sin aceptar se apagan");
+                // conexion: mide, dice donde esta el problema y lo guarda
+                Go(w, "Conexión"); await Task.Delay(400);
+                Button nr = (Button)w.FindName("NetRun"); Press(nr); Is(!nr.IsEnabled, "midiendo"); for (int i = 0; i < 60 && !nr.IsEnabled; i++) await Task.Delay(100);
+                List<NetTile> nt = ((ItemsControl)w.FindName("NetTiles")).Items.Cast<NetTile>().ToList();
+                Is(nt[0].Main == "2 ms" && nt[1].Main == "20 ms" && nt[2].Main == "41 ms" && nt[2].Label.EndsWith("Brasil") && ((TextBlock)w.FindName("NetVerdict")).Text == "Conexión estable.", "medicion: " + string.Join(" ", nt.Select(x => x.Main)));
+                Is(((ItemsControl)w.FindName("NetChecks")).Items.Count >= 2 && NetTest.Load(Path.Combine(Path.GetTempPath(), "tablero-clics")).Region == "br", "consejos y guardado");
+                CheckBox ns = (CheckBox)w.FindName("NetSteady"); ns.IsChecked = true; ns.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent)); Is(!steady, "sin Fortnite no toca el Wi-Fi");
+                running = true; await Task.Delay(3500); Is(steady, "con Fortnite abierto, Wi-Fi estable"); running = false;
+                body.IsEnabled = true; Press((Button)w.FindName("ReadBinds")); body.IsEnabled = false; Is(((TextBlock)w.FindName("Status")).Text.StartsWith("No se encontraron las teclas"), "sin teclas de Fortnite avisa");
+
                 // ajustes: se guardan, se ven al momento y cerrar esconde sin cerrar
                 string cd = Path.Combine(Path.GetTempPath(), "tablero-clics");
                 RoutedEventArgs clk = new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent);
                 Press((Button)w.FindName("OpenSettings")); await Task.Delay(300);
                 Is(((UIElement)w.FindName("SettingsPage")).IsVisible && nav.SelectedItem == null && ((UIElement)w.FindName("NavMark")).Visibility == Visibility.Hidden, "abre Ajustes");
                 ListBox cf = (ListBox)w.FindName("SetConfirm"), mo = (ListBox)w.FindName("SetMotion"), pg = (ListBox)w.FindName("SetPage");
-                cf.SelectedIndex = 2; mo.SelectedIndex = 2; pg.SelectedIndex = 3;
+                cf.SelectedIndex = 2; mo.SelectedIndex = 2; pg.SelectedIndex = 4;
                 Prefs sp = Prefs.Parse(File.ReadAllText(Path.Combine(cd, "ajustes.json")));
                 Is(sp.Confirm == 30 && sp.Motion == 2 && sp.Page == "Macros" && !Fx.On && ((TextBlock)w.FindName("PlayNote")).Text.Contains("30 segundos"), "ajustes guardados y aplicados");
                 Is(!((CheckBox)w.FindName("SetBoot")).IsEnabled, "sin instalar no se abre con Windows");

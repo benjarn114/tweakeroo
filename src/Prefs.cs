@@ -16,8 +16,9 @@ namespace Tablero
         public int Motion { get; set; }   // 0 todas, 1 sin rebotes, 2 apagadas
         public int Confirm { get; set; }  // segundos para confirmar una resolucion
         public bool AutoCheck { get; set; }
+        public bool WifiSteady { get; set; }
 
-        public static readonly string[] PageNames = { "Jugar", "Mi PC", "Mis FPS", "Macros", "Mejoras" };
+        public static readonly string[] PageNames = { "Jugar", "Mi PC", "Mis FPS", "Conexión", "Macros", "Mejoras" };
         public static readonly int[] Seconds = { 10, 15, 30 };
         public static Prefs Now = Default();
 

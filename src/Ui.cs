@@ -163,7 +163,7 @@ namespace Tablero
         List<Part> parts;
         Hw hw;
         bool working, ready;
-        static readonly string[] Pages = { "PcPage", "StretchPage", "FpsPage", "MacroPage", "SettingsPage", "UpgradePage", "ListPage" };
+        static readonly string[] Pages = { "PcPage", "StretchPage", "FpsPage", "MacroPage", "NetPage", "SettingsPage", "UpgradePage", "ListPage" };
         StretchSession stretch;
         DispatcherTimer watch;
         bool confirming, gameSeen;
@@ -355,6 +355,7 @@ namespace Tablero
                 { "Publicidad", "Tag" }, { "Búsqueda", "Search" }, { "Telemetría", "Eye" }, { "Interfaz", "Window" } };
             circuits = new ObservableCollection<Circuit> { new Circuit { Name = "Jugar", Icon = Ico("Launch"), Page = "StretchPage" }, new Circuit { Name = "Mi PC", Icon = Ico("Pc"), Page = "PcPage" },
                 new Circuit { Name = "Mis FPS", Icon = Ico("Gauge"), Page = "FpsPage" } };
+            circuits.Add(new Circuit { Name = "Conexión", Icon = Ico("Net"), Page = "NetPage" });
             circuits.Add(new Circuit { Name = "Macros", Icon = Ico("Keys"), Page = "MacroPage" });
             upgrades = new Circuit { Name = "Mejoras", Icon = Ico("Up"), Page = "UpgradePage" };
             circuits.Add(upgrades);
@@ -428,6 +429,7 @@ namespace Tablero
             StartStretch();
             StartMacros();
             StartSettings();
+            StartNet();
             w.Closed += (s, e) => Macros.Stop();
 
             await Refresh();
@@ -738,9 +740,9 @@ namespace Tablero
         {
             macros = Macros.Load(dir);
             macroRows = new List<MacroRow> {
-                new MacroRow { Id = "edit", Name = "Edición rápida", Desc = "Mantener: entra a editar y selecciona. Soltar: confirma." },
-                new MacroRow { Id = "doble", Name = "Doble edición", Desc = "Igual que la rápida y, al soltar, edita otra vez donde apunta la mira." },
-                new MacroRow { Id = "editreset", Name = "Editar y resetear", Desc = "Igual que la rápida y, al soltar, devuelve la pieza a su forma." },
+                new MacroRow { Id = "edit", Name = "Edición rápida", Desc = "Entra a editar, selecciona y confirma." },
+                new MacroRow { Id = "doble", Name = "Doble edición", Desc = "Edita, confirma y edita otra vez donde apunta la mira." },
+                new MacroRow { Id = "editreset", Name = "Editar y resetear", Desc = "Edita, confirma y devuelve la pieza a su forma." },
                 new MacroRow { Id = "reset", Name = "Reset", Desc = "Un toque devuelve la pieza a su forma." } };
             F<ItemsControl>("MacroRows").ItemsSource = macroRows;
             F<ItemsControl>("MacroRows").AddHandler(ButtonBase.ClickEvent, new RoutedEventHandler(MacroClick));
@@ -750,6 +752,9 @@ namespace Tablero
             F<Btn>("KeySelect").Click += (s, e) => GameKey("KeySelect", vk => macros.Select = vk);
             F<Btn>("KeyReset").Click += (s, e) => GameKey("KeyReset", vk => macros.Reset = vk);
             List<LimitOption> d = new[] { 10, 20, 35, 60 }.Select(x => new LimitOption { Name = x + " ms", Note = x == 10 ? "Puede fallar" : x == 20 ? "Normal" : x == 35 ? "Más segura" : "Lenta", Value = x.ToString() }).ToList();
+            Choice("MacroHold", new[] { "Un toque", "Mantener" }, new[] { "0", "1" }, () => macros.Hold ? "1" : "0", v => { macros.Hold = v == "1"; SaveMacros(null); });
+            Choice("MacroGap", new[] { "40 ms", "80 ms", "120 ms", "180 ms" }, new[] { "40", "80", "120", "180" }, () => macros.Gap.ToString(), v => { macros.Gap = int.Parse(v); SaveMacros(null); });
+            F<Btn>("ReadBinds").Click += (s, e) => ReadBinds();
             ListBox l = F<ListBox>("MacroDelay");
             l.ItemsSource = d;
             l.SelectedItem = d.FirstOrDefault(x => x.Value == macros.Delay.ToString()) ?? d[1];
@@ -814,9 +819,29 @@ namespace Tablero
                 if (vk == 0 || no != null) { ShowMacros(); if (no != null) Say(no, false); return; }
                 macros.Keys[r.Id] = vk;
                 if (!macros.On.Contains(r.Id)) macros.On.Add(r.Id);
-                SaveMacros(null);
+                string hit = null;
+                try { Binds b = Binds.Load(); if (b != null) hit = b.Conflict(vk); }
+                catch (IOException) { }
+                catch (UnauthorizedAccessException) { }
+                SaveMacros(hit == null ? null : "Esa tecla ya hace algo en Fortnite y hará las dos cosas: " + hit);
             });
             r.Set("Pulsa una tecla…", r.On);
+        }
+
+        void ReadBinds()
+        {
+            Binds b = null;
+            try { b = Binds.Load(); }
+            catch (IOException ex) { Say("No se pudo leer: " + ex.Message, false); return; }
+            catch (UnauthorizedAccessException ex) { Say("No se pudo leer: " + ex.Message, false); return; }
+            if (b == null || b.Edit == 0) { Say("No se encontraron las teclas de Fortnite. Elígelas a mano.", false); return; }
+            macros.Edit = b.Edit;
+            if (b.Select != 0 && !Macros.Wheel(b.Select)) macros.Select = b.Select;
+            if (b.Reset != 0) macros.Reset = b.Reset;
+            if (b.HasConfirm) macros.ConfirmOnRelease = b.Confirm;
+            // Una macro no puede compartir tecla con editar, seleccionar o resetear.
+            foreach (string id in macros.Keys.Where(k => k.Value == macros.Edit || k.Value == macros.Select || k.Value == macros.Reset).Select(k => k.Key).ToList()) { macros.Keys.Remove(id); macros.On.Remove(id); }
+            SaveMacros("Teclas leídas de Fortnite: editar " + Macros.KeyName(macros.Edit) + ", resetear " + Macros.KeyName(macros.Reset) + ".");
         }
 
         void SaveMacros(string msg)
@@ -1012,6 +1037,7 @@ namespace Tablero
             if (c.Page == "PcPage") Meter(true);
             if (c.Page == "FpsPage") { Task t = OpenFps(); }
             if (c.Page == "StretchPage") { Task t = LoadPlay(); }
+            if (c.Page == "NetPage") { Task t = OpenNet(); }
             if (c.Rows == null) { if (ready) EnterPage(c.Page); return; }
             F<TextBox>("Search").Text = "";
             Filter(true);

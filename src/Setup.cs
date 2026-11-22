@@ -21,7 +21,7 @@ namespace Tablero
         public static string Desktop = Environment.GetFolderPath(Environment.SpecialFolder.CommonDesktopDirectory);
         public static RegistryHive Hive = RegistryHive.LocalMachine;
         const string Key = @"Software\Microsoft\Windows\CurrentVersion\Uninstall\Tweakeroo";
-        public const string TermsVersion = "3";
+        public const string TermsVersion = "4";
 
         public static string Me { get { return Assembly.GetExecutingAssembly().Location; } }
         public static Version MyVersion { get { return Assembly.GetExecutingAssembly().GetName().Version; } }

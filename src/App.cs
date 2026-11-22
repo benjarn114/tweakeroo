@@ -12,7 +12,7 @@ using System.Windows.Media.Imaging;
 
 [assembly: AssemblyTitle("Tweakeroo")]
 [assembly: AssemblyProduct("Tweakeroo")]
-[assembly: AssemblyVersion("3.5.0.0")]
+[assembly: AssemblyVersion("3.6.0.0")]
 
 namespace Tablero
 {
@@ -141,7 +141,8 @@ namespace Tablero
                     if (!still) ui.Open(args[3]);
                     if (Array.IndexOf(args, "abierto") >= 0) { ((Btn)w.FindName("ResOpen")).RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent)); ((ScrollViewer)w.FindName("UpgradePage")).ScrollToEnd(); }
                     if (Array.IndexOf(args, "versiones") >= 0) ((Btn)w.FindName("ShowVersions")).RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
-                    if (Array.IndexOf(args, "fin") >= 0) ((ScrollViewer)w.FindName("SettingsPage")).ScrollToEnd();
+                    if (Array.IndexOf(args, "fin") >= 0) foreach (string n in new[] { "SettingsPage", "MacroPage", "NetPage" }) ((ScrollViewer)w.FindName(n)).ScrollToEnd();
+                    if (Array.IndexOf(args, "medir") >= 0) { Btn run = (Btn)w.FindName("NetRun"); run.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent)); while (!run.IsEnabled) await Task.Delay(200); }
                     await Task.Delay(1800);
                     FrameworkElement root = (FrameworkElement)w.Content;
                     RenderTargetBitmap bmp = new RenderTargetBitmap((int)root.ActualWidth, (int)root.ActualHeight, 96, 96, PixelFormats.Pbgra32);

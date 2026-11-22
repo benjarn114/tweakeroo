@@ -1,5 +1,5 @@
 # Tweakeroo terms of use
-Version 3, November 22, 2026.
+Version 4, November 22, 2026.
 By installing or using Tweakeroo you accept these terms. If you don't agree, don't install it. This is a translation; if there is any difference, the Spanish version applies.
 
 # 1. What it is
@@ -45,13 +45,13 @@ If these terms change in an important way, the application will show them to you
 Tweakeroo has no accounts, ads or analytics, and doesn't send your data to its author.
 
 # What it reads on your PC
-Your parts, the settings it can change, Fortnite's settings and the logs the game leaves. From the logs it only keeps the date, mode, length and FPS of each match. If you turn on a macro, it checks whether the keys you chose are pressed and reads the game's log to know whether you are in Creative; it doesn't store what you press. To show what uses the most memory, it looks at the names of open programs and doesn't store them.
+Your parts, the settings it can change, Fortnite's settings and the logs the game leaves. From the logs it only keeps the date, mode, length and FPS of each match. If you press Read my Fortnite keys or choose a macro's key, it reads the keys from your local copy of the game's settings and doesn't send them. If you turn on a macro, it checks whether the keys you chose are pressed and reads the game's log to know whether you are in Creative; it doesn't store what you press. To show what uses the most memory, it looks at the names of open programs and doesn't store them.
 
 # Where it keeps it
 On your PC, in your user's AppData\Local\Tweakeroo folder. Nobody else receives it. You can delete it when uninstalling or by removing that folder.
 
 # Internet connections
-Its only connection of its own is to look for and download updates on GitHub. Like any website, GitHub receives your IP address and handles it under its privacy policy. Opening Fortnite uses Epic's launcher, which has its own terms.
+It connects to GitHub to look for and download updates. If you press Test connection, it pings your router, 1.1.1.1 (Cloudflare) and Epic's measuring servers; the results stay on your PC. Like any website, GitHub receives your IP address and handles it under its privacy policy. Opening Fortnite uses Epic's launcher, which has its own terms.
 
 # Thanks
 Some settings were chosen by consulting public projects such as WinUtil, Win11Debloat, ReviOS, privacy.sexy and PC-Tuning. Tweakeroo is not affiliated with them.

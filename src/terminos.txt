@@ -1,5 +1,5 @@
 # Términos de uso de Tweakeroo
-Versión 3, 22 de noviembre de 2026.
+Versión 4, 22 de noviembre de 2026.
 Al instalar o usar Tweakeroo aceptas estos términos. Si no estás de acuerdo, no la instales.
 
 # 1. Qué es
@@ -45,13 +45,13 @@ Si estos términos cambian de forma importante, la aplicación te los volverá a
 Tweakeroo no tiene cuentas, anuncios ni estadísticas, y no envía tus datos a su autor.
 
 # Qué lee en tu PC
-Tus componentes, los ajustes que puede cambiar, la configuración de Fortnite y los registros que deja el juego. De los registros solo guarda la fecha, el modo, la duración y los FPS de cada partida. Si activas una macro, mira si están pulsadas las teclas que elegiste y lee el registro del juego para saber si estás en Creativo; no guarda lo que pulsas. Para enseñarte qué usa más memoria mira los nombres de los programas abiertos y no los guarda.
+Tus componentes, los ajustes que puede cambiar, la configuración de Fortnite y los registros que deja el juego. De los registros solo guarda la fecha, el modo, la duración y los FPS de cada partida. Si pulsas Leer mis teclas de Fortnite o eliges la tecla de una macro, lee las teclas de tu copia local de ajustes del juego y no las envía. Si activas una macro, mira si están pulsadas las teclas que elegiste y lee el registro del juego para saber si estás en Creativo; no guarda lo que pulsas. Para enseñarte qué usa más memoria mira los nombres de los programas abiertos y no los guarda.
 
 # Dónde lo guarda
 En tu PC, en la carpeta AppData\Local\Tweakeroo de tu usuario. Nadie más lo recibe. Puedes borrarlo al desinstalar o eliminando esa carpeta.
 
 # Conexiones a internet
-Su única conexión propia es para buscar y descargar actualizaciones en GitHub. Como cualquier web, GitHub recibe tu dirección IP y la trata según su política de privacidad. Al abrir Fortnite se usa el lanzador de Epic, que tiene sus propias condiciones.
+Se conecta a GitHub para buscar y descargar actualizaciones. Si pulsas Medir conexión, hace ping a tu router, a 1.1.1.1 (Cloudflare) y a los servidores de medición de Epic; los resultados se quedan en tu PC. Como cualquier web, GitHub recibe tu dirección IP y la trata según su política de privacidad. Al abrir Fortnite se usa el lanzador de Epic, que tiene sus propias condiciones.
 
 # Agradecimientos
 Algunos ajustes se eligieron consultando proyectos públicos como WinUtil, Win11Debloat, ReviOS, privacy.sexy y PC-Tuning. Tweakeroo no está afiliada a ellos.

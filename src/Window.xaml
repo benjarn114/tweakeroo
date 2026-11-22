@@ -450,6 +450,28 @@
         </StackPanel>
       </ScrollViewer>
 
+      <!-- Conexion -->
+      <ScrollViewer x:Name="NetPage" Grid.Column="1" VerticalScrollBarVisibility="Auto" Focusable="False" Visibility="Collapsed">
+        <StackPanel Margin="28,24,28,110">
+          <TextBlock Text="Conexión" FontSize="32" FontWeight="Bold"/>
+          <TextBlock Text="Mide el ping, los tirones y los paquetes perdidos, y dice dónde está el problema: tu red, el proveedor o la ruta hasta Epic." Foreground="{DynamicResource Ink2}" FontSize="15" TextWrapping="Wrap" Margin="0,6,0,16" MaxWidth="600" HorizontalAlignment="Left"/>
+          <WrapPanel Margin="0,0,0,12"><t:Btn x:Name="NetRun" Style="{StaticResource BtnCta}" Icon="{StaticResource IcoGauge}" Content="Medir conexión" Margin="0,0,10,10"/><t:Btn x:Name="NetTweaks" Style="{StaticResource Btn}" Icon="{StaticResource IcoBolt}" Content="Tweaks de red" Height="60" Margin="0,0,10,10"/></WrapPanel>
+          <ItemsControl x:Name="NetTiles" Focusable="False">
+            <ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Rows="1" Margin="0,0,-8,0"/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate><DataTemplate><Border Background="{DynamicResource Rail}" CornerRadius="18" Padding="18,12" Margin="0,0,8,0"><StackPanel><TextBlock Text="{Binding Label}" FontSize="13.5" Foreground="{DynamicResource Ink2}" TextTrimming="CharacterEllipsis"/><TextBlock Text="{Binding Main}" FontSize="24" FontWeight="Bold" Typography.NumeralAlignment="Tabular"/><TextBlock Text="{Binding Sub}" FontSize="13" Foreground="{DynamicResource Ink2}" TextWrapping="Wrap"/></StackPanel></Border></DataTemplate></ItemsControl.ItemTemplate>
+          </ItemsControl>
+          <TextBlock x:Name="NetVerdict" FontSize="16" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,14,0,0" MaxWidth="640" HorizontalAlignment="Left"/>
+          <TextBlock x:Name="NetBefore" Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,4,0,0"/>
+          <StackPanel x:Name="NetWifi">
+            <TextBlock Text="Mientras se juega" FontSize="20" FontWeight="Bold" Margin="0,22,0,10"/>
+            <Border Background="{DynamicResource Rail}" CornerRadius="16" Padding="18,12"><DockPanel><CheckBox x:Name="NetSteady" DockPanel.Dock="Right" Style="{StaticResource Check}" AutomationProperties.Name="Wi-Fi estable" Margin="16,0,0,0" VerticalAlignment="Center"/><StackPanel VerticalAlignment="Center"><TextBlock Text="Wi-Fi estable" FontSize="16" FontWeight="Bold"/><TextBlock Text="Con Fortnite abierto, Windows deja de buscar otras redes, que es una causa de tirones. Al cerrarlo vuelve a lo normal. Algunas tarjetas no lo respetan." Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,2,0,0"/><TextBlock x:Name="NetState" FontSize="13" FontWeight="SemiBold" Margin="0,2,0,0"/></StackPanel></DockPanel></Border>
+          </StackPanel>
+          <TextBlock Text="Estado de la red" FontSize="20" FontWeight="Bold" Margin="0,22,0,10"/>
+          <ItemsControl x:Name="NetChecks" Focusable="False"/>
+          <TextBlock Text="Tweakeroo no pasa el tráfico por otros servidores, como hace ExitLag, así que no acorta la distancia hasta Epic. Al medir hace ping al router, a 1.1.1.1 y a los servidores de medición de Epic." Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,14,0,0" MaxWidth="640" HorizontalAlignment="Left"/>
+        </StackPanel>
+      </ScrollViewer>
+
       <!-- Macros -->
       <ScrollViewer x:Name="MacroPage" Grid.Column="1" VerticalScrollBarVisibility="Auto" Focusable="False" Visibility="Collapsed">
         <StackPanel Margin="28,24,28,110">
@@ -487,7 +509,14 @@
               <StackPanel Margin="0,0,14,8"><TextBlock Text="Seleccionar" Foreground="{DynamicResource Ink2}" Margin="2,0,0,4"/><t:Btn x:Name="KeySelect" Style="{StaticResource Btn}" MinWidth="150"/></StackPanel>
               <StackPanel Margin="0,0,0,8"><TextBlock Text="Resetear" Foreground="{DynamicResource Ink2}" Margin="2,0,0,4"/><t:Btn x:Name="KeyReset" Style="{StaticResource Btn}" MinWidth="150"/></StackPanel>
             </WrapPanel>
+            <t:Btn x:Name="ReadBinds" Style="{StaticResource Btn}" Content="Leer mis teclas de Fortnite" HorizontalAlignment="Left" Margin="0,0,0,6"/>
             <CheckBox x:Name="MacroConfirm" Style="{StaticResource Check}" Content="Confirmar edición al soltar está activado en Fortnite" FontSize="15"/>
+            <TextBlock Text="Al pulsar la tecla de la macro" FontSize="20" FontWeight="Bold" Margin="0,14,0,2"/>
+            <TextBlock Text="Un toque manda toda la secuencia. Mantener deja arrastrar para elegir varias casillas y sigue al soltar." Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,0,0,10"/>
+            <ListBox x:Name="MacroHold" Template="{StaticResource BareList}" ItemContainerStyle="{StaticResource ChipItem}" Background="Transparent" BorderThickness="0" Padding="0" AutomationProperties.Name="Al pulsar la tecla de la macro"><ListBox.ItemsPanel><ItemsPanelTemplate><UniformGrid Rows="1" Columns="2" Margin="0,0,-8,0"/></ItemsPanelTemplate></ListBox.ItemsPanel></ListBox>
+            <TextBlock Text="Pausa antes de la segunda acción" FontSize="20" FontWeight="Bold" Margin="0,14,0,2"/>
+            <TextBlock Text="Si la segunda edición no sale, sube este valor. Depende del ping y de los FPS." Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,0,0,10"/>
+            <ListBox x:Name="MacroGap" Template="{StaticResource BareList}" ItemContainerStyle="{StaticResource ChipItem}" Background="Transparent" BorderThickness="0" Padding="0" AutomationProperties.Name="Pausa antes de la segunda acción"><ListBox.ItemsPanel><ItemsPanelTemplate><UniformGrid Rows="1" Columns="4" Margin="0,0,-8,0"/></ItemsPanelTemplate></ListBox.ItemsPanel></ListBox>
             <TextBlock Text="Pausa entre acciones" FontSize="20" FontWeight="Bold" Margin="0,14,0,10"/>
             <ListBox x:Name="MacroDelay" Template="{StaticResource BareList}" ItemContainerStyle="{StaticResource ChipItem}" Background="Transparent" BorderThickness="0" Padding="0" AutomationProperties.Name="Pausa entre acciones">
               <ListBox.ItemsPanel><ItemsPanelTemplate><UniformGrid Rows="1" Margin="0,0,-8,0"/></ItemsPanelTemplate></ListBox.ItemsPanel>
@@ -505,7 +534,7 @@
             <Border Background="{DynamicResource Rail}" CornerRadius="16" Padding="18,12" Margin="0,0,0,8"><DockPanel><CheckBox x:Name="SetMin" DockPanel.Dock="Right" Style="{StaticResource Check}" AutomationProperties.Name="Empezar minimizado" Margin="16,0,0,0" VerticalAlignment="Center"/><StackPanel VerticalAlignment="Center"><TextBlock Text="Empezar minimizado" FontSize="16" FontWeight="Bold"/><TextBlock Text="Solo cuando se abre con Windows." Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,2,0,0"/></StackPanel></DockPanel></Border>
             <Border Background="{DynamicResource Rail}" CornerRadius="16" Padding="18,12" Margin="0,0,0,8"><DockPanel><CheckBox x:Name="SetTray" DockPanel.Dock="Right" Style="{StaticResource Check}" AutomationProperties.Name="Al cerrar, quedarse junto al reloj" Margin="16,0,0,0" VerticalAlignment="Center"/><StackPanel VerticalAlignment="Center"><TextBlock Text="Al cerrar, quedarse junto al reloj" FontSize="16" FontWeight="Bold"/><TextBlock Text="Las macros y la resolución siguen funcionando. Para salir, clic derecho en el icono." Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,2,0,0"/></StackPanel></DockPanel></Border>
             <Border Background="{DynamicResource Rail}" CornerRadius="16" Padding="18,12" Margin="0,0,0,8"><StackPanel><TextBlock Text="Idioma" FontSize="16" FontWeight="Bold"/><TextBlock Text="La app se reinicia al cambiarlo." Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,2,0,0"/><ListBox x:Name="SetLang" Template="{StaticResource BareList}" ItemContainerStyle="{StaticResource ChipItem}" Background="Transparent" BorderThickness="0" Padding="0" Margin="0,8,0,0" AutomationProperties.Name="Idioma"><ListBox.ItemsPanel><ItemsPanelTemplate><UniformGrid Rows="1" Columns="2" Margin="0,0,-8,-8"/></ItemsPanelTemplate></ListBox.ItemsPanel></ListBox></StackPanel></Border>
-            <Border Background="{DynamicResource Rail}" CornerRadius="16" Padding="18,12" Margin="0,0,0,8"><StackPanel><TextBlock Text="Sección con la que se abre" FontSize="16" FontWeight="Bold"/><ListBox x:Name="SetPage" Template="{StaticResource BareList}" ItemContainerStyle="{StaticResource ChipItem}" Background="Transparent" BorderThickness="0" Padding="0" Margin="0,8,0,0" AutomationProperties.Name="Sección con la que se abre"><ListBox.ItemsPanel><ItemsPanelTemplate><UniformGrid Rows="1" Columns="5" Margin="0,0,-8,-8"/></ItemsPanelTemplate></ListBox.ItemsPanel></ListBox></StackPanel></Border>
+            <Border Background="{DynamicResource Rail}" CornerRadius="16" Padding="18,12" Margin="0,0,0,8"><StackPanel><TextBlock Text="Sección con la que se abre" FontSize="16" FontWeight="Bold"/><ListBox x:Name="SetPage" Template="{StaticResource BareList}" ItemContainerStyle="{StaticResource ChipItem}" Background="Transparent" BorderThickness="0" Padding="0" Margin="0,8,0,0" AutomationProperties.Name="Sección con la que se abre"><ListBox.ItemsPanel><ItemsPanelTemplate><UniformGrid Rows="1" Columns="6" Margin="0,0,-8,-8"/></ItemsPanelTemplate></ListBox.ItemsPanel></ListBox></StackPanel></Border>
             <TextBlock Text="Apariencia" FontSize="20" FontWeight="Bold" Margin="0,18,0,10"/>
             <Border Background="{DynamicResource Rail}" CornerRadius="16" Padding="18,12" Margin="0,0,0,8"><StackPanel><TextBlock Text="Animaciones" FontSize="16" FontWeight="Bold"/><ListBox x:Name="SetMotion" Template="{StaticResource BareList}" ItemContainerStyle="{StaticResource ChipItem}" Background="Transparent" BorderThickness="0" Padding="0" Margin="0,8,0,0" AutomationProperties.Name="Animaciones"><ListBox.ItemsPanel><ItemsPanelTemplate><UniformGrid Rows="1" Columns="3" Margin="0,0,-8,-8"/></ItemsPanelTemplate></ListBox.ItemsPanel></ListBox></StackPanel></Border>
             <TextBlock Text="Fortnite" FontSize="20" FontWeight="Bold" Margin="0,18,0,10"/>

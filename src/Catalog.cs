@@ -134,6 +134,11 @@ namespace Tablero
             T("net-giga", "Ethernet: apagar Giga Lite", "Evita enlaces degradados. Solo por cable.", s, "Bajo", "el PC", new NicOp("GigaLite", "0"));
             T("net-im", "Ethernet: apagar moderación de interrupciones", "Menos espera por paquete a cambio de CPU. Solo por cable.", a, "Bajo", "el PC", new NicOp("*InterruptModeration", "0"));
             T("net-flow", "Ethernet: apagar control de flujo", "El router no puede pausar tu tráfico. Solo por cable.", a, "Bajo", "el PC", new NicOp("*FlowControl", "0"));
+            T("net-roam", "Wi-Fi: sin cambiar de antena", "La tarjeta busca menos otras antenas, que es cuando hay tirones. Solo tarjetas Realtek y si el PC no se mueve.", s, "Medio", "el PC", new NicOp("RegRoamLevel", "1"));
+            const string q = P + @"QoS\Tweakeroo Fortnite";
+            T("net-qos", "Prioridad de red para Fortnite", "Marca los paquetes del juego como urgentes. Solo ayuda si el router respeta la marca.", a, "Bajo", "el PC",
+                S(q, "Version", "1.0", null), S(q, "Application Name", "FortniteClient-Win64-Shipping.exe", null), S(q, "Protocol", "UDP", null), S(q, "Local Port", "*", null), S(q, "Local IP", "*", null), S(q, "Local IP Prefix Length", "*", null),
+                S(q, "Remote Port", "*", null), S(q, "Remote IP", "*", null), S(q, "Remote IP Prefix Length", "*", null), S(q, "DSCP Value", "46", null), S(q, "Throttle Rate", "-1", null), S(Ccs + @"Services\Tcpip\QoS", "Do not use NLA", "1", null));
             T("net-wol", "Apagar activación por red", "La tarjeta no queda escuchando para despertar el PC.", s, "Bajo", "el PC", new NicOp("*WakeOnMagicPacket", "0"), new NicOp("*WakeOnPattern", "0"));
 
             cat = "Segundo plano";

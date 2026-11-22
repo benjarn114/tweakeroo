@@ -148,6 +148,8 @@ namespace Tablero
                 case "net-eee": case "net-green": case "net-giga":
                     return h.Ethernet ? A(true, "Conexión por cable.") : A(false, "Sin conexión por cable.");
                 case "net-im": return h.Ethernet && h.Cores >= 6 ? A(true, "Conexión por cable y CPU con margen.") : A(false, h.Ethernet ? "CPU con poco margen." : "Sin conexión por cable.");
+                case "net-roam": return h.Wifi && !h.Ethernet && !h.Laptop ? A(true, "Conexión por Wi-Fi en un PC de mesa.") : A(false, h.Laptop ? "En un portátil conviene que cambie de antena al moverse." : "Sin conexión por Wi-Fi.");
+                case "net-qos": return A(false, "Opcional: depende del router.");
                 case "pw-wifi": return h.Wifi && !h.Ethernet ? A(true, "Conexión por Wi-Fi.") : A(false, "Sin conexión por Wi-Fi.");
                 case "pw-plan": case "pw-park":
                     if (h.Dual3d) return A(false, "La CPU X3D doble necesita el plan Equilibrado.");

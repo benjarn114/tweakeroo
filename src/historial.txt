@@ -1,3 +1,9 @@
+## 3.6.0 2026-11-22
+- Doble edición arreglada: un toque manda las dos, con una pausa ajustable entre ellas.	Double edit fixed: one tap sends both, with an adjustable pause between them.
+- Macros: leer las teclas de Fortnite y avisar si la tecla de una macro ya hace algo en el juego.	Macros: read the Fortnite keys and warn if a macro key already does something in the game.
+- Conexión: mide ping, variación y paquetes perdidos, y dice dónde está el problema.	Connection: measures ping, jitter and lost packets, and tells where the problem is.
+- Wi-Fi estable mientras se juega y dos tweaks de red nuevos.	Steady Wi-Fi while playing and two new network tweaks.
+- Términos actualizados.	Updated terms.
 ## 3.5.0 2026-11-22
 - Ajustes: abrir con Windows, quedarse junto al reloj, idioma, sección inicial, animaciones y más.	Settings: open with Windows, stay next to the clock, language, opening section, animations and more.
 - Historial de versiones dentro de la app.	Version history inside the app.
