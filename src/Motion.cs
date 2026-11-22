@@ -28,10 +28,13 @@ namespace Tablero
     public static class Fx
     {
         // Si Windows tiene las animaciones apagadas, todo salta al estado final.
-        public static bool On { get { return SystemParameters.ClientAreaAnimation; } }
+        // Level: 0 todas, 1 sin rebotes, 2 apagadas (Ajustes).
+        public static int Level;
+        public static bool On { get { return Level < 2 && SystemParameters.ClientAreaAnimation; } }
         public static readonly IEasingFunction Out = new QuinticEase { EasingMode = EasingMode.EaseOut };
         public static readonly IEasingFunction In = new CubicEase { EasingMode = EasingMode.EaseIn };
-        public static IEasingFunction Spring { get { return new SpringEase(); } }
+        public static IEasingFunction Spring { get { return Bounce(0.5); } }
+        public static IEasingFunction Bounce(double damping) { return Level == 0 ? new SpringEase { Damping = damping } : Out; }
 
         public static void To(IAnimatable t, DependencyProperty p, double to, int ms, IEasingFunction ease, int delay = 0, Action done = null)
         {
@@ -134,7 +137,7 @@ namespace Tablero
         void Shine()
         {
             if (shine == null || halo == null) return;
-            bool on = Glint && IsVisible && IsEnabled && Fx.On;
+            bool on = Glint && IsVisible && IsEnabled && Fx.On && Fx.Level == 0;
             shine.Visibility = halo.Visibility = on ? Visibility.Visible : Visibility.Collapsed;
             if (!on) { shine.Background = null; halo.RenderTransform = null; halo.BeginAnimation(OpacityProperty, null); return; }
             LinearGradientBrush g = new LinearGradientBrush { StartPoint = new Point(0, 0.3), EndPoint = new Point(1, 0.7) };

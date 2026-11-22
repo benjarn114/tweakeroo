@@ -41,6 +41,11 @@ namespace Tablero
             MacroConfig c = null;
             try { if (File.Exists(FileOf(dir))) c = new JavaScriptSerializer().Deserialize<MacroConfig>(File.ReadAllText(FileOf(dir))); }
             catch (Exception) { }
+            return Clean(c);
+        }
+        // Lo que no vale se quita; si falta lo principal, vuelve todo a lo normal.
+        public static MacroConfig Clean(MacroConfig c)
+        {
             if (c == null || c.Keys == null || c.On == null || !(Valid(c.Edit) || Wheel(c.Edit)) || !Valid(c.Select) || !(Valid(c.Reset) || Wheel(c.Reset))) return Default();
             c.Delay = Math.Max(5, Math.Min(200, c.Delay));
             foreach (string k in c.Keys.Keys.ToList()) if (!Ids.Contains(k) || !Valid(c.Keys[k])) c.Keys.Remove(k);

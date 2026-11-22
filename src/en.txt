@@ -459,7 +459,7 @@ Límite de FPS	FPS limit
 Minimizar Tweakeroo mientras juegas	Minimize Tweakeroo while you play
 Programas con más uso de memoria	Programs using the most memory
 Cerrar los que no se usen libera memoria antes de jugar.	Closing the ones not in use frees memory before playing.
-La primera vez que se usa una resolución se pide confirmación. Sin respuesta en 15 segundos, se restaura la anterior. Tweakeroo debe quedar abierto durante la partida. En torneos oficiales Epic puede forzar 16:9.	The first time a resolution is used, confirmation is required. With no response in 15 seconds, the previous one is restored. Tweakeroo must stay open during the match. In official tournaments Epic may force 16:9.
+La primera vez que se usa una resolución se pide confirmación. Sin respuesta en {0} segundos, se restaura la anterior. Tweakeroo debe quedar abierto durante la partida. En torneos oficiales Epic puede forzar 16:9.	The first time a resolution is used, confirmation is required. With no response in {0} seconds, the previous one is restored. Tweakeroo must stay open during the match. In official tournaments Epic may force 16:9.
 Normal, {0} Hz	Normal, {0} Hz
 Stretched, {0} Hz	Stretched, {0} Hz
 Personalizada, {0} Hz	Custom, {0} Hz
@@ -810,3 +810,56 @@ Rueda arriba	Wheel up
 Rueda abajo	Wheel down
 La rueda solo se puede usar en las teclas de Fortnite.	The wheel can only be used for the Fortnite keys.
 La rueda no se puede mantener: elige otra tecla para seleccionar.	The wheel can't be held: choose another key to select.
+Ajustes	Settings
+General	General
+Abrir al encender el PC	Open when the PC starts
+Solo con la app instalada. Usa una tarea de Windows, que se quita al apagar la opción.	Only with the app installed. Uses a Windows task, removed when this is turned off.
+Empezar minimizado	Start minimized
+Solo cuando se abre con Windows.	Only when it opens with Windows.
+Al cerrar, quedarse junto al reloj	When closed, stay next to the clock
+Las macros y la resolución siguen funcionando. Para salir, clic derecho en el icono.	Macros and the resolution keep working. To exit, right click the icon.
+Idioma	Language
+La app se reinicia al cambiarlo.	The app restarts when it changes.
+Sección con la que se abre	Section it opens on
+Apariencia	Appearance
+Animaciones	Animations
+Todas	All
+Sin rebotes	No bounces
+Tiempo para confirmar una resolución nueva	Time to confirm a new resolution
+Actualizaciones	Updates
+Buscar al abrir	Check when it opens
+Buscar ahora	Check now
+Datos	Data
+Abrir carpeta de datos	Open data folder
+Exportar ajustes	Export settings
+Importar ajustes	Import settings
+Ayuda	Help
+GitHub	GitHub
+Informar de un fallo	Report a problem
+Copiar datos para soporte	Copy support details
+Ver historial de versiones	View version history
+Historial de versiones	Version history
+Instalada	Installed
+Borrar historial de FPS	Clear FPS history
+Borrar escaneo	Clear scan
+Volver al estado Original	Go back to Original
+Restablecer Ajustes	Reset Settings
+Pulsa otra vez para confirmar	Press again to confirm
+Escaneo borrado.	Scan cleared.
+Se pedirá otra vez al volver a abrir.	It will be requested next time the app opens.
+El PC ya está en el estado Original.	The PC is already in the Original state.
+Ajustes restablecidos.	Settings reset.
+Datos copiados.	Details copied.
+No incluyen nada personal.	They include nothing personal.
+Historial de FPS borrado.	FPS history cleared.
+Ajustes exportados.	Settings exported.
+No incluyen los tweaks.	Tweaks are not included.
+No se pudo importar: {0}	Couldn't import: {0}
+No se pudo copiar: {0}	Couldn't copy: {0}
+No se pudo cambiar: {0}	Couldn't change it: {0}
+No se pudo buscar: {0}	Couldn't check: {0}
+Es la versión más reciente.	This is the latest version.
+No hay dónde buscar actualizaciones.	There is nowhere to check for updates.
+El archivo no es una copia de ajustes de Tweakeroo.	The file isn't a Tweakeroo settings copy.
+Abrir	Open
+Salir	Exit

@@ -100,6 +100,13 @@ namespace Tablero
         {
             public Dictionary<string, string> Files { get; set; }
             public List<Match> Matches { get; set; }
+            public string Since { get; set; } // lo anterior se borro y no vuelve
+        }
+
+        public static void Clear(string dir)
+        {
+            Store st = new Store { Files = new Dictionary<string, string>(), Matches = new List<Match>(), Since = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture) };
+            Engine.WriteFile(Path.Combine(dir, "fps.json"), new JavaScriptSerializer().Serialize(st));
         }
 
         // Fortnite borra los registros viejos: lo ya leido se conserva en la carpeta de la app.
@@ -127,7 +134,7 @@ namespace Tablero
                     try
                     {
                         using (StreamReader r = new StreamReader(new FileStream(f.FullName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete, 1 << 16), Encoding.UTF8))
-                            foreach (Match m in Read(r)) { st.Matches.RemoveAll(x => x.Start == m.Start); st.Matches.Add(m); }
+                            foreach (Match m in Read(r).Where(x => string.CompareOrdinal(x.Start, st.Since ?? "") >= 0)) { st.Matches.RemoveAll(x => x.Start == m.Start); st.Matches.Add(m); }
                         st.Files[f.Name] = stamp;
                         changed = true;
                     }

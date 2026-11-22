@@ -104,6 +104,9 @@ namespace Tablero
 
         public static void Remove()
         {
+            try { Autostart.Write(false); }
+            catch (COMException) { }
+            catch (UnauthorizedAccessException) { }
             foreach (string f in new[] { Menu, Desktop }) File.Delete(Path.Combine(f, "Tweakeroo.lnk"));
             using (RegistryKey h = RegistryKey.OpenBaseKey(Hive, RegistryView.Registry64)) h.DeleteSubKeyTree(Key, false);
         }

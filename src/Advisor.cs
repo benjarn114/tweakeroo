@@ -102,6 +102,7 @@ namespace Tablero
             catch (IOException) { }
             catch (UnauthorizedAccessException) { }
         }
+        public static void Delete(string dir) { File.Delete(FileOf(dir)); }
         // null = no hay escaneo guardado o no sirve.
         public static ScanData Load(string dir)
         {

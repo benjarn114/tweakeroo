@@ -12,7 +12,7 @@ using System.Windows.Media.Imaging;
 
 [assembly: AssemblyTitle("Tweakeroo")]
 [assembly: AssemblyProduct("Tweakeroo")]
-[assembly: AssemblyVersion("3.4.0.0")]
+[assembly: AssemblyVersion("3.5.0.0")]
 
 namespace Tablero
 {
@@ -42,7 +42,7 @@ namespace Tablero
                 try { if (int.TryParse(args[1], out pid)) using (System.Diagnostics.Process p = System.Diagnostics.Process.GetProcessById(pid)) p.WaitForExit(15000); }
                 catch (ArgumentException) { }
             }
-            bool mine;
+            bool mine, boot = args.Length > 0 && args[0] == "--inicio";
 #if SHOT
             const string mutex = "Tablero_prueba";
 #else
@@ -50,7 +50,16 @@ namespace Tablero
 #endif
             using (Mutex m = new Mutex(true, mutex, out mine))
             {
-                if (!mine) { MessageBox.Show(L.T("Tweakeroo ya está abierto."), "Tweakeroo"); return 0; }
+                if (!mine)
+                {
+                    if (boot) return 0;
+                    // La copia abierta se enseña, aunque este escondida junto al reloj.
+                    EventWaitHandle other;
+                    if (EventWaitHandle.TryOpenExisting(mutex + "_mostrar", out other)) using (other) other.Set();
+                    else MessageBox.Show(L.T("Tweakeroo ya está abierto."), "Tweakeroo");
+                    return 0;
+                }
+                EventWaitHandle show = new EventWaitHandle(false, EventResetMode.AutoReset, mutex + "_mostrar");
                 Application app = new Application();
 #if !SHOT
                 app.DispatcherUnhandledException += (s, e) => { MessageBox.Show("Algo falló: " + e.Exception.Message, "Tweakeroo", MessageBoxButton.OK, MessageBoxImage.Error); e.Handled = true; };
@@ -71,16 +80,20 @@ namespace Tablero
                 }
 #endif
                 L.Load(dir);
+                Prefs.Load(dir);
 #if SHOT
                 L.En = Array.IndexOf(args, "en") >= 0;
 #endif
                 Window w = Load();
+                w.Title = "Tweakeroo " + Installer.Short;
 #if SHOT
                 // Solo para revisar el diseno: carpeta propia, fuera de pantalla y sin robar el foco.
                 dir = Path.Combine(Path.GetTempPath(), "tablero-shot");
                 w.WindowStartupLocation = WindowStartupLocation.Manual; w.Left = -4000; w.ShowActivated = false; w.ShowInTaskbar = false;
                 w.Width = int.Parse(args[1]); w.Height = int.Parse(args[2]);
                 if (args[3] == "click") ClickTest.Prepare(ref dir);
+                Ui.TrayIcon = false;
+                Prefs.Load(dir);
 #endif
 #if !SHOT
                 // Una descarga suelta instala; si ya hay una igual o mas nueva, abre esa.
@@ -90,6 +103,10 @@ namespace Tablero
                 Ui ui = new Ui(w, dir);
                 ui.LoadPalette();
                 UpdateUi update = new UpdateUi(w, ui.Busy);
+                ui.CheckUpdates = update.Check;
+                ThreadPool.RegisterWaitForSingleObject(show, (o, late) => w.Dispatcher.BeginInvoke(new Action(ui.Reveal)), null, -1, false);
+                bool quiet = boot && Prefs.Now.StartMin && Installer.TermsOk(dir);
+                if (quiet) w.WindowState = WindowState.Minimized;
                 w.Loaded += async (s, e) =>
                 {
 #if !SHOT
@@ -97,7 +114,8 @@ namespace Tablero
                     if (!Installer.RunningInstalled) { new SetupUi(w, dir).Install(); return; }
                     Installer.AfterUpdate();
                     if (!Installer.TermsOk(dir)) await new SetupUi(w, dir).AskTerms();
-                    Task check = update.Check();
+                    if (quiet && Prefs.Now.Tray) w.Hide();
+                    if (Prefs.Now.AutoCheck) { Task check = update.Check(); }
 #else
                     // "instalar-N" y "actualizar" solo dibujan esas pantallas.
                     if (args[3] == "carga") ui.ShowSkeletons("SkelPage", "SkelNav", "SkelSaves");
@@ -122,6 +140,8 @@ namespace Tablero
                     }
                     if (!still) ui.Open(args[3]);
                     if (Array.IndexOf(args, "abierto") >= 0) { ((Btn)w.FindName("ResOpen")).RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent)); ((ScrollViewer)w.FindName("UpgradePage")).ScrollToEnd(); }
+                    if (Array.IndexOf(args, "versiones") >= 0) ((Btn)w.FindName("ShowVersions")).RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
+                    if (Array.IndexOf(args, "fin") >= 0) ((ScrollViewer)w.FindName("SettingsPage")).ScrollToEnd();
                     await Task.Delay(1800);
                     FrameworkElement root = (FrameworkElement)w.Content;
                     RenderTargetBitmap bmp = new RenderTargetBitmap((int)root.ActualWidth, (int)root.ActualHeight, 96, 96, PixelFormats.Pbgra32);

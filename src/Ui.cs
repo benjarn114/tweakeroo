@@ -143,7 +143,7 @@ namespace Tablero
         }
     }
 
-    class Ui
+    partial class Ui
     {
         const string Recommended = "Recomendados";
         readonly Window w;
@@ -163,7 +163,7 @@ namespace Tablero
         List<Part> parts;
         Hw hw;
         bool working, ready;
-        static readonly string[] Pages = { "PcPage", "StretchPage", "FpsPage", "MacroPage", "UpgradePage", "ListPage" };
+        static readonly string[] Pages = { "PcPage", "StretchPage", "FpsPage", "MacroPage", "SettingsPage", "UpgradePage", "ListPage" };
         StretchSession stretch;
         DispatcherTimer watch;
         bool confirming, gameSeen;
@@ -286,7 +286,7 @@ namespace Tablero
                     Panel.SetZIndex(c, on ? 1 : 0);
                     c.IsHitTestVisible = open || on;
                     double x = open ? 0 : -VisualTreeHelper.GetOffset(c).X;
-                    Fx.To(t, TranslateTransform.XProperty, x, animate ? (open ? 560 : 260) : 1, open ? (IEasingFunction)new SpringEase { Damping = 0.58 } : Fx.Out, open ? i * 18 : 0);
+                    Fx.To(t, TranslateTransform.XProperty, x, animate ? (open ? 560 : 260) : 1, open ? Fx.Bounce(0.58) : Fx.Out, open ? i * 18 : 0);
                     Fx.To(c, UIElement.OpacityProperty, open || on ? 1 : 0, animate ? 140 : 1, Fx.Out, open ? i * 18 : 0);
                 }
             };
@@ -411,27 +411,23 @@ namespace Tablero
             w.PreviewKeyDown += (s, e) =>
             {
                 if (e.Key != Key.F || Keyboard.Modifiers != ModifierKeys.Control) return;
-                if (((Circuit)nav.SelectedItem).Rows == null) Open("Todos");
+                Circuit at = nav.SelectedItem as Circuit;
+                if (at == null || at.Rows == null) Open("Todos");
                 F<TextBox>("Search").Focus();
                 e.Handled = true;
             };
             w.Closing += (s, e) =>
             {
                 if (working) { e.Cancel = true; Say("Hay cambios en curso. Espera a que terminen.", true); }
+                else if (HideOnClose()) e.Cancel = true;
                 else if (stretch != null && stretch.Pending && IniOp.GameRunning()) { e.Cancel = true; Say("Tweakeroo debe quedar abierto hasta cerrar Fortnite para restaurar la resolución.", true); }
                 else if (stretch != null && stretch.Pending) try { stretch.End(); } catch (Exception ex) { MessageBox.Show(w, ex.Message, "Tweakeroo"); }
             };
             F<ItemsControl>("Checks").AddHandler(ButtonBase.ClickEvent, new RoutedEventHandler(CheckClick));
             F<Btn>("Review").Click += async (s, e) => await Scan();
-            F<Btn>("Language").Content = L.En ? "Español" : "English";
-            F<Btn>("Language").Click += (s, e) =>
-            {
-                if (Busy() != null) { Say(Busy(), false); return; }
-                try { L.Save(dir, !L.En); Installer.Start(Installer.Me); Application.Current.Shutdown(); }
-                catch (Exception ex) { Say("No se pudo cambiar el idioma: " + ex.Message, false); }
-            };
             StartStretch();
             StartMacros();
+            StartSettings();
             w.Closed += (s, e) => Macros.Stop();
 
             await Refresh();
@@ -443,7 +439,7 @@ namespace Tablero
             ScaleTransform ears = new ScaleTransform();
             F<FrameworkElement>("LogoEars").RenderTransform = ears;
             Fx.From(ears, ScaleTransform.ScaleYProperty, 0.25, 1, 700, Fx.Spring, 150);
-            nav.SelectedIndex = 0;
+            nav.SelectedItem = circuits.First(x => x.Name == Prefs.Now.Page);
             await HideSkeletons();
             for (int i = 0; i < circuits.Count; i++)
             {
@@ -461,6 +457,7 @@ namespace Tablero
 
         internal void Open(string name)
         {
+            if (name == "Ajustes") { OpenSettings(); return; }
             Circuit c = circuits.Concat(subs).FirstOrDefault(x => x.Name == name);
             if (c == null) return;
             if (c.Sub) Expand(true);
@@ -507,7 +504,7 @@ namespace Tablero
                 item.RenderTransform = t;
                 if (open)
                 {
-                    Fx.From(t, TranslateTransform.YProperty, -y, 0, 520, new SpringEase { Damping = 0.58 }, i * 8);
+                    Fx.From(t, TranslateTransform.YProperty, -y, 0, 520, Fx.Bounce(0.58), i * 8);
                     item.BeginAnimation(UIElement.OpacityProperty, null);
                     Fx.From(item, UIElement.OpacityProperty, 0, 1, 110, Fx.Out, i * 8);
                 }
@@ -680,7 +677,7 @@ namespace Tablero
             if (w.ActualWidth > SystemParameters.WorkArea.Width || w.ActualHeight > SystemParameters.WorkArea.Height) w.WindowState = WindowState.Maximized;
             if (stretch.Known(r)) { Launch(); return; }
             confirming = true;
-            limit = DateTime.Now.AddSeconds(15);
+            limit = DateTime.Now.AddSeconds(Prefs.Now.Confirm);
             watch.Start();
             Watch();
             ShowStretch();
@@ -1034,7 +1031,7 @@ namespace Tablero
             m.Visibility = Visibility.Visible;
             TranslateTransform t = m.RenderTransform as TranslateTransform;
             if (t == null || t.IsFrozen) { m.RenderTransform = new TranslateTransform(0, y); return; }
-            Fx.To(t, TranslateTransform.YProperty, y, 560, new SpringEase { Damping = 0.62 });
+            Fx.To(t, TranslateTransform.YProperty, y, 560, Fx.Bounce(0.62));
         }
 
         void Filter(bool animate)
@@ -1312,7 +1309,10 @@ namespace Tablero
             SaveRow s = b == null ? null : b.DataContext as SaveRow;
             if (s == null || working) return;
             bool restore = (string)b.CommandParameter == "restore";
-            if (!s.Arm(restore)) return;
+            if (s.Arm(restore)) await SaveAction(s, restore);
+        }
+        async Task SaveAction(SaveRow s, bool restore)
+        {
             SetWorking(true, restore ? "Restaurando " + s.Name + "…" : "Borrando " + s.Name + "…");
             string err = null;
             int n = 0;

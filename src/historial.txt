@@ -1,0 +1,41 @@
+## 3.5.0 2026-11-22
+- Ajustes: abrir con Windows, quedarse junto al reloj, idioma, sección inicial, animaciones y más.	Settings: open with Windows, stay next to the clock, language, opening section, animations and more.
+- Historial de versiones dentro de la app.	Version history inside the app.
+- Exportar e importar ajustes, y borrar el historial de FPS o el escaneo.	Export and import settings, and clear the FPS history or the scan.
+- La barra de título muestra la versión instalada.	The title bar shows the installed version.
+## 3.4.0 2026-11-22
+- Macros: el clic derecho y la rueda se pueden elegir como teclas de Fortnite.	Macros: right click and the wheel can be chosen as Fortnite keys.
+- El programa viene en inglés; el español se elige cuando quieras.	English is now the default language; Spanish is one click away.
+- El código fuente es público en GitHub.	The source code is public on GitHub.
+- Términos actualizados.	Updated terms.
+## 3.3.0 2026-11-22
+- Macros de edición configurables, solo para Creativo. Apagadas por defecto y bajo tu propio riesgo.	Configurable edit macros, Creative only. Off by default and at your own risk.
+- Foto real en Jugar: normal y estirada según la resolución.	Real photo in Play: normal and stretched to match the resolution.
+- Tweak nuevo: temporizador de 0,5 ms al jugar (Windows 11).	New tweak: 0.5 ms timer while playing (Windows 11).
+- El icono nuevo se refresca en la barra y los accesos directos.	The new icon refreshes on the taskbar and shortcuts.
+## 3.2.0 2026-11-22
+- El escaneo queda guardado: ya no hay que repetirlo al abrir la app.	The scan is saved: no need to repeat it when the app opens.
+- Jugar es la primera sección y se abre al entrar.	Play is the first section and opens on start.
+- Textos más claros en toda la app.	Clearer texts across the app.
+- Corregido el círculo deformado del selector de colores.	Fixed the distorted circle in the color picker.
+## 3.1.1 2026-11-22
+- Logo nuevo: un canguro que levanta las orejas al abrir la app.	New logo: a kangaroo that raises its ears when the app opens.
+## 3.1.0 2026-11-22
+- Español e inglés.	Spanish and English.
+- Jugar: lista de resoluciones desplegable, resoluciones personalizadas con NVIDIA y límite de FPS.	Play: drop-down resolution list, custom resolutions with NVIDIA and FPS limit.
+- Mejoras: qué comprar después y qué hace cuello de botella.	Upgrades: what to buy next and what is the bottleneck.
+- Menú de colores desplegable, brillo en el botón principal y carga sin esperas.	Drop-down color menu, a glint on the main button and faster loading.
+- El clic derecho ya no cambia de pestaña.	Right click no longer switches tabs.
+## 3.0.0 2026-11-22
+- Menú corto: las demás secciones salen de Mejoras.	Short menu: the other sections unfold from Upgrades.
+- Instalador con explicación y términos, y desinstalador.	Installer with an explanation and terms, and an uninstaller.
+- Actualizaciones firmadas que muestran las novedades antes de instalar.	Signed updates that show what's new before installing.
+- Stretched automático: abre Fortnite y lo restaura todo al cerrar.	Automatic stretched: opens Fortnite and restores everything when it closes.
+- FPS reales de cada partida, estimación de FPS y consejos de compra.	Real FPS for each match, estimated FPS and purchase advice.
+## 2.0.0 2026-11-22
+- Nombre Tweakeroo y diseño nuevo con seis paletas de color.	The Tweakeroo name and a new design with six color palettes.
+- Escáner que recomienda los tweaks adecuados para cada PC.	Scanner that recommends the right tweaks for each PC.
+- Animaciones con rebote.	Bouncy animations.
+- Más de 170 tweaks.	More than 170 tweaks.
+## 1.0.0 2026-11-22
+- Primera versión: tweaks de Windows y Fortnite que se pueden deshacer, con guardados.	First version: reversible Windows and Fortnite tweaks, with saves.

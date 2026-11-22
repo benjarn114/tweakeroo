@@ -108,7 +108,7 @@ namespace Tablero
         T F<T>(string n) where T : class { return w.FindName(n) as T; }
         Release release;
         bool working;
-        public static Action<string> Restart = exe => { Installer.Start(exe); Application.Current.Shutdown(); };
+        public static Action<string> Restart = exe => { Installer.Start(exe); Application.Current.Shutdown(); }; // al cerrar asi, la ventana no se esconde
 
         public UpdateUi(Window w, Func<string> blocked)
         {
@@ -120,12 +120,16 @@ namespace Tablero
         }
 
         // Sin internet o sin canal no molesta: se vuelve a mirar la proxima vez que se abra.
-        public async Task Check()
+        // Devuelve qué paso, o null si hay version nueva y ya se enseña.
+        public async Task<string> Check()
         {
-            if (!Updater.Ready) return;
+            if (!Updater.Ready) return "No hay dónde buscar actualizaciones.";
             Release r = null;
-            await Task.Run(() => { try { r = Updater.Check(); } catch (Exception) { } });
-            if (r != null) Show(r);
+            string err = null;
+            await Task.Run(() => { try { r = Updater.Check(); } catch (Exception ex) { err = ex.Message; } });
+            if (r == null) return err != null ? "No se pudo buscar: " + err : "Es la versión más reciente.";
+            Show(r);
+            return null;
         }
 
         public void Show(Release r)

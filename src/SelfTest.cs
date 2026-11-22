@@ -171,6 +171,49 @@ namespace Tablero
                 Is(Review.For(new Hw(), new List<Match>()).All(c => c.Kind != Kind.Comprar), "sin datos no aconseja comprar");
                 Is(Review.Real(new List<Match> { new Match { Median = 60, Cap = 60 } }, 144) == 0, "un limite bajo no cuenta como FPS reales");
 
+                // ajustes: lo raro vuelve a lo normal, y exportar e importar no cuela nada
+                Prefs wasP = Prefs.Now; int wasL = Fx.Level; bool lang = L.En;
+                try
+                {
+                    Prefs pr = Prefs.Parse("{\"Page\":\"Otra\",\"Confirm\":999,\"Motion\":7,\"Tray\":true}");
+                    Is(pr.Page == "Jugar" && pr.Confirm == 15 && pr.Motion == 0 && pr.Tray && !pr.AutoCheck, "ajustes raros");
+                    Is(Prefs.Parse("{no").AutoCheck && Prefs.Parse("null").Confirm == 15, "ajustes ilegibles");
+                    string a1 = Path.Combine(dir, "aj1"), a2 = Path.Combine(dir, "aj2"); Directory.CreateDirectory(a1); Directory.CreateDirectory(a2);
+                    Prefs.Now = Prefs.Default(); Prefs.Now.Page = "Macros"; Prefs.Now.Confirm = 30; Prefs.Save(a1);
+                    Prefs.Now = Prefs.Default(); Prefs.Load(a1); Is(Prefs.Now.Page == "Macros" && Prefs.Now.Confirm == 30, "guardar ajustes");
+                    MacroConfig mm = Macros.Default(); mm.Accepted = true; mm.Keys["doble"] = 5; mm.On.Add("doble"); Macros.Save(a1, mm);
+                    string ex = Prefs.Export(a1, "Ciruela");
+                    Prefs.Now = Prefs.Default(); Prefs.Import(a2, ex);
+                    MacroConfig im = Macros.Load(a2);
+                    Is(Prefs.Now.Page == "Macros" && im.Keys["doble"] == 5 && !im.Accepted && File.ReadAllText(Path.Combine(a2, "paleta.txt")) == "Ciruela", "importar ajustes sin aceptar el riesgo");
+                    foreach (string mal in new[] { "{}", "x", "null", "{\"App\":\"Otra\",\"Prefs\":{}}" })
+                    {
+                        bool no = false; try { Prefs.Import(a2, mal); } catch (InvalidDataException) { no = true; }
+                        Is(no, "no importa: " + mal);
+                    }
+                    Prefs.Import(a2, "{\"App\":\"Tweakeroo\",\"Prefs\":{},\"Palette\":\"..\\\\x\"}"); Is(File.ReadAllText(Path.Combine(a2, "paleta.txt")) == "Ciruela" && Macros.Load(a2).On.Count == 0, "importar sin macros ni paleta valida");
+                }
+                finally { Prefs.Now = wasP; Fx.Level = wasL; L.En = lang; }
+                // historial de versiones: la instalada sale una vez y todo esta en los dos idiomas
+                List<VersionRow> vr = VersionRow.All();
+                Is(vr.Count(v => v.Current) == 1 && vr.All(v => v.Missing == 0 && v.Notes.Count > 0 && v.Date.Length == 10) && vr.Select(v => Version.Parse(v.Version)).SequenceEqual(vr.Select(v => Version.Parse(v.Version)).OrderByDescending(v => v)), "historial de versiones");
+                // borrar los FPS no deja que vuelvan de los registros
+                string fl = FpsLog.Folder, fd = Path.Combine(dir, "fps-borrar");
+                try
+                {
+                    FpsLog.Folder = Path.Combine(fd, "logs"); Directory.CreateDirectory(FpsLog.Folder);
+                    StringBuilder logText = new StringBuilder();
+                    DateTime begin = DateTime.UtcNow.AddHours(-2);
+                    Func<DateTime, int, string> stampL = (at, num) => "[" + at.ToString("yyyy.MM.dd-HH.mm.ss", System.Globalization.CultureInfo.InvariantCulture) + ":" + at.Millisecond.ToString("000") + "][" + (num % 1000).ToString().PadLeft(3) + "]";
+                    logText.Append(stampL(begin, 0) + "LogWorld: Bringing World /VKPlay/M.M up for play\n");
+                    for (int i = 1; i < 260; i++) logText.Append(stampL(begin.AddSeconds(i * 0.5), i * 50) + "LogX: y\n");
+                    File.WriteAllText(Path.Combine(FpsLog.Folder, "FortniteGame.log"), logText.ToString());
+                    Is(FpsLog.Update(fd).Count == 1, "partida leida antes de borrar");
+                    FpsLog.Clear(fd);
+                    Is(FpsLog.Update(fd).Count == 0 && FpsLog.Update(fd).Count == 0, "lo borrado no vuelve");
+                }
+                finally { FpsLog.Folder = fl; }
+
                 // macros: que mandan, y que solo lo hacen en Creativo con Fortnite delante
                 MacroConfig mc = Macros.Default();
                 Func<List<Act>, string> seq = x => string.Join(" ", x.Select(a => Macros.KeyName(a.Vk)[0] == 'C' ? (a.Vk == 1 ? "L" : "R") + (a.Down ? "+" : "-") : Macros.KeyName(a.Vk) + (a.Down ? "+" : "-")));
@@ -260,10 +303,11 @@ namespace Tablero
                     Installer.Dir = Path.Combine(dir, "Programas"); Installer.Menu = Path.Combine(dir, "menu"); Installer.Desktop = Path.Combine(dir, "escritorio"); Installer.Hive = Microsoft.Win32.RegistryHive.CurrentUser;
                     Directory.CreateDirectory(Installer.Menu); Directory.CreateDirectory(Installer.Desktop);
                     Is(!Installer.InstalledIsEnough() && !Installer.TermsOk(dir), "sin instalar");
+                    Action<bool> autoW = Autostart.Write; bool? auto = null; Autostart.Write = on => auto = on;
                     Installer.AcceptTerms(dir); Installer.Install(true); Installer.Install(true);
                     const string uk = @"HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall\Tweakeroo";
                     Is(Installer.TermsOk(dir) && Installer.InstalledIsEnough() && File.Exists(Path.Combine(Installer.Menu, "Tweakeroo.lnk")) && File.Exists(Path.Combine(Installer.Desktop, "Tweakeroo.lnk")) && RegOp.ReadValue(uk, "DisplayVersion") == "s:" + Installer.Short, "instalar");
-                    Installer.Remove();
+                    Installer.Remove(); Autostart.Write = autoW; Is(auto == false, "desinstalar quita abrir con Windows");
                     Is(!File.Exists(Path.Combine(Installer.Menu, "Tweakeroo.lnk")) && RegOp.ReadValue(uk, "DisplayName") == Op.None, "desinstalar");
                 }
                 finally { Installer.Dir = d0; Installer.Menu = m0; Installer.Desktop = k0; Installer.Hive = h0; }
@@ -294,6 +338,7 @@ namespace Tablero
                     L.T(FpsLog.Compare(new List<Match>(), null)); L.T(FpsLog.Compare(new List<Match>(), "2026")); L.T(FpsLog.Compare(new List<Match> { mk("2026-01-03", 300), mk("2026-01-04", 320), mk("2026-01-01", 200), mk("2026-01-02", 220) }, "2026-01-02 12:00"));
                     string xaml; using (StreamReader rd = new StreamReader(System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("Window.xaml"))) xaml = rd.ReadToEnd();
                     L.Xaml(xaml);
+                    foreach (string x in new[] { "Todas", "Sin rebotes", "Apagadas", "Jugar", "Borrar historial de FPS", "Borrar escaneo", "Volver al estado Original", "Restablecer Ajustes", "Pulsa otra vez para confirmar", "Escaneo borrado. Se pedirá otra vez al volver a abrir.", "El PC ya está en el estado Original.", "Ajustes restablecidos.", "Datos copiados. No incluyen nada personal.", "Historial de FPS borrado.", "Ajustes exportados. No incluyen los tweaks.", "No se pudo importar: El archivo no es una copia de ajustes de Tweakeroo.", "Es la versión más reciente.", "No hay dónde buscar actualizaciones.", "Historial de versiones", "Términos y privacidad", "Abrir", "Salir", "La primera vez que se usa una resolución se pide confirmación. Sin respuesta en 30 segundos, se restaura la anterior. Tweakeroo debe quedar abierto durante la partida. En torneos oficiales Epic puede forzar 16:9." }) L.T(x);
                     string[] same = { "Tweakeroo", "Español", "English", "Fortnite", "FPS" };
                     List<string> miss = L.Missing.Where(x => !same.Contains(x)).ToList();
                     Is(miss.Count == 0, "sin traducir (" + miss.Count + "):\n" + string.Join("\n", miss));
