@@ -49,6 +49,11 @@ Each tweak shows its expected impact. Settings marked **Risk** lower a Windows d
 
 ![The list of tweaks](docs/tweaks.png)
 
+### Settings
+- Open with Windows, start minimized, or stay next to the clock when closed.
+- Language, opening section, animations, FPS limit and how long you have to confirm a resolution.
+- Update checks, export and import, clear data, go back to Original, and the full version history.
+
 ### Macros (Creative only)
 Optional edit macros for freebuilding: quick edit, double edit, edit and reset, and reset. They are off by default and only send keys when Fortnite is in front and its log says you are in Creative.
 
@@ -76,7 +81,7 @@ Don't take my word for it:
 2. Read what it does and the terms, then install.
 3. In **My PC**, press *Scan PC* and choose what to turn on.
 
-Windows 10 or 11, 64-bit. English by default; switch to Spanish from the bottom left corner. It has only been tested on one PC (Windows 11, NVIDIA), so other setups may behave differently.
+Windows 10 or 11, 64-bit. English by default; switch to Spanish in **Settings**, or in the installer. It has only been tested on one PC (Windows 11, NVIDIA), so other setups may behave differently.
 
 ## Honest limits
 
