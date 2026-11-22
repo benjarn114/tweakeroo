@@ -49,6 +49,12 @@ Each tweak shows its expected impact. Settings marked **Risk** lower a Windows d
 
 ![The list of tweaks](docs/tweaks.png)
 
+### Connection
+- A 15 second test of ping, jitter and packet loss to your router, the internet and Epic, with a verdict on where the problem is.
+- Steady Wi-Fi: with Fortnite open, Windows stops scanning for other networks. It goes back to normal when the game closes.
+- Checks for the Wi-Fi band, the signal and programs that may be using the network, plus network tweaks.
+- It isn't a VPN or a routing service: it can't shorten the distance to the server.
+
 ### Settings
 - Open with Windows, start minimized, or stay next to the clock when closed.
 - Language, opening section, animations, FPS limit and how long you have to confirm a resolution.
@@ -73,7 +79,7 @@ Don't take my word for it:
 
 **Why does it ask for administrator rights?** It changes the registry, services, scheduled tasks, the power plan, the network card and the NVIDIA profile.
 
-**What does it connect to?** Only GitHub, to look for and download updates. Every update is signed and the app checks the signature before installing it. You see what's new and decide. Your data stays in `%LOCALAPPDATA%\Tweakeroo`. Launching Fortnite uses Epic's launcher.
+**What does it connect to?** GitHub, to look for and download updates. The connection test, only when you press it, pings your router, 1.1.1.1 and Epic's measuring servers. Every update is signed and the app checks the signature before installing it. You see what's new and decide. Your data stays in `%LOCALAPPDATA%\Tweakeroo`. Launching Fortnite uses Epic's launcher.
 
 ## Install
 
