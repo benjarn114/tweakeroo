@@ -13,6 +13,7 @@ namespace Tablero
         public string Label { get; set; }
         public string Main { get; set; }
         public string Sub { get; set; }
+        public void Set(string main) { Main = main; Raise("Main"); }
         public void Show(PingStats s)
         {
             Main = s.Sent == 0 ? "…" : s.Silent ? "Sin respuesta" : s.Median + " ms";
@@ -28,12 +29,18 @@ namespace Tablero
         internal static int NetTries = NetCount, NetPause = NetGap;
         List<NetTile> netTiles;
         bool testing;
+        List<NetTile> speedTiles;
 
         void StartNet()
         {
             netTiles = new List<NetTile> { new NetTile { Label = "Router" }, new NetTile { Label = "Internet" }, new NetTile { Label = "Servidores de Epic" } };
             F<ItemsControl>("NetTiles").ItemsSource = netTiles;
             F<ItemsControl>("NetChecks").ItemTemplate = F<ItemsControl>("Checks").ItemTemplate;
+            speedTiles = new List<NetTile> { new NetTile { Label = "Descarga", Main = "…" }, new NetTile { Label = "Subida", Main = "…" }, new NetTile { Label = "Ping con carga", Main = "…" } };
+            F<ItemsControl>("SpeedTiles").ItemsSource = speedTiles;
+            SpeedResult sp = SpeedTest.Load(dir);
+            if (sp != null) ShowSpeed(sp, null);
+            F<Btn>("SpeedRun").Click += async (s, e) => await TestSpeed();
             F<Btn>("NetRun").Click += async (s, e) => await TestNet();
             F<Btn>("NetTweaks").Click += (s, e) => Open("Red");
             Toggle("NetSteady", () => Prefs.Now.WifiSteady, v => { Prefs.Now.WifiSteady = v; SteadyNow(); });
@@ -70,6 +77,7 @@ namespace Tablero
         {
             if (testing) return;
             testing = true;
+            F<Btn>("SpeedRun").IsEnabled = false;
             Btn b = F<Btn>("NetRun");
             b.IsEnabled = false;
             b.Content = "Midiendo…";
@@ -89,7 +97,39 @@ namespace Tablero
             ShowNet(r, old);
             b.IsEnabled = true;
             b.Content = "Medir otra vez";
+            F<Btn>("SpeedRun").IsEnabled = true;
             testing = false;
+        }
+
+        async Task TestSpeed()
+        {
+            if (testing) return;
+            // Llenar la conexion en mitad de una partida la estropea.
+            if (IniOp.GameRunning()) { Say("Cierra Fortnite antes de medir la velocidad: la prueba llena la conexión.", false); return; }
+            testing = true;
+            Btn b = F<Btn>("SpeedRun");
+            b.IsEnabled = F<Btn>("NetRun").IsEnabled = false;
+            b.Content = "Midiendo…";
+            foreach (NetTile x in speedTiles) x.Set("…");
+            F<TextBlock>("SpeedVerdict").Text = F<TextBlock>("SpeedBefore").Text = "";
+            SpeedResult old = SpeedTest.Load(dir), r = null;
+            string err = null;
+            try { r = await SpeedTest.Run((k, v) => w.Dispatcher.BeginInvoke(new Action(() => speedTiles[k == "Down" ? 0 : 1].Set(Mbps(v))))); }
+            catch (Exception ex) { err = ex.Message; }
+            if (r != null) { SpeedTest.Save(dir, r); await w.Dispatcher.BeginInvoke(new Action(() => ShowSpeed(r, old)), DispatcherPriority.Background); }
+            else F<TextBlock>("SpeedVerdict").Text = "No se pudo medir: " + err;
+            b.IsEnabled = F<Btn>("NetRun").IsEnabled = true;
+            b.Content = "Medir otra vez";
+            testing = false;
+        }
+        static string Mbps(double v) { return v <= 0 ? "…" : (v >= 100 ? Math.Round(v).ToString() : NetTest.Num(v)) + " Mbps"; }
+        void ShowSpeed(SpeedResult r, SpeedResult old)
+        {
+            speedTiles[0].Set(Mbps(r.Down));
+            speedTiles[1].Set(Mbps(r.Up));
+            speedTiles[2].Set(r.Loaded > 0 ? r.Loaded + " ms" : "Sin respuesta");
+            F<TextBlock>("SpeedVerdict").Text = SpeedTest.Verdict(r);
+            F<TextBlock>("SpeedBefore").Text = old == null ? "" : "Prueba anterior (" + old.Date.Substring(0, 16) + "): descarga " + Mbps(old.Down) + ", subida " + Mbps(old.Up) + ".";
         }
 
         void RefreshTiles() { ItemsControl l = F<ItemsControl>("NetTiles"); l.ItemsSource = null; l.ItemsSource = netTiles; }

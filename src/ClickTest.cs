@@ -143,6 +143,8 @@ namespace Tablero
                 // macros: nada sin aceptar, sin tecla o con una tecla repetida
                 Go(w, "Macros"); await Task.Delay(100);
                 FrameworkElement body = (FrameworkElement)w.FindName("MacroBody");
+                CheckBox au = (CheckBox)w.FindName("MacroAuto"); Is(au.IsChecked == true && !((FrameworkElement)w.FindName("KeyEdit")).IsEnabled, "por defecto usa las teclas de Fortnite");
+                au.IsChecked = false; au.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
                 ItemsControl mr = (ItemsControl)w.FindName("MacroRows"); mr.UpdateLayout();
                 Is(!body.IsEnabled && Macros.Status == "Apagadas", "macros apagadas sin aceptar");
                 CheckBox ac = (CheckBox)w.FindName("MacroAccept"); ac.IsChecked = true; ac.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
@@ -173,7 +175,12 @@ namespace Tablero
                 Is(((ItemsControl)w.FindName("NetChecks")).Items.Count >= 2 && NetTest.Load(Path.Combine(Path.GetTempPath(), "tablero-clics")).Region == "br", "consejos y guardado");
                 CheckBox ns = (CheckBox)w.FindName("NetSteady"); ns.IsChecked = true; ns.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent)); Is(!steady, "sin Fortnite no toca el Wi-Fi");
                 running = true; await Task.Delay(3500); Is(steady, "con Fortnite abierto, Wi-Fi estable"); running = false;
-                body.IsEnabled = true; Press((Button)w.FindName("ReadBinds")); body.IsEnabled = false; Is(((TextBlock)w.FindName("Status")).Text.StartsWith("No se encontraron las teclas"), "sin teclas de Fortnite avisa");
+                body.IsEnabled = true; Is(((FrameworkElement)w.FindName("KeyEdit")).IsEnabled, "a mano se pueden cambiar"); body.IsEnabled = false;
+                // velocidad
+                Button sr = (Button)w.FindName("SpeedRun"); running = true; Press(sr); Is(sr.IsEnabled && ((TextBlock)w.FindName("Status")).Text.StartsWith("Cierra Fortnite"), "con Fortnite abierto no mide"); running = false;
+                SpeedTest.Measure = (down, step) => { System.Threading.Thread.Sleep(300); return down ? 250 : 40; };
+                Press(sr); for (int i = 0; i < 80 && !sr.IsEnabled; i++) await Task.Delay(100); await Task.Delay(200);
+                List<NetTile> vt = ((ItemsControl)w.FindName("SpeedTiles")).Items.Cast<NetTile>().ToList(); Is(vt[0].Main == "250 Mbps" && vt[1].Main == "40 Mbps" && vt[2].Main == "20 ms", "velocidad: " + string.Join(" ", vt.Select(x => x.Main)));
 
                 // ajustes: se guardan, se ven al momento y cerrar esconde sin cerrar
                 string cd = Path.Combine(Path.GetTempPath(), "tablero-clics");

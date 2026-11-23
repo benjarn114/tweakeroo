@@ -743,7 +743,8 @@ namespace Tablero
                 new MacroRow { Id = "edit", Name = "Edición rápida", Desc = "Entra a editar, selecciona y confirma." },
                 new MacroRow { Id = "doble", Name = "Doble edición", Desc = "Edita, confirma y edita otra vez donde apunta la mira." },
                 new MacroRow { Id = "editreset", Name = "Editar y resetear", Desc = "Edita, confirma y devuelve la pieza a su forma." },
-                new MacroRow { Id = "reset", Name = "Reset", Desc = "Un toque devuelve la pieza a su forma." } };
+                new MacroRow { Id = "reset", Name = "Reset", Desc = "Un toque devuelve la pieza a su forma." },
+                new MacroRow { Id = "salir", Name = "Salir de edición", Desc = "Manda solo la tecla de editar, por si te quedas dentro." } };
             F<ItemsControl>("MacroRows").ItemsSource = macroRows;
             F<ItemsControl>("MacroRows").AddHandler(ButtonBase.ClickEvent, new RoutedEventHandler(MacroClick));
             F<CheckBox>("MacroAccept").Click += (s, e) => { macros.Accepted = F<CheckBox>("MacroAccept").IsChecked == true; SaveMacros(null); };
@@ -754,7 +755,9 @@ namespace Tablero
             List<LimitOption> d = new[] { 10, 20, 35, 60 }.Select(x => new LimitOption { Name = x + " ms", Note = x == 10 ? "Puede fallar" : x == 20 ? "Normal" : x == 35 ? "Más segura" : "Lenta", Value = x.ToString() }).ToList();
             Choice("MacroHold", new[] { "Un toque", "Mantener" }, new[] { "0", "1" }, () => macros.Hold ? "1" : "0", v => { macros.Hold = v == "1"; SaveMacros(null); });
             Choice("MacroGap", new[] { "40 ms", "80 ms", "120 ms", "180 ms" }, new[] { "40", "80", "120", "180" }, () => macros.Gap.ToString(), v => { macros.Gap = int.Parse(v); SaveMacros(null); });
-            F<Btn>("ReadBinds").Click += (s, e) => ReadBinds();
+            CheckBox auto = F<CheckBox>("MacroAuto");
+            auto.Click += (s, e) => { macros.Manual = auto.IsChecked != true; SaveMacros(!macros.Manual && !Macros.Sync(macros) ? "No se encontraron las teclas de Fortnite. Elígelas a mano." : null); };
+            refresh.Add(() => auto.IsChecked = !macros.Manual);
             ListBox l = F<ListBox>("MacroDelay");
             l.ItemsSource = d;
             l.SelectedItem = d.FirstOrDefault(x => x.Value == macros.Delay.ToString()) ?? d[1];
@@ -781,6 +784,7 @@ namespace Tablero
             DispatcherTimer t = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
             t.Tick += (s, e) => { if (F<FrameworkElement>("MacroPage").IsVisible) F<TextBlock>("MacroState").Text = "Estado: " + Macros.Status; };
             t.Start();
+            Macros.Sync(macros);
             ShowMacros();
             Macros.Use(macros);
         }
@@ -828,22 +832,6 @@ namespace Tablero
             r.Set("Pulsa una tecla…", r.On);
         }
 
-        void ReadBinds()
-        {
-            Binds b = null;
-            try { b = Binds.Load(); }
-            catch (IOException ex) { Say("No se pudo leer: " + ex.Message, false); return; }
-            catch (UnauthorizedAccessException ex) { Say("No se pudo leer: " + ex.Message, false); return; }
-            if (b == null || b.Edit == 0) { Say("No se encontraron las teclas de Fortnite. Elígelas a mano.", false); return; }
-            macros.Edit = b.Edit;
-            if (b.Select != 0 && !Macros.Wheel(b.Select)) macros.Select = b.Select;
-            if (b.Reset != 0) macros.Reset = b.Reset;
-            if (b.HasConfirm) macros.ConfirmOnRelease = b.Confirm;
-            // Una macro no puede compartir tecla con editar, seleccionar o resetear.
-            foreach (string id in macros.Keys.Where(k => k.Value == macros.Edit || k.Value == macros.Select || k.Value == macros.Reset).Select(k => k.Key).ToList()) { macros.Keys.Remove(id); macros.On.Remove(id); }
-            SaveMacros("Teclas leídas de Fortnite: editar " + Macros.KeyName(macros.Edit) + ", resetear " + Macros.KeyName(macros.Reset) + ".");
-        }
-
         void SaveMacros(string msg)
         {
             ShowMacros();
@@ -867,6 +855,8 @@ namespace Tablero
             F<Btn>("KeyReset").Content = Macros.KeyName(macros.Reset);
             F<CheckBox>("MacroAccept").IsChecked = macros.Accepted;
             F<CheckBox>("MacroConfirm").IsChecked = macros.ConfirmOnRelease;
+            F<CheckBox>("MacroAuto").IsChecked = !macros.Manual;
+            foreach (string n in new[] { "KeyEdit", "KeySelect", "KeyReset", "MacroConfirm" }) F<FrameworkElement>(n).IsEnabled = macros.Manual;
             F<FrameworkElement>("MacroBody").IsEnabled = macros.Accepted;
             F<FrameworkElement>("MacroBody").Opacity = macros.Accepted ? 1 : 0.45;
             F<TextBlock>("MacroState").Text = "Estado: " + Macros.Status;
@@ -1038,6 +1028,7 @@ namespace Tablero
             if (c.Page == "FpsPage") { Task t = OpenFps(); }
             if (c.Page == "StretchPage") { Task t = LoadPlay(); }
             if (c.Page == "NetPage") { Task t = OpenNet(); }
+            if (c.Page == "MacroPage" && macros != null && Macros.Sync(macros)) { ShowMacros(); Macros.Use(macros); }
             if (c.Rows == null) { if (ready) EnterPage(c.Page); return; }
             F<TextBox>("Search").Text = "";
             Filter(true);

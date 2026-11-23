@@ -256,6 +256,7 @@ namespace Tablero
 
                 // macros: que mandan, y que solo lo hacen en Creativo con Fortnite delante
                 MacroConfig mc = Macros.Default();
+                string realBinds = Binds.Folder; Binds.Folder = Path.Combine(dir, "sin-teclas");
                 Func<List<Act>, string> seq = x => string.Join(" ", x.Select(c => c.Vk < 0 ? "(" + -c.Vk + ")" : Macros.KeyName(c.Vk)[0] == 'C' ? (c.Vk == 1 ? "L" : "R") + (c.Down ? "+" : "-") : Macros.KeyName(c.Vk) + (c.Down ? "+" : "-")));
                 // un toque: las dos ediciones salen al pulsar, aunque no se suelte la tecla, y con su pausa en medio
                 Is(seq(Macros.Press(mc, "doble")) == "F+ F- L+ L- (80) F+ F- L+ L-" && Macros.Release(mc, "doble").Count == 0, "doble de un toque: " + seq(Macros.Press(mc, "doble")));
@@ -267,6 +268,27 @@ namespace Tablero
                 Is(seq(Macros.Press(mc, "reset")) == "F+ F- R+ R-" && Macros.Release(mc, "reset").Count == 0, "reset manteniendo");
                 mc.ConfirmOnRelease = false;
                 Is(seq(Macros.Release(mc, "edit")) == "L- F+ F-", "manteniendo sin confirmar al soltar");
+                Is(seq(Macros.Press(Macros.Default(), "salir")) == "F+ F-" && Macros.Release(Macros.Default(), "salir").Count == 0, "salir de edicion");
+                // el atasco: Fortnite confirma al soltar y la app no lo sabia, asi que mandaba un editar de mas
+                {
+                    string bf = Binds.Folder; MacroConfig stuck = Macros.Default(); stuck.ConfirmOnRelease = false; stuck.Hold = true;
+                    try
+                    {
+                        Binds.Folder = Path.Combine(dir, "sav"); Directory.CreateDirectory(Path.Combine(Binds.Folder, "x"));
+                        Is(!Macros.Sync(stuck) && !stuck.ConfirmOnRelease, "sin archivo no cambia nada");
+                        MemoryStream mem = new MemoryStream();
+                        Action<string> put = x => { mem.Write(BitConverter.GetBytes(x.Length + 1), 0, 4); byte[] by = Encoding.ASCII.GetBytes(x + "\0"); mem.Write(by, 0, by.Length); };
+                        put("bEditConfirmOnReleaseEnabled"); put("BoolProperty"); mem.Write(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0x10 }, 0, 9); put("UserActionBindings"); put("ArrayProperty");
+                        for (int i = 0; i < 120; i++) { put("ActionName"); put("NameProperty"); put("Accion" + i); put("KeyName"); put("NameProperty"); put("None"); }
+                        foreach (string[] k in new[] { new[] { "PerformBuildingEditInteraction", "I" }, new[] { "EditSelect", "O" }, new[] { "BuildingEditReset", "RightMouseButton" } }) { put("ActionName"); put("NameProperty"); put(k[0]); put("KeyName"); put("NameProperty"); put(k[1]); }
+                        MemoryStream file = new MemoryStream(); file.Write(new byte[] { 0x45, 0x43, 0x46, 0x44, 0x78, 0x9c }, 0, 6);
+                        using (System.IO.Compression.DeflateStream df = new System.IO.Compression.DeflateStream(file, System.IO.Compression.CompressionMode.Compress, true)) df.Write(mem.ToArray(), 0, (int)mem.Length);
+                        File.WriteAllBytes(Path.Combine(Binds.Folder, "x", "ClientSettings.Sav"), file.ToArray());
+                        Is(Macros.Sync(stuck) && stuck.ConfirmOnRelease && stuck.Edit == 'I' && stuck.Select == 'O' && seq(Macros.Release(stuck, "edit")) == "O-", "ya no sobra un editar: " + seq(Macros.Release(stuck, "edit")));
+                        stuck.Manual = true; stuck.ConfirmOnRelease = false; Is(!Macros.Sync(stuck) && !stuck.ConfirmOnRelease, "a mano se respeta");
+                    }
+                    finally { Binds.Folder = bf; }
+                }
                 Is(Macros.Clean(new MacroConfig { Edit = 69, Select = 1, Reset = 2, Keys = new Dictionary<string, int>(), On = new List<string>() }).Gap == 80, "una configuracion vieja coge la pausa normal");
                 foreach (string id in Macros.Ids) Is(Macros.Press(mc, id).Concat(Macros.Release(mc, id)).Where(c => c.Vk > 0).GroupBy(a => a.Vk).All(g => g.Count(a => a.Down) == g.Count(a => !a.Down)), "ninguna tecla queda pulsada: " + id);
                 mc.Reset = Macros.WheelDown; Macros.Save(dir, mc); Is(Macros.Load(dir).Reset == Macros.WheelDown, "rueda guardada");
@@ -297,6 +319,21 @@ namespace Tablero
                 }
                 finally { Macros.Stop(); FpsLog.Folder = logs; Macros.Send = send; Macros.IsDown = dn; Macros.Front = frontReal; }
 
+                Binds.Folder = realBinds;
+                // velocidad: el arranque no cuenta y el veredicto mira el ping con carga
+                {
+                    Is(SpeedTest.Verdict(new SpeedResult { Down = 300, Up = 50, Idle = 20, Loaded = 90 }).Contains("sube 70 ms") && SpeedTest.Verdict(new SpeedResult { Down = 300, Up = 50, Idle = 20, Loaded = 25 }).Contains("solo 5 ms") && SpeedTest.Verdict(new SpeedResult { Down = 5, Up = 1 }).StartsWith("La velocidad es baja"), "veredicto de velocidad");
+                    Func<bool, Action<double>, double> mea = SpeedTest.Measure; Func<string, int, System.Threading.Tasks.Task<int>> pg = NetTest.Ping;
+                    try
+                    {
+                        bool load = false; NetTest.Ping = (h, t) => System.Threading.Tasks.Task.FromResult(load ? 80 : 20);
+                        SpeedTest.Measure = (down, step) => { load = true; System.Threading.Thread.Sleep(400); step(1); load = false; return down ? 250 : 40; };
+                        SpeedResult sr = System.Threading.Tasks.Task.Run(() => SpeedTest.Run((k, v) => { })).Result;
+                        Is(sr.Down == 250 && sr.Up == 40 && sr.Idle == 20 && sr.Loaded == 80, "velocidad: " + sr.Idle + " " + sr.Loaded);
+                        SpeedTest.Save(dir, sr); Is(SpeedTest.Load(dir).Down == 250, "velocidad guardada"); File.WriteAllText(Path.Combine(dir, "velocidad.json"), "{x"); Is(SpeedTest.Load(dir) == null, "velocidad ilegible");
+                    }
+                    finally { SpeedTest.Measure = mea; NetTest.Ping = pg; }
+                }
                 // pedir y soltar el temporizador
                 Is(Precise.Set(true) && Precise.Set(true) && Precise.Set(false), "temporizador de 0,5 ms");
 
@@ -391,6 +428,8 @@ namespace Tablero
                     { PingStats k = PingStats.Of(Enumerable.Repeat(5, 9).ToList()), f = PingStats.Of(Enumerable.Repeat(150, 9).ToList()), o = PingStats.Of(Enumerable.Repeat(-1, 9).ToList()), m = PingStats.Of(new[] { 5, -1, 5, 90 });
                       foreach (PingStats x1 in new[] { k, f, o, m }) foreach (PingStats x2 in new[] { k, o, m }) foreach (PingStats x3 in new[] { k, f, o, m }) foreach (bool wf in new[] { true, false }) L.T(NetTest.Verdict(new NetResult { Router = x1, Internet = x2, Epic = x3, Wifi = wf }));
                       L.T(NetTest.Compare(new NetResult { Date = "2026-11-22 20:00:00", Epic = m }, null)); NetTile tl = new NetTile(); tl.Show(m); L.T(tl.Sub); tl.Show(o); L.T(tl.Main); }
+                    L.T(SpeedTest.Verdict(new SpeedResult { Down = 300, Up = 50, Idle = 20, Loaded = 90 })); L.T(SpeedTest.Verdict(new SpeedResult { Down = 5, Up = 1, Idle = 20, Loaded = 25 }));
+                    foreach (string x in new[] { "Descarga", "Subida", "Ping con carga", "Salir de edición", "Manda solo la tecla de editar, por si te quedas dentro.", "Cierra Fortnite antes de medir la velocidad: la prueba llena la conexión.", "Prueba anterior (2026-11-22 20:00): descarga 300 Mbps, subida 50 Mbps.", "No se pudo medir: La prueba no recibió datos." }) L.T(x);
                     foreach (string x in new[] { "Conexión", "Router", "Internet", "Servidores de Epic", "Midiendo…", "Medir otra vez", "Midiendo durante 15 segundos. Lo más fiable es hacerlo sin descargas y, otra vez, mientras se juega.", "Activo ahora.", "Se activa al abrir Fortnite.", "Un toque", "Mantener", "No se encontraron las teclas de Fortnite. Elígelas a mano.", "Teclas leídas de Fortnite: editar E, resetear Clic derecho.", "Entra a editar, selecciona y confirma.", "Edita, confirma y edita otra vez donde apunta la mira.", "Edita, confirma y devuelve la pieza a su forma." }) L.T(x);
                     foreach (string x in new[] { "Todas", "Sin rebotes", "Apagadas", "Jugar", "Borrar historial de FPS", "Borrar escaneo", "Volver al estado Original", "Restablecer Ajustes", "Pulsa otra vez para confirmar", "Escaneo borrado. Se pedirá otra vez al volver a abrir.", "El PC ya está en el estado Original.", "Ajustes restablecidos.", "Datos copiados. No incluyen nada personal.", "Historial de FPS borrado.", "Ajustes exportados. No incluyen los tweaks.", "No se pudo importar: El archivo no es una copia de ajustes de Tweakeroo.", "Es la versión más reciente.", "No hay dónde buscar actualizaciones.", "Historial de versiones", "Términos y privacidad", "Abrir", "Salir", "La primera vez que se usa una resolución se pide confirmación. Sin respuesta en 30 segundos, se restaura la anterior. Tweakeroo debe quedar abierto durante la partida. En torneos oficiales Epic puede forzar 16:9." }) L.T(x);
                     string[] same = { "Tweakeroo", "Español", "English", "Fortnite", "FPS" };

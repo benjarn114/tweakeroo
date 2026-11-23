@@ -1,3 +1,8 @@
+## 3.7.0 2026-11-22
+- Macros: ya no se quedan dentro de la edición. Las teclas y confirmar al soltar se leen solas de Fortnite.	Macros: they no longer get stuck in edit. The keys and confirm on release are read from Fortnite automatically.
+- Macro nueva: salir de edición.	New macro: leave edit.
+- Conexión: velocidad de descarga y subida, y cuánto sube el ping con la conexión llena.	Connection: download and upload speed, and how much the ping rises when the connection is full.
+- Términos actualizados.	Updated terms.
 ## 3.6.0 2026-11-22
 - Doble edición arreglada: un toque manda las dos, con una pausa ajustable entre ellas.	Double edit fixed: one tap sends both, with an adjustable pause between them.
 - Macros: leer las teclas de Fortnite y avisar si la tecla de una macro ya hace algo en el juego.	Macros: read the Fortnite keys and warn if a macro key already does something in the game.

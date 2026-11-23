@@ -939,3 +939,23 @@ Un toque	One tap
 Mantener	Hold
 Pausa antes de la segunda acción	Pause before the second action
 Si la segunda edición no sale, sube este valor. Depende del ping y de los FPS.	If the second edit doesn't happen, raise this value. It depends on ping and FPS.
+Velocidad	Speed
+Medir velocidad	Test speed
+Descarga	Download
+Subida	Upload
+Ping con carga	Ping under load
+Dura unos 15 segundos y puede usar hasta 750 MB. Usa los servidores de Cloudflare.	Takes about 15 seconds and can use up to 750 MB. Uses Cloudflare's servers.
+Cierra Fortnite antes de medir la velocidad: la prueba llena la conexión.	Close Fortnite before testing the speed: the test fills the connection.
+No se pudo medir: {0}	Couldn't test: {0}
+La prueba no recibió datos.	The test received no data.
+La velocidad es baja: otra descarga en casa puede llenarla y dar tirones.	The speed is low: another download at home can fill it and cause stutters.
+Para Fortnite sobra velocidad; lo que importa es el ping.	There's plenty of speed for Fortnite; what matters is the ping.
+Con la conexión llena el ping sube {0} ms: descargas o subidas de cualquier equipo de la casa dan tirones.	With the connection full the ping rises {0} ms: downloads or uploads from any device at home cause stutters.
+Un router con control de colas (SQM o QoS) lo reduce.	A router with queue control (SQM or QoS) reduces it.
+Con la conexión llena el ping sube solo {0} ms, así que una descarga no debería dar tirones.	With the connection full the ping rises only {0} ms, so a download shouldn't cause stutters.
+Prueba anterior ({0}): descarga {1}, subida {2}.	Previous test ({0}): download {1}, upload {2}.
+Salir de edición	Leave edit
+Manda solo la tecla de editar, por si te quedas dentro.	Sends only the edit key, in case you get stuck inside.
+Usar las teclas que hay en Fortnite	Use the keys set in Fortnite
+Se leen solas de Fortnite. Si se ponen a mano, deben ser las mismas que en el juego, también confirmar al soltar: si no coinciden, la macro puede quedarse dentro de la edición.	Read from Fortnite automatically. If set by hand, they must match the game, confirm on release included: if they don't, the macro can get stuck in edit.
+Tweakeroo no pasa el tráfico por otros servidores, como hace ExitLag, así que no acorta la distancia hasta Epic. Al medir hace ping al router, a 1.1.1.1 y a los servidores de medición de Epic, y la velocidad se mide con Cloudflare.	Tweakeroo doesn't send your traffic through other servers, as ExitLag does, so it doesn't shorten the distance to Epic. When testing, it pings the router, 1.1.1.1 and Epic's measuring servers, and speed is tested with Cloudflare.

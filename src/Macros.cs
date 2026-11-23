@@ -20,6 +20,7 @@ namespace Tablero
         public int Reset { get; set; }
         public int Delay { get; set; }             // ms entre acciones
         public int Gap { get; set; }               // ms antes de la segunda accion: el juego tarda en dejar editar otra vez
+        public bool Manual { get; set; }           // teclas puestas a mano en vez de leerlas de Fortnite
         public bool Hold { get; set; }             // mantener para arrastrar; si no, un toque lo manda todo
         public Dictionary<string, int> Keys { get; set; } // tecla de cada macro; 0 = sin tecla
         public List<string> On { get; set; }
@@ -33,7 +34,7 @@ namespace Tablero
         // La rueda no tiene codigo de Windows: usa estos, fuera del rango de teclas.
         public const int WheelUp = 300, WheelDown = 301;
         public static bool Wheel(int vk) { return vk == WheelUp || vk == WheelDown; }
-        public static readonly string[] Ids = { "edit", "doble", "reset", "editreset" };
+        public static readonly string[] Ids = { "edit", "doble", "reset", "editreset", "salir" };
 
         // ---- Guardado ----
         public static MacroConfig Default() { return new MacroConfig { ConfirmOnRelease = true, Edit = 0x46, Select = 1, Reset = 2, Delay = 20, Gap = 80, Keys = new Dictionary<string, int>(), On = new List<string>() }; }
@@ -56,6 +57,24 @@ namespace Tablero
             return c;
         }
         public static void Save(string dir, MacroConfig c) { Engine.WriteFile(FileOf(dir), new JavaScriptSerializer().Serialize(c)); }
+        // Pone las teclas y el confirmar al soltar que hay en Fortnite: si no coinciden, el macro manda un editar de mas y se queda dentro.
+        public static bool Sync(MacroConfig c)
+        {
+            if (c.Manual) return false;
+            Binds b = null;
+            try { b = Binds.Load(); }
+            catch (IOException) { }
+            catch (UnauthorizedAccessException) { }
+            if (b == null || b.Edit == 0) return false;
+            c.Edit = b.Edit;
+            if (b.Select != 0 && !Wheel(b.Select)) c.Select = b.Select;
+            if (b.Reset != 0) c.Reset = b.Reset;
+            if (b.HasConfirm) c.ConfirmOnRelease = b.Confirm;
+            return true;
+        }
+        // Una macro en la tecla de editar, seleccionar o resetear se pisaria a si misma.
+        static bool Clash(MacroConfig c, int vk) { return vk == c.Edit || vk == c.Select || vk == c.Reset; }
+
         static bool Valid(int vk) { return vk > 0 && vk < 255; }
 
         // Motivo por el que esa tecla no vale para la macro, o null.
@@ -100,6 +119,7 @@ namespace Tablero
         {
             List<Act> a = new List<Act>();
             Tap(a, c.Edit);
+            if (id == "salir") return a;
             if (id == "reset") { Tap(a, c.Reset); if (!c.ConfirmOnRelease) Tap(a, c.Edit); }
             else a.Add(new Act(c.Select, true));
             return a;
@@ -108,7 +128,7 @@ namespace Tablero
         static List<Act> End(MacroConfig c, string id)
         {
             List<Act> a = new List<Act>();
-            if (id == "reset") return a;
+            if (id == "reset" || id == "salir") return a;
             a.Add(new Act(c.Select, false));
             if (!c.ConfirmOnRelease) Tap(a, c.Edit);
             if (id == "edit") return a;
@@ -257,8 +277,9 @@ namespace Tablero
                     if (check == 0 || now - check >= 250)
                     {
                         check = now == 0 ? 1 : now;
-                        bool cre = InCreative(), front = Front();
+                        bool cre = InCreative(), front = Front(), was = active;
                         active = cre && front;
+                        if (active && !was) Sync(c); // por si se cambiaron en el juego
                         state = active ? "Activas" : cre ? "En espera: Fortnite no está en primer plano" : "En espera: Fortnite no está en Creativo";
                     }
                     if (!active)
@@ -272,7 +293,7 @@ namespace Tablero
                     foreach (string id in Ids)
                     {
                         int vk;
-                        bool down = c.On.Contains(id) && c.Keys.TryGetValue(id, out vk) && IsDown(vk);
+                        bool down = c.On.Contains(id) && c.Keys.TryGetValue(id, out vk) && !Clash(c, vk) && IsDown(vk);
                         if (down && held.Add(id)) Do(Press(c, id), c.Delay);
                         else if (!down && held.Remove(id)) Do(Release(c, id), c.Delay);
                     }

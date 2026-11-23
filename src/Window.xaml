@@ -462,13 +462,21 @@
           </ItemsControl>
           <TextBlock x:Name="NetVerdict" FontSize="16" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,14,0,0" MaxWidth="640" HorizontalAlignment="Left"/>
           <TextBlock x:Name="NetBefore" Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,4,0,0"/>
+          <TextBlock Text="Velocidad" FontSize="20" FontWeight="Bold" Margin="0,22,0,10"/>
+          <ItemsControl x:Name="SpeedTiles" Focusable="False">
+            <ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Rows="1" Margin="0,0,-8,0"/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate><DataTemplate><Border Background="{DynamicResource Rail}" CornerRadius="18" Padding="18,12" Margin="0,0,8,0"><StackPanel><TextBlock Text="{Binding Label}" FontSize="13.5" Foreground="{DynamicResource Ink2}" TextTrimming="CharacterEllipsis"/><TextBlock Text="{Binding Main}" FontSize="24" FontWeight="Bold" Typography.NumeralAlignment="Tabular"/></StackPanel></Border></DataTemplate></ItemsControl.ItemTemplate>
+          </ItemsControl>
+          <TextBlock x:Name="SpeedVerdict" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,12,0,0" MaxWidth="640" HorizontalAlignment="Left"/>
+          <TextBlock x:Name="SpeedBefore" Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,4,0,10"/>
+          <WrapPanel><t:Btn x:Name="SpeedRun" Style="{StaticResource Btn}" Icon="{StaticResource IcoSave}" Content="Medir velocidad" Margin="0,0,14,0"/><TextBlock Text="Dura unos 15 segundos y puede usar hasta 750 MB. Usa los servidores de Cloudflare." Foreground="{DynamicResource Ink2}" VerticalAlignment="Center"/></WrapPanel>
           <StackPanel x:Name="NetWifi">
             <TextBlock Text="Mientras se juega" FontSize="20" FontWeight="Bold" Margin="0,22,0,10"/>
             <Border Background="{DynamicResource Rail}" CornerRadius="16" Padding="18,12"><DockPanel><CheckBox x:Name="NetSteady" DockPanel.Dock="Right" Style="{StaticResource Check}" AutomationProperties.Name="Wi-Fi estable" Margin="16,0,0,0" VerticalAlignment="Center"/><StackPanel VerticalAlignment="Center"><TextBlock Text="Wi-Fi estable" FontSize="16" FontWeight="Bold"/><TextBlock Text="Con Fortnite abierto, Windows deja de buscar otras redes, que es una causa de tirones. Al cerrarlo vuelve a lo normal. Algunas tarjetas no lo respetan." Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,2,0,0"/><TextBlock x:Name="NetState" FontSize="13" FontWeight="SemiBold" Margin="0,2,0,0"/></StackPanel></DockPanel></Border>
           </StackPanel>
           <TextBlock Text="Estado de la red" FontSize="20" FontWeight="Bold" Margin="0,22,0,10"/>
           <ItemsControl x:Name="NetChecks" Focusable="False"/>
-          <TextBlock Text="Tweakeroo no pasa el tráfico por otros servidores, como hace ExitLag, así que no acorta la distancia hasta Epic. Al medir hace ping al router, a 1.1.1.1 y a los servidores de medición de Epic." Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,14,0,0" MaxWidth="640" HorizontalAlignment="Left"/>
+          <TextBlock Text="Tweakeroo no pasa el tráfico por otros servidores, como hace ExitLag, así que no acorta la distancia hasta Epic. Al medir hace ping al router, a 1.1.1.1 y a los servidores de medición de Epic, y la velocidad se mide con Cloudflare." Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,14,0,0" MaxWidth="640" HorizontalAlignment="Left"/>
         </StackPanel>
       </ScrollViewer>
 
@@ -503,13 +511,13 @@
               </ItemsControl.ItemTemplate>
             </ItemsControl>
             <TextBlock Text="Teclas en Fortnite" FontSize="20" FontWeight="Bold" Margin="0,18,0,2"/>
-            <TextBlock Text="Deben ser las mismas que en los ajustes del juego. La tecla de cada macro no debe tener otra función en Fortnite." Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,0,0,10"/>
+            <TextBlock Text="Se leen solas de Fortnite. Si se ponen a mano, deben ser las mismas que en el juego, también confirmar al soltar: si no coinciden, la macro puede quedarse dentro de la edición." Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,0,0,10"/>
             <WrapPanel>
               <StackPanel Margin="0,0,14,8"><TextBlock Text="Editar" Foreground="{DynamicResource Ink2}" Margin="2,0,0,4"/><t:Btn x:Name="KeyEdit" Style="{StaticResource Btn}" MinWidth="150"/></StackPanel>
               <StackPanel Margin="0,0,14,8"><TextBlock Text="Seleccionar" Foreground="{DynamicResource Ink2}" Margin="2,0,0,4"/><t:Btn x:Name="KeySelect" Style="{StaticResource Btn}" MinWidth="150"/></StackPanel>
               <StackPanel Margin="0,0,0,8"><TextBlock Text="Resetear" Foreground="{DynamicResource Ink2}" Margin="2,0,0,4"/><t:Btn x:Name="KeyReset" Style="{StaticResource Btn}" MinWidth="150"/></StackPanel>
             </WrapPanel>
-            <t:Btn x:Name="ReadBinds" Style="{StaticResource Btn}" Content="Leer mis teclas de Fortnite" HorizontalAlignment="Left" Margin="0,0,0,6"/>
+            <CheckBox x:Name="MacroAuto" Style="{StaticResource Check}" Content="Usar las teclas que hay en Fortnite" FontSize="15"/>
             <CheckBox x:Name="MacroConfirm" Style="{StaticResource Check}" Content="Confirmar edición al soltar está activado en Fortnite" FontSize="15"/>
             <TextBlock Text="Al pulsar la tecla de la macro" FontSize="20" FontWeight="Bold" Margin="0,14,0,2"/>
             <TextBlock Text="Un toque manda toda la secuencia. Mantener deja arrastrar para elegir varias casillas y sigue al soltar." Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,0,0,10"/>
