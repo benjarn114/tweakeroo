@@ -1,3 +1,6 @@
+## 1.0.2 2026-11-24
+- Arreglado un error al abrir la app en algunos PC ("No se puede animar la propiedad X…") que aparecía mientras se leía el estado del PC.	Fixed an error on startup on some PCs ("Cannot animate the X property…") that showed up while reading the PC's state.
+- Si algo falla, el detalle se guarda en errores.txt, en la carpeta de datos de la app, para poder arreglarlo.	If something fails, the details are saved to errores.txt in the app's data folder so it can be fixed.
 ## 1.0.1 2026-11-24
 - Los tweaks del ratón ya no se activan con los recomendados: la aceleración del ratón de Windows y la del juego en Fortnite pasan a Avanzado y se eligen a mano.	Mouse tweaks are no longer turned on with the recommended ones: Windows mouse acceleration and Fortnite's in-game acceleration are now Advanced and chosen by hand.
 - El actualizador de G HUB pasa a Riesgo y se activa solo con confirmación: sin ese servicio, G HUB puede no arrancar y no aplicar el DPI ni los perfiles del ratón.	The G HUB updater is now Risk and only turns on with confirmation: without that service, G HUB may not start and not apply the mouse DPI or profiles.

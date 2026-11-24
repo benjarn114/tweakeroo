@@ -13,7 +13,7 @@ using System.Windows.Media.Imaging;
 
 [assembly: AssemblyTitle("Tweakeroo")]
 [assembly: AssemblyProduct("Tweakeroo")]
-[assembly: AssemblyVersion("1.0.1.0")]
+[assembly: AssemblyVersion("1.0.2.0")]
 
 namespace Tablero
 {
@@ -85,7 +85,19 @@ namespace Tablero
                 EventWaitHandle show = new EventWaitHandle(false, EventResetMode.AutoReset, mutex + "_mostrar");
                 Application app = new Application();
 #if !SHOT
-                app.DispatcherUnhandledException += (s, e) => { MessageBox.Show("Algo falló: " + e.Exception.Message, "Tweakeroo", MessageBoxButton.OK, MessageBoxImage.Error); e.Handled = true; };
+                app.DispatcherUnhandledException += (s, e) =>
+                {
+                    // Full trace to a file so the user can send where it failed; capped so it never grows big.
+                    try
+                    {
+                        string log = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Tweakeroo", "errores.txt");
+                        if (File.Exists(log) && new FileInfo(log).Length > 256 * 1024) File.Delete(log);
+                        File.AppendAllText(log, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " " + Installer.Short + "\r\n" + e.Exception + "\r\n\r\n");
+                    }
+                    catch (Exception) { }
+                    MessageBox.Show("Algo falló: " + e.Exception.Message, "Tweakeroo", MessageBoxButton.OK, MessageBoxImage.Error);
+                    e.Handled = true;
+                };
 #endif
 #if SHOT
                 app.DispatcherUnhandledException += (s, e) => { File.WriteAllText(args[0] + ".err", e.Exception.ToString()); Environment.Exit(1); };

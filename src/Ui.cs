@@ -210,7 +210,11 @@ namespace Tablero
         void Shimmer(bool on)
         {
             DoubleAnimation a = !on || !Fx.On ? null : new DoubleAnimation(-1, 1, TimeSpan.FromMilliseconds(1100)) { RepeatBehavior = RepeatBehavior.Forever };
-            shimmer.RelativeTransform.BeginAnimation(TranslateTransform.XProperty, a);
+            // A frozen brush or transform cannot be animated (seen on a friend's PC): use a fresh copy.
+            if (shimmer.IsFrozen) { shimmer = shimmer.Clone(); w.Resources["Shimmer"] = shimmer; }
+            TranslateTransform x = shimmer.RelativeTransform as TranslateTransform;
+            if (x == null || x.IsFrozen) shimmer.RelativeTransform = x = new TranslateTransform(-1, 0);
+            x.BeginAnimation(TranslateTransform.XProperty, a);
         }
         internal void ShowSkeletons(params string[] names)
         {
@@ -690,7 +694,7 @@ namespace Tablero
             if (!Fx.On) return;
             WrapPanel row = F<WrapPanel>("CustomRow");
             TranslateTransform t = row.RenderTransform as TranslateTransform;
-            if (t == null) row.RenderTransform = t = new TranslateTransform();
+            if (t == null || t.IsFrozen) row.RenderTransform = t = new TranslateTransform();
             t.BeginAnimation(TranslateTransform.XProperty, Frames(420, new[] { 0, 1 / 7.0, 2 / 7.0, 3 / 7.0, 4 / 7.0, 5 / 7.0, 6 / 7.0, 1 }, new double[] { 0, -10, 10, -7, 7, -3, 3, 0 }));
         }
         void CustomOk()
