@@ -13,7 +13,7 @@ using System.Windows.Media.Imaging;
 
 [assembly: AssemblyTitle("Tweakeroo")]
 [assembly: AssemblyProduct("Tweakeroo")]
-[assembly: AssemblyVersion("1.0.3.0")]
+[assembly: AssemblyVersion("1.0.4.0")]
 
 namespace Tablero
 {

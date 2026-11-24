@@ -102,6 +102,11 @@ namespace Tablero
                 Is(string.Join(",", nav.Items.Cast<Circuit>().Select(c => c.Name)) == "Jugar,Stretched Resolution,Colores,Al jugar,Mi PC,Mis FPS,Conexión,Macros,Tweaks,Mejoras", "menu corto al abrir");
                 await Task.Delay(400);
                 Is(((UIElement)w.FindName("SkelPage")).Visibility != Visibility.Visible && ((UIElement)w.FindName("SkelSaves")).Visibility != Visibility.Visible, "los skeletons se van");
+                // On some PCs WPF freezes the shine brush once used; showing the skeletons again must not touch it.
+                ((System.Windows.Media.Brush)w.Resources["Shimmer"]).Freeze();
+                ui.ShowSkeletons("SkelPage", "SkelNav", "SkelSaves");
+                Is(!((System.Windows.Media.Brush)w.Resources["Shimmer"]).IsFrozen || !Fx.On, "brillo nuevo aunque el anterior estuviera congelado");
+                await ui.HideSkeletons();
                 // a disabled list must not get the Windows white background
                 foreach (string n in new[] { "Saves", "Rows", "Resolutions" }) Is(((ListBox)w.FindName(n)).Template == w.Resources["PlainList"], "plantilla de " + n);
                 Go(w, "Mejoras"); Key(nav, System.Windows.Input.Key.Right); Is(nav.Items.Count == 10, "Mejoras ya no se despliega");

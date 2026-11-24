@@ -1,3 +1,5 @@
+## 1.0.4 2026-11-24
+- Arreglado de raíz el aviso al abrir en algunos PC ("No se puede establecer una propiedad en LinearGradientBrush…" o "No se puede animar la propiedad X…"): venía del brillo de la pantalla de carga.	Fixed at the root the startup message on some PCs ("Cannot set a property on LinearGradientBrush…" or "Cannot animate the X property…"): it came from the loading screen shine.
 ## 1.0.3 2026-11-24
 - Arreglado: en algunos PC aparecía al abrir el aviso "No se puede animar la propiedad X…" y la app quedaba casi sin responder. Si una animación no se puede hacer, ahora se salta sin interrumpir nada.	Fixed: on some PCs a "Cannot animate the X property…" message showed up on startup and the app barely responded. If an animation can't run, it is now skipped without interrupting anything.
 - El detalle de cualquier fallo se sigue guardando en errores.txt, en la carpeta de datos de la app.	Details of any failure are still saved to errores.txt in the app's data folder.

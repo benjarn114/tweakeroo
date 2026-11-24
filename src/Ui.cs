@@ -164,7 +164,6 @@ namespace Tablero
         List<Circuit> shorts; // Off, On and the line, above the categories
         Circuit upgrades;     // the Tweaks section (GameUi.cs uses this name)
         Circuit review;       // Upgrades: advice and purchases, always last
-        LinearGradientBrush shimmer;
         Task fpsTask;
         Hw quick;             // only CPU and GPU, to estimate without a scan
         readonly DispatcherTimer slow = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(350) };
@@ -196,25 +195,24 @@ namespace Tablero
         // A single gray shine runs across all pieces; gray so it shows on light and dark palettes.
         void Skeleton()
         {
-            Color g = Color.FromArgb(0, 128, 128, 128);
-            shimmer = new LinearGradientBrush { StartPoint = new Point(0, 0.5), EndPoint = new Point(1, 0.5) };
-            shimmer.GradientStops.Add(new GradientStop(g, 0.2));
-            shimmer.GradientStops.Add(new GradientStop(Color.FromArgb(80, 160, 160, 160), 0.5));
-            shimmer.GradientStops.Add(new GradientStop(g, 0.8));
-            shimmer.RelativeTransform = new TranslateTransform(-1, 0);
-            w.Resources["Shimmer"] = shimmer;
+            Shimmer(false);
             // They only appear if loading really takes a while.
             slow.Tick += (s, e) => { slow.Stop(); if (!loaded.Task.IsCompleted) ShowSkeletons("SkelPage", "SkelNav", "SkelSaves"); };
             slow.Start();
         }
         void Shimmer(bool on)
         {
-            DoubleAnimation a = !on || !Fx.On ? null : new DoubleAnimation(-1, 1, TimeSpan.FromMilliseconds(1100)) { RepeatBehavior = RepeatBehavior.Forever };
-            // A frozen brush or transform cannot be animated (seen on a friend's PC): use a fresh copy.
-            if (shimmer.IsFrozen) { shimmer = shimmer.Clone(); w.Resources["Shimmer"] = shimmer; }
-            TranslateTransform x = shimmer.RelativeTransform as TranslateTransform;
-            if (x == null || x.IsFrozen) shimmer.RelativeTransform = x = new TranslateTransform(-1, 0);
-            x.BeginAnimation(TranslateTransform.XProperty, a);
+            // On some PCs WPF freezes the brush once the skeletons use it, so a published brush is never touched again:
+            // each call builds a new one, fully set up and already animating, and only then publishes it.
+            Color g = Color.FromArgb(0, 128, 128, 128);
+            LinearGradientBrush b = new LinearGradientBrush { StartPoint = new Point(0, 0.5), EndPoint = new Point(1, 0.5) };
+            b.GradientStops.Add(new GradientStop(g, 0.2));
+            b.GradientStops.Add(new GradientStop(Color.FromArgb(80, 160, 160, 160), 0.5));
+            b.GradientStops.Add(new GradientStop(g, 0.8));
+            TranslateTransform x = new TranslateTransform(-1, 0);
+            b.RelativeTransform = x;
+            if (on && Fx.On) x.BeginAnimation(TranslateTransform.XProperty, new DoubleAnimation(-1, 1, TimeSpan.FromMilliseconds(1100)) { RepeatBehavior = RepeatBehavior.Forever });
+            w.Resources["Shimmer"] = b;
         }
         internal void ShowSkeletons(params string[] names)
         {
@@ -229,7 +227,7 @@ namespace Tablero
             Shimmer(true);
         }
         // If they were shown, they stay a moment so they do not flicker.
-        async Task HideSkeletons()
+        internal async Task HideSkeletons()
         {
             slow.Stop();
             int left = 400 - (int)(DateTime.Now - skelAt).TotalMilliseconds;
