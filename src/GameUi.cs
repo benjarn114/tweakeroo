@@ -297,7 +297,7 @@ namespace Tablero
         {
             BitmapImage b = new BitmapImage();
             b.BeginInit();
-            // A game without its photo yet (CS2) uses Fortnite's.
+            // A game whose photo resource is missing falls back to Fortnite's.
             b.StreamSource = Assembly.GetExecutingAssembly().GetManifestResourceStream(game.Photo) ?? Assembly.GetExecutingAssembly().GetManifestResourceStream(Game.Fortnite.Photo);
             b.CacheOption = BitmapCacheOption.OnLoad;
             b.EndInit();
@@ -543,7 +543,7 @@ namespace Tablero
         {
             ImageSource p;
             if (cardPhotos.TryGetValue(g, out p)) return p;
-            System.IO.Stream s = Assembly.GetExecutingAssembly().GetManifestResourceStream(g.Photo);
+            System.IO.Stream s = Assembly.GetExecutingAssembly().GetManifestResourceStream(g.Card ?? g.Photo) ?? Assembly.GetExecutingAssembly().GetManifestResourceStream(g.Photo);
             if (s != null)
             {
                 BitmapImage b = new BitmapImage();
