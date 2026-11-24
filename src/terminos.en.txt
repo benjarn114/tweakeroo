@@ -1,12 +1,12 @@
 # Tweakeroo terms of use
-Version 5, November 22, 2026.
+Version 7, November 23, 2026.
 By installing or using Tweakeroo you accept these terms. If you don't agree, don't install it. This is a translation; if there is any difference, the Spanish version applies.
 
 # 1. What it is
-Tweakeroo is a free application made by one person, with no company behind it. It changes Windows and Fortnite settings, opens the game at the resolution you choose, shows your FPS and gives advice about your PC.
+Tweakeroo is a free application made by one person, with no company behind it. It changes Windows and Fortnite settings and each game's NVIDIA profile, opens Fortnite or Valorant at the resolution you choose, changes the screen color, shows your FPS and gives advice about your PC.
 
 # 2. What you can do with it
-You can install and use it for free on your computers, and share the official download link. You can't sell it, charge for installing it, publish copies, modified or not, or pass it off as yours. You can keep using every version you get for free, forever. Future versions could be paid. The source code is published so you can read it and build it for yourself, under the repository's LICENSE file.
+You can install and use it for free on your computers, and share the official download link. You can't sell it, charge for installing it, publish copies, modified or not, or pass it off as yours. Tweakeroo is free and will stay free forever. The source code is published so you can read it and build it for yourself, under the repository's LICENSE file.
 
 # 3. What it changes on your PC
 It only changes what you turn on. It needs administrator permission because it changes the registry, services, scheduled tasks, the power plan, the network card, the NVIDIA profile and Fortnite's settings. Before the first change it saves a copy called Original and lets you go back to it. It also tries to create a Windows restore point, but on some computers Windows doesn't allow it. If you create a custom resolution, it is stored in your graphics driver.
@@ -26,8 +26,17 @@ Tweakeroo doesn't inject code into the game or read its memory. Each game and ea
 # 7.1. Macros
 The Macros section is optional and off by default. It is meant for practice in Creative and sends nothing in other modes. It sends keyboard and mouse presses, which Epic forbids in tournaments and which can lead to penalties or losing the account, also in Creative. It doesn't hide its use from the anti-cheat. If you turn it on, you accept that risk.
 
+# 7.2. Valorant
+Stretching Valorant is optional and off by default. It changes the Windows resolution and, while you play, disables the monitors in Device Manager; they come back when the game closes and, if the application is closed midway, the next time you open it. Of Valorant's files, Tweakeroo only changes its video settings file (display mode and aspect ratio), when you press Fix and with the game closed, and it saves a copy first. It doesn't touch the game's memory and doesn't send keys or mouse input. Riot hasn't published a clear rule about this and may change its position. If you turn it on, you accept that risk.
+
+# 7.3. Colors
+Color profiles are optional. They change the graphics card's color vibrance and the brightness curve of the main screen while the game is open, and put back what was there when it closes.
+
+# 7.4. While playing
+What you choose in While playing is applied when the game opens and removed when it closes: power plan, paused Windows services, visual effects, mouse and efficiency mode for background programs. If the application is closed midway, it puts everything back the next time you open it.
+
 # 8. Trademarks
-Tweakeroo is not affiliated with Epic Games, Microsoft, NVIDIA, AMD or Intel, nor endorsed by them. Fortnite and the other names are trademarks of their owners and are used only to say what the application works with.
+Tweakeroo is not affiliated with Epic Games, Riot Games, Microsoft, NVIDIA, AMD or Intel, nor endorsed by them. Fortnite, Valorant and the other names are trademarks of their owners and are used only to say what the application works with.
 
 # 9. Minors
 If you are a minor where you live, ask your parent or the person responsible for the computer for permission before installing it.
@@ -45,13 +54,13 @@ If these terms change in an important way, the application will show them to you
 Tweakeroo has no accounts, ads or analytics, and doesn't send your data to its author.
 
 # What it reads on your PC
-Your parts, the settings it can change, Fortnite's settings and the logs the game leaves. From the logs it only keeps the date, mode, length and FPS of each match. In the Macros section it reads the keys from your local copy of the game's settings and doesn't send them. If you turn on a macro, it checks whether the keys you chose are pressed and reads the game's log to know whether you are in Creative; it doesn't store what you press. To show what uses the most memory, it looks at the names of open programs and doesn't store them.
+Your components, the settings it can change, Fortnite's and Valorant's settings and the logs the games leave. From the logs it only keeps the date, mode, length and FPS of each match. In the Macros section it reads the keys from your local copy of the game's settings and doesn't send them. If you turn on a macro, it checks whether the keys you chose are pressed and reads the game's log to know whether you are in Creative; it doesn't store what you press. To show what uses the most memory, it looks at the names of open programs and doesn't store them.
 
 # Where it keeps it
 On your PC, in your user's AppData\Local\Tweakeroo folder. Nobody else receives it. You can delete it when uninstalling or by removing that folder.
 
 # Internet connections
-It connects to GitHub to look for and download updates. If you press Test connection, it pings your router, 1.1.1.1 (Cloudflare) and Epic's measuring servers; the results stay on your PC. If you press Test speed, it downloads and uploads test data with speed.cloudflare.com, which can use up to 750 MB. Like any website, GitHub receives your IP address and handles it under its privacy policy. Opening Fortnite uses Epic's launcher, which has its own terms.
+It connects to GitHub to look for and download updates. With an NVIDIA card, when you scan the PC and once a day if Check when it opens is on, it asks NVIDIA for the latest driver; it only sends the card's family and the Windows version. If you press Test connection, it pings your router, 1.1.1.1 (Cloudflare) and, with Fortnite, Epic's measuring servers; the results stay on your PC. If you press Test speed, it downloads and uploads test data with speed.cloudflare.com, which can use up to 750 MB. Like any website, GitHub receives your IP address and handles it under its privacy policy. Opening Fortnite uses Epic's launcher and opening Valorant uses Riot's, which have their own terms.
 
 # Thanks
 Some settings were chosen by consulting public projects such as WinUtil, Win11Debloat, ReviOS, privacy.sexy and PC-Tuning. Tweakeroo is not affiliated with them.

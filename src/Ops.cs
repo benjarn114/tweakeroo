@@ -11,8 +11,8 @@ using Microsoft.Win32;
 
 namespace Tablero
 {
-    // Un Op es un ajuste atomico del sistema. Los valores viajan como texto con prefijo de tipo;
-    // None significa "no existe", para poder restaurarlo borrandolo.
+    // An Op is an atomic system setting. Values travel as text with a type prefix;
+    // None means "does not exist", so it can be restored by deleting it.
     public abstract class Op
     {
         public const string None = "<none>";
@@ -99,7 +99,7 @@ namespace Tablero
         }
     }
 
-    // Cambia solo un "token=valor;" dentro de un texto que comparte con otros ajustes.
+    // Only changes one "token=value;" inside a text shared with other settings.
     public class TokenOp : Op
     {
         readonly string path, name, token;
@@ -125,7 +125,7 @@ namespace Tablero
         }
     }
 
-    // Enciende o apaga un solo bit de un numero guardado como texto (atajos de accesibilidad).
+    // Turns a single bit on or off in a number stored as text (accessibility shortcuts).
     public class BitOp : Op
     {
         readonly string path, name; readonly uint bit;
@@ -162,7 +162,7 @@ namespace Tablero
                 finally { CloseServiceHandle(s); }
             }
             finally { CloseServiceHandle(scm); }
-            // El tipo de inicio ya quedo cambiado; parar o arrancar ahora es solo para no esperar al reinicio.
+            // The startup type is already changed; stopping or starting now is just to avoid waiting for a restart.
             try
             {
                 using (ServiceController c = new ServiceController(name))
@@ -208,13 +208,13 @@ namespace Tablero
         public override bool Available() { return Power.Schemes().Contains(new Guid(Target.Substring(2))); }
         public override List<string> CurrentKeys() { return One("scheme|active"); }
         public override string Read(string key) { return "s:" + Power.Active(); }
-        // Cortex y similares borran su plan al cerrar el juego: si el guardado ya no existe, se usa Equilibrado.
+        // Cortex and similar delete their plan when the game closes: if the saved one no longer exists, Balanced is used.
         static bool Exists(string value) { return Power.Schemes().Contains(new Guid(value.Substring(2))); }
         public override void Write(string key, string value) { Power.Activate(new Guid((Exists(value) ? value : Default).Substring(2))); }
         public override bool Took(string key, string value) { return Read(key) == (Exists(value) ? value : Default); }
     }
 
-    // Los valores de energia viven dentro de cada plan: se lee el plan activo y se guardan todos.
+    // Power values live inside each plan: the active plan is read and all are saved.
     public class PwrOp : Op
     {
         readonly Guid sub, set;
@@ -268,7 +268,7 @@ namespace Tablero
         [DllImport("kernel32.dll")] static extern IntPtr LocalFree(IntPtr p);
     }
 
-    // Propiedad avanzada de red, en cada tarjeta PCI que la tenga.
+    // Advanced network property, on every PCI card that has it.
     public class NicOp : Op
     {
         const string Class = "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Class\\{4d36e972-e325-11ce-bfc1-08002be10318}";
@@ -317,7 +317,7 @@ namespace Tablero
                 return t.Replace("\r\n", "\n").Split('\n').ToList();
             }
         }
-        // Devuelve la linea de la clave, o -1; end es donde termina la seccion (-1 si no existe).
+        // Returns the key's line, or -1; end is where the section ends (-1 if it does not exist).
         int Find(List<string> l, out int end)
         {
             end = -1;
@@ -361,7 +361,7 @@ namespace Tablero
         }
     }
 
-    // Perfil del controlador NVIDIA. None = el valor de fabrica del controlador.
+    // NVIDIA driver profile. None = the driver's default value.
     public class NvOp : Op
     {
         readonly string profile; readonly uint id;
@@ -428,7 +428,7 @@ namespace Tablero
                 int e = Fn<FGet>(0x73BF8338)(s, p, id, b);
                 if (e == NotFound) return Op.None;
                 Check(e);
-                // location 0 = definido en este perfil; predefinido = valor de fabrica
+                // location 0 = defined in this profile; predefined = default value
                 if (BitConverter.ToInt32(b, 4108) != 0 || BitConverter.ToInt32(b, 4112) != 0) return Op.None;
                 return "d:" + BitConverter.ToUInt32(b, 8220);
             });

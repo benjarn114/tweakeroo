@@ -35,16 +35,33 @@ namespace Tablero
         static IniOp I(string name, string on, string def) { return new IniOp(Game, name, on, def); }
         static TaskOp K(string path) { return new TaskOp(TaskRoot + path); }
 
-        static string FortniteExe()
+        static string GpuPath()
         {
-            string dat = Environment.ExpandEnvironmentVariables(@"%ProgramData%\Epic\UnrealEngineLauncher\LauncherInstalled.dat");
-            string dir = @"C:\Program Files\Epic Games\Fortnite";
-            if (File.Exists(dat))
+            try
             {
-                System.Text.RegularExpressions.Match m = System.Text.RegularExpressions.Regex.Match(File.ReadAllText(dat), "\"InstallLocation\":\\s*\"([^\"]*\\\\Fortnite)\"");
-                if (m.Success) dir = m.Groups[1].Value.Replace("\\\\", "\\");
+                using (System.Management.ManagementObjectSearcher q = new System.Management.ManagementObjectSearcher("SELECT PNPDeviceID FROM Win32_VideoController"))
+                    foreach (System.Management.ManagementObject o in q.Get())
+                    {
+                        string id = o["PNPDeviceID"] as string;
+                        if (id != null && (id.StartsWith(@"PCI\VEN_10DE") || id.StartsWith(@"PCI\VEN_1002"))) return Ccs + @"Enum\" + id;
+                    }
             }
-            return Path.Combine(dir, @"FortniteGame\Binaries\Win64\FortniteClient-Win64-Shipping.exe");
+            catch (System.Management.ManagementException) { }
+            catch (System.Runtime.InteropServices.COMException) { }
+            return null;
+        }
+
+        // The same for every game, in its own profile: they do not touch its files.
+        static void Own(string p, string game, string exe, string path)
+        {
+            const Level s = Level.Seguro, a = Level.Avanzado;
+            const string ifeo = @"HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\";
+            T(p + "-low", "Baja latencia de NVIDIA en " + game, "Un solo fotograma en espera. Con Reflex encendido en el juego apenas cambia.", s, "Medio", "el juego", new NvOp(game, 0x007BA09E, 1));
+            T(p + "-aniso", "Texturas con muestreo rápido en " + game, "Optimización de muestreo anisótropo de NVIDIA.", s, "Bajo", "el juego", new NvOp(game, 0x00E73211, 1));
+            T(p + "-ansel", "Ansel apagado en " + game, "El capturador de NVIDIA no se carga con el juego.", s, "Bajo", "el juego", new NvOp(game, 0x1075D972, 0));
+            T(p + "-hz", "Máxima frecuencia de pantalla en " + game, "El juego usa los Hz más altos del monitor.", s, "Bajo", "el juego", new NvOp(game, 0x0064B541, 1));
+            T(p + "-prio", "Prioridad alta de CPU para " + game, "Windows abre el juego con prioridad alta de CPU y disco. Es un ajuste de Windows.", a, "Medio", "el juego", IfFile(D(ifeo + exe + @"\PerfOptions", "CpuPriorityClass", 3, null), path), IfFile(D(ifeo + exe + @"\PerfOptions", "IoPriority", 3, null), path));
+            T(p + "-fso", "Sin optimización de pantalla completa en " + game, "Ayuda en algunos PC y en otros empeora: conviene comparar.", a, "Bajo", "el juego", IfFile(S(@"HKCU\Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers", path, "~ DISABLEDXMAXIMIZEDWINDOWEDMODE", null), path));
         }
 
         public static List<Tweak> Build()
@@ -74,7 +91,17 @@ namespace Tablero
                 { "ViewDistance", "Distancia de dibujado en bajo", "Medio" } };
             for (int i = 0; i < sg.GetLength(0); i++)
                 T("fn-" + sg[i, 0].ToLowerInvariant(), sg[i, 1], sg[i, 0] == "ViewDistance" ? "Los jugadores y construcciones se ven igual de lejos." : "Calidad gráfica mínima del juego.", s, sg[i, 2], "", new IniOp("ScalabilityGroups", "sg." + sg[i, 0] + "Quality", "0", "2"));
-            T("fn-gpu", "Fortnite usa la gráfica potente", "Con dos gráficas, Windows usa siempre la potente.", s, "Bajo", "", new TokenOp(@"HKCU\Software\Microsoft\DirectX\UserGpuPreferences", FortniteExe(), "GpuPreference", "s:2", Op.None));
+            T("fn-gpu", "Fortnite usa la gráfica potente", "Con dos gráficas, Windows usa siempre la potente.", s, "Bajo", "", new TokenOp(@"HKCU\Software\Microsoft\DirectX\UserGpuPreferences", Tablero.Game.Fortnite.Exe, "GpuPreference", "s:2", Op.None));
+
+            Own("fn", "Fortnite", "FortniteClient-Win64-Shipping.exe", Tablero.Game.Fortnite.Exe);
+
+            cat = "Valorant";
+            T("val-gpu", "Valorant usa la gráfica potente", "Con dos gráficas, Windows usa siempre la potente.", s, "Bajo", "", new TokenOp(@"HKCU\Software\Microsoft\DirectX\UserGpuPreferences", Tablero.Game.Valorant.Exe, "GpuPreference", "s:2", Op.None));
+            T("val-power", "NVIDIA a máximo rendimiento en Valorant", "La gráfica no baja de frecuencia durante la partida.", s, "Medio", "el juego", new NvOp("Valorant", 0x1057EB71, 1));
+            T("val-filter", "Filtrado de texturas rápido en Valorant", "Menos trabajo de textura, solo en Valorant.", s, "Bajo", "el juego", new NvOp("Valorant", 0x00CE2691, 20));
+            T("val-vsync", "VSync apagado en Valorant", "Quita la espera al monitor desde el perfil de NVIDIA, sin tocar el juego.", s, "Medio", "el juego", new NvOp("Valorant", 0x00A879CF, 0x08416747));
+
+            Own("val", "Valorant", "VALORANT-Win64-Shipping.exe", Tablero.Game.Valorant.Exe);
 
             cat = "Gráficos y captura";
             T("gfx-gamemode", "Modo Juego", "Windows aparta tareas y actualizaciones mientras juegas.", s, "Medio", "", D(@"HKCU\Software\Microsoft\GameBar", "AutoGameModeEnabled", 1, 0), D(@"HKCU\Software\Microsoft\GameBar", "AllowAutoGameMode", 1, null));
@@ -85,7 +112,7 @@ namespace Tablero
             T("gfx-dvr", "Apagar Game DVR", "El grabador de Windows deja de engancharse al juego.", s, "Medio", "", D(@"HKCU\System\GameConfigStore", "GameDVR_Enabled", 0, 1));
             T("gfx-capture", "Apagar captura de Game Bar", "Sin captura de clips de Windows. Medal sigue igual.", s, "Medio", "", D(U + "GameDVR", "AppCaptureEnabled", 0, 1));
             T("gfx-history", "Apagar grabación en segundo plano", "Windows no graba los últimos segundos todo el tiempo.", s, "Medio", "", D(U + "GameDVR", "HistoricalCaptureEnabled", 0, 1));
-            T("gfx-dvrpolicy", "Game DVR bloqueado", "Evita que una actualización lo vuelva a activar.", s, "Bajo", "el PC", D(P + "GameDVR", "AllowGameDVR", 0, null));
+            T("gfx-dvrpolicy", "Game DVR bloqueado", "Evita que una actualización lo vuelva a activar.", s, "Bajo", "el juego", D(P + "GameDVR", "AllowGameDVR", 0, null));
             T("gfx-nexus", "Game Bar no se abre con el mando", "El botón Xbox queda para el juego.", s, "Bajo", "", D(@"HKCU\Software\Microsoft\GameBar", "UseNexusForGameBarEnabled", 0, null));
             T("gfx-panel", "Apagar avisos de Game Bar", "Sin panel de bienvenida al abrir un juego.", s, "Bajo", "", D(@"HKCU\Software\Microsoft\GameBar", "ShowStartupPanel", 0, null));
             T("nv-power", "NVIDIA a máximo rendimiento en Fortnite", "La gráfica no baja de frecuencia durante la partida.", s, "Medio", "el juego", new NvOp("Fortnite", 0x1057EB71, 1));
@@ -110,21 +137,35 @@ namespace Tablero
             T("pw-throttle", "Apagar limitación de energía", "Windows no frena procesos para ahorrar.", s, "Bajo", "el PC", D(Ccs + @"Control\Power\PowerThrottling", "PowerThrottlingOff", 1, null));
             RegOp timer = D(Precise.Key, Precise.Name, 1, null);
             timer.Condition = () => { int b; return int.TryParse(RegOp.ReadValue(@"HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion", "CurrentBuildNumber").Replace("s:", ""), out b) && b >= 22000; };
-            T("pw-timer", "Temporizador de 0,5 ms al jugar", "Se aplica al abrir Fortnite desde Jugar, con Tweakeroo abierto. Su efecto en el retraso no está demostrado.", a, "Bajo", "el PC", timer);
+            T("pw-timer", "Temporizador de 0,5 ms al jugar", "Se aplica al abrir el juego desde Jugar, con Tweakeroo abierto. Su efecto en el retraso no está demostrado.", a, "Bajo", "el PC", timer);
             T("pw-fast", "Apagar inicio rápido", "Cada encendido arranca limpio, sin restos de la sesión anterior.", s, "Bajo", "el PC", D(Ccs + @"Control\Session Manager\Power", "HiberbootEnabled", 0, 1));
             T("pw-hvci", "Apagar integridad de memoria", "Sube FPS en juegos limitados por CPU, pero quita una defensa de Windows. Algunos anticheat la exigen.", r, "Alto", "el PC", D(Ccs + @"Control\DeviceGuard\Scenarios\HypervisorEnforcedCodeIntegrity", "Enabled", 0, 1));
 
+            cat = "Retraso";
+            const string sys = @"HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile", sm = Ccs + @"Control\Session Manager\Memory Management", fs = Ccs + @"Control\FileSystem", gcs = @"HKCU\System\GameConfigStore";
+            T("lt-quantum", "Más CPU para la ventana activa", "Turnos de CPU cortos y con prioridad para el juego. Efecto pequeño.", a, "Bajo", "", D(Ccs + @"Control\PriorityControl", "Win32PrioritySeparation", 38, 2));
+            T("lt-games", "Prioridad alta para juegos en MMCSS", "Windows atiende antes a los programas que se registran como juego. Efecto no demostrado.", a, "Bajo", "el PC", S(sys + @"\Tasks\Games", "Scheduling Category", "High", "Medium"), S(sys + @"\Tasks\Games", "SFIO Priority", "High", "Normal"), D(sys + @"\Tasks\Games", "Priority", 6, 2));
+            T("lt-resp", "Menos CPU reservada para el fondo", "Baja del 20 al 10 % lo que Windows guarda para otras tareas. Efecto no demostrado.", a, "Bajo", "el PC", D(sys, "SystemResponsiveness", 10, 20));
+            T("lt-net", "Sin límite de red multimedia", "Quita un tope de paquetes mientras suena audio. Puede subir el uso de CPU.", a, "Bajo", "el PC", new RegOp(sys, "NetworkThrottlingIndex", "d:4294967295", "d:10"));
+            string msi = GpuPath();
+            if (msi != null) T("lt-msi", "Interrupciones MSI en la gráfica", "La gráfica avisa a la CPU por un canal propio. Muchas ya vienen así.", a, "Bajo", "el PC", D(msi + @"\Device Parameters\Interrupt Management\MessageSignaledInterruptProperties", "MSISupported", 1, null));
+            T("lt-paging", "Núcleo de Windows siempre en memoria", "Windows no manda sus propios controladores al disco. Solo con 16 GB o más.", a, "Bajo", "el PC", D(sm, "DisablePagingExecutive", 1, 0));
+            T("lt-access", "Sin anotar la fecha de lectura", "Menos escrituras al abrir archivos.", s, "Bajo", "el PC", new RegOp(fs, "NtfsDisableLastAccessUpdate", "d:2147483649", "d:2147483650"));
+            T("lt-short", "Sin nombres cortos de archivo", "Windows deja de crear nombres de 8 letras para cada archivo nuevo.", a, "Bajo", "el PC", D(fs, "NtfsDisable8dot3NameCreation", 1, 2));
+            T("lt-fse", "Pantalla completa clásica", "Los juegos en pantalla completa usan el modo exclusivo. No cambia los que van en ventana sin bordes.", a, "Bajo", "el juego", D(gcs, "GameDVR_FSEBehaviorMode", 2, 0), D(gcs, "GameDVR_HonorUserFSEBehaviorMode", 1, 0), D(gcs, "GameDVR_DXGIHonorFSEWindowsCompatible", 1, 0));
+            T("lt-mpo", "Apagar MPO", "Arregla parpadeos y tirones con varias pantallas en algunas gráficas. Si no los hay, no aporta.", a, "Bajo", "el PC", D(@"HKLM\SOFTWARE\Microsoft\Windows\Dwm", "OverlayTestMode", 5, null));
+
             cat = "Ratón y teclado";
-            T("in-accel", "Apagar aceleración del ratón", "Mejorar precisión del puntero, desactivado.", s, "Alto", "la sesión", S(@"HKCU\Control Panel\Mouse", "MouseSpeed", "0", "1"), S(@"HKCU\Control Panel\Mouse", "MouseThreshold1", "0", "6"), S(@"HKCU\Control Panel\Mouse", "MouseThreshold2", "0", "10"));
-            T("in-sticky", "Sin Teclas especiales", "Pulsar Shift cinco veces no te saca del juego.", s, "Medio", "la sesión", new BitOp(Acc + "StickyKeys", "Flags", 4));
-            T("in-filter", "Sin Teclas filtro", "Mantener Shift no activa el filtro.", s, "Medio", "la sesión", new BitOp(Acc + "Keyboard Response", "Flags", 4));
-            T("in-toggle", "Sin Teclas de alternancia", "Mantener Bloq Num no abre un aviso.", s, "Bajo", "la sesión", new BitOp(Acc + "ToggleKeys", "Flags", 4));
-            T("in-mousekeys", "Sin Teclas de ratón", "Alt + Shift + Bloq Num deja de abrir un aviso.", s, "Bajo", "la sesión", new BitOp(Acc + "MouseKeys", "Flags", 4));
+            T("in-accel", "Apagar aceleración del ratón", "Mejorar precisión del puntero, desactivado.", s, "Alto", "", S(@"HKCU\Control Panel\Mouse", "MouseSpeed", "0", "1"), S(@"HKCU\Control Panel\Mouse", "MouseThreshold1", "0", "6"), S(@"HKCU\Control Panel\Mouse", "MouseThreshold2", "0", "10"));
+            T("in-sticky", "Sin Teclas especiales", "Pulsar Shift cinco veces no te saca del juego.", s, "Medio", "", new BitOp(Acc + "StickyKeys", "Flags", 4));
+            T("in-filter", "Sin Teclas filtro", "Mantener Shift no activa el filtro.", s, "Medio", "", new BitOp(Acc + "Keyboard Response", "Flags", 4));
+            T("in-toggle", "Sin Teclas de alternancia", "Mantener Bloq Num no abre un aviso.", s, "Bajo", "", new BitOp(Acc + "ToggleKeys", "Flags", 4));
+            T("in-mousekeys", "Sin Teclas de ratón", "Alt + Shift + Bloq Num deja de abrir un aviso.", s, "Bajo", "", new BitOp(Acc + "MouseKeys", "Flags", 4));
             T("in-contrast", "Sin atajo de contraste alto", "Alt + Shift + ImprPant no cambia toda la pantalla.", s, "Bajo", "la sesión", new BitOp(Acc + "HighContrast", "Flags", 4));
             T("in-narrator", "Sin atajo del Narrador", "Win + Ctrl + Enter no lo abre.", s, "Bajo", "", D(@"HKCU\Software\Microsoft\Narrator\NoRoam", "WinEnterLaunchEnabled", 0, null));
             T("in-lang", "Sin atajo de cambio de idioma", "Alt + Shift y Ctrl + Shift no cambian el teclado.", s, "Medio", "la sesión", S(@"HKCU\Keyboard Layout\Toggle", "Hotkey", "3", null), S(@"HKCU\Keyboard Layout\Toggle", "Language Hotkey", "3", null), S(@"HKCU\Keyboard Layout\Toggle", "Layout Hotkey", "3", null));
-            T("in-delay", "Retraso de teclado mínimo", "La repetición empieza antes.", s, "Bajo", "la sesión", S(@"HKCU\Control Panel\Keyboard", "KeyboardDelay", "0", "1"));
-            T("in-speed", "Repetición de teclado máxima", "Repite más rápido al mantener una tecla.", s, "Bajo", "la sesión", S(@"HKCU\Control Panel\Keyboard", "KeyboardSpeed", "31", "20"));
+            T("in-delay", "Retraso de teclado mínimo", "La repetición empieza antes.", s, "Bajo", "", S(@"HKCU\Control Panel\Keyboard", "KeyboardDelay", "0", "1"));
+            T("in-speed", "Repetición de teclado máxima", "Repite más rápido al mantener una tecla.", s, "Bajo", "", S(@"HKCU\Control Panel\Keyboard", "KeyboardSpeed", "31", "20"));
 
             cat = "Red";
             T("net-p2p", "Sin compartir actualizaciones", "Tu PC no sube actualizaciones a otros.", s, "Medio", "", D(P + "DeliveryOptimization", "DODownloadMode", 0, null));
@@ -143,12 +184,12 @@ namespace Tablero
 
             cat = "Segundo plano";
             T("bg-apps", "Apps de la Tienda sin segundo plano", "Dejan de correr cerradas. Pueden no mostrar avisos.", a, "Medio", "la sesión", D(P + "AppPrivacy", "LetAppsRunInBackground", 2, null));
-            T("bg-widgets", "Apagar widgets", "Quita el panel de noticias y sus procesos.", s, "Medio", "el PC", D(@"HKLM\SOFTWARE\Policies\Microsoft\Dsh", "AllowNewsAndInterests", 0, null));
-            T("bg-edgeboost", "Edge no arranca con Windows", "Edge deja de cargarse antes de abrirlo.", s, "Medio", "la sesión", D(@"HKLM\SOFTWARE\Policies\Microsoft\Edge", "StartupBoostEnabled", 0, null));
-            T("bg-edge", "Edge no sigue abierto al cerrarlo", "Sin procesos de Edge de fondo.", s, "Medio", "la sesión", D(@"HKLM\SOFTWARE\Policies\Microsoft\Edge", "BackgroundModeEnabled", 0, null));
-            T("bg-edgetab", "Edge no precarga pestañas", "Menos memoria usada por adelantado.", s, "Bajo", "la sesión", D(@"HKLM\SOFTWARE\Policies\Microsoft\Edge", "NewTabPagePrerenderEnabled", 0, null));
-            T("bg-chrome", "Chrome no sigue abierto al cerrarlo", "Sin procesos de Chrome de fondo.", s, "Medio", "la sesión", IfFile(D(@"HKLM\SOFTWARE\Policies\Google\Chrome", "BackgroundModeEnabled", 0, null), @"%ProgramFiles%\Google\Chrome\Application\chrome.exe"));
-            T("bg-brave", "Brave no sigue abierto al cerrarlo", "Sin procesos de Brave de fondo.", s, "Medio", "la sesión", IfFile(D(@"HKLM\SOFTWARE\Policies\BraveSoftware\Brave", "BackgroundModeEnabled", 0, null), @"%ProgramFiles%\BraveSoftware\Brave-Browser\Application\brave.exe"));
+            T("bg-widgets", "Apagar widgets", "Quita el panel de noticias y sus procesos.", s, "Medio", "la sesión", D(@"HKLM\SOFTWARE\Policies\Microsoft\Dsh", "AllowNewsAndInterests", 0, null));
+            T("bg-edgeboost", "Edge no arranca con Windows", "Edge deja de cargarse antes de abrirlo.", s, "Medio", "Edge", D(@"HKLM\SOFTWARE\Policies\Microsoft\Edge", "StartupBoostEnabled", 0, null));
+            T("bg-edge", "Edge no sigue abierto al cerrarlo", "Sin procesos de Edge de fondo.", s, "Medio", "Edge", D(@"HKLM\SOFTWARE\Policies\Microsoft\Edge", "BackgroundModeEnabled", 0, null));
+            T("bg-edgetab", "Edge no precarga pestañas", "Menos memoria usada por adelantado.", s, "Bajo", "Edge", D(@"HKLM\SOFTWARE\Policies\Microsoft\Edge", "NewTabPagePrerenderEnabled", 0, null));
+            T("bg-chrome", "Chrome no sigue abierto al cerrarlo", "Sin procesos de Chrome de fondo.", s, "Medio", "Chrome", IfFile(D(@"HKLM\SOFTWARE\Policies\Google\Chrome", "BackgroundModeEnabled", 0, null), @"%ProgramFiles%\Google\Chrome\Application\chrome.exe"));
+            T("bg-brave", "Brave no sigue abierto al cerrarlo", "Sin procesos de Brave de fondo.", s, "Medio", "Brave", IfFile(D(@"HKLM\SOFTWARE\Policies\BraveSoftware\Brave", "BackgroundModeEnabled", 0, null), @"%ProgramFiles%\BraveSoftware\Brave-Browser\Application\brave.exe"));
             T("bg-restart", "No reabrir apps al iniciar sesión", "Windows no reabre lo que tenías antes.", s, "Medio", "", D(@"HKCU\Software\Microsoft\Windows NT\CurrentVersion\Winlogon", "RestartApps", 0, null));
             T("bg-recall", "Apagar Recall", "Windows no guarda capturas de lo que haces.", s, "Medio", "el PC", D(PU + "WindowsAI", "DisableAIDataAnalysis", 1, null), D(P + "WindowsAI", "AllowRecallEnablement", 0, null));
             T("bg-click", "Apagar Click to Do", "Sin análisis de pantalla por IA.", s, "Bajo", "la sesión", D(PU + "WindowsAI", "DisableClickToDo", 1, null));
@@ -177,7 +218,20 @@ namespace Tablero
             T("sv-cortex", "Razer Cortex no arranca solo", "Evita que Cortex aplique sus propios tweaks encima.", a, "Medio", "", new SvcOp("CortexLauncherService", 2));
             T("sv-lghub", "Apagar actualizador de G HUB", "El ratón sigue igual; las actualizaciones, a mano.", a, "Bajo", "", new SvcOp("LGHUBUpdaterService", 2));
 
+            T("sv-maps", "Apagar descarga de mapas", "Mapas sin conexión de Windows.", s, "Bajo", "", new SvcOp("MapsBroker", 2));
+            T("sv-retail", "Apagar modo tienda", "Solo sirve en ordenadores de exposición.", s, "Bajo", "", new SvcOp("RetailDemo", 3));
+            T("sv-wer", "Apagar servicio de informes de error", "Los fallos no se preparan para enviarse.", s, "Bajo", "", new SvcOp("WerSvc", 3));
+            T("sv-push", "Apagar mensajes WAP", "Canal de telemetría para móviles.", s, "Bajo", "", new SvcOp("dmwappushservice", 3));
+            T("sv-phone", "Apagar servicio de teléfono", "Solo para PC con tarjeta SIM.", s, "Bajo", "", new SvcOp("PhoneSvc", 3));
+            T("sv-xbox", "Apagar guardado y red de Xbox", "Solo si no se usa Game Pass ni juegos de la Tienda.", a, "Bajo", "", new SvcOp("XblGameSave", 3), new SvcOp("XboxNetApiSvc", 3));
+            T("sv-remote", "Apagar registro remoto", "Nadie cambia el registro desde otro equipo.", s, "Bajo", "", new SvcOp("RemoteRegistry", 3));
+
             cat = "Tareas programadas";
+            T("tk-pca", "Apagar base de compatibilidad", "Actualiza datos de programas antiguos.", s, "Bajo", "", K(@"Application Experience\PcaPatchDbTask"));
+            T("tk-sdb", "Apagar mezcla de compatibilidad", "Junta bases de datos de compatibilidad.", s, "Bajo", "", K(@"Application Experience\SdbinstMergeDbTask"));
+            T("tk-disk", "Apagar recogida de datos de disco", "Reúne datos del estado del disco para enviarlos.", s, "Bajo", "", K(@"DiskDiagnostic\Microsoft-Windows-DiskDiagnosticDataCollector"));
+            T("tk-net", "Apagar recogida de datos de red", "Guarda información de red para diagnósticos.", s, "Bajo", "", K(@"NetTrace\GatherNetworkInfo"));
+            T("tk-cloud", "Apagar tarea de bienvenida en la nube", "Parte de la pantalla de configuración de Windows.", s, "Bajo", "", K(@"CloudExperienceHost\CreateObjectTask"));
             T("tk-appraiser", "Apagar evaluador de compatibilidad", "Analiza todo el PC y puede usar mucha CPU.", s, "Medio", "", K(@"Application Experience\Microsoft Compatibility Appraiser"), K(@"Application Experience\Microsoft Compatibility Appraiser Exp"));
             T("tk-mare", "Apagar copia de datos de compatibilidad", "Recoge datos de tus programas.", s, "Bajo", "", K(@"Application Experience\MareBackup"));
             T("tk-startup", "Apagar análisis de apps de inicio", "Revisa qué arranca con Windows.", s, "Bajo", "", K(@"Application Experience\StartupAppTask"));
@@ -248,9 +302,9 @@ namespace Tablero
 
             cat = "Interfaz";
             T("ui-transp", "Apagar transparencias", "Menos trabajo de GPU en el escritorio.", s, "Bajo", "", D(U + @"Themes\Personalize", "EnableTransparency", 0, 1));
-            T("ui-anim", "Apagar animaciones de ventanas", "Minimizar y cambiar de ventana es instantáneo.", s, "Bajo", "la sesión", S(@"HKCU\Control Panel\Desktop\WindowMetrics", "MinAnimate", "0", "1"));
+            T("ui-anim", "Apagar animaciones de ventanas", "Minimizar y cambiar de ventana es instantáneo.", s, "Bajo", "", S(@"HKCU\Control Panel\Desktop\WindowMetrics", "MinAnimate", "0", "1"));
             T("ui-task", "Apagar animaciones de la barra", "La barra de tareas responde sin animación.", s, "Bajo", "la sesión", D(Adv, "TaskbarAnimations", 0, 1));
-            T("ui-menu", "Menús sin espera", "Se abren a los 50 ms en vez de 400.", s, "Bajo", "la sesión", S(@"HKCU\Control Panel\Desktop", "MenuShowDelay", "50", "400"));
+            T("ui-menu", "Menús sin espera", "Se abren a los 50 ms en vez de 400.", s, "Bajo", "", S(@"HKCU\Control Panel\Desktop", "MenuShowDelay", "50", "400"));
             T("ui-shadow", "Sin sombras en iconos", "Escritorio más ligero.", s, "Bajo", "la sesión", D(Adv, "ListviewShadow", 0, 1));
             T("ui-select", "Selección sin transparencia", "Arrastrar en el escritorio va más ligero.", s, "Bajo", "la sesión", D(Adv, "ListviewAlphaSelect", 0, 1));
             T("ui-peek", "Apagar vista previa del escritorio", "Sin miniatura al rozar la esquina.", s, "Bajo", "la sesión", D(@"HKCU\Software\Microsoft\Windows\DWM", "EnableAeroPeek", 0, 1));

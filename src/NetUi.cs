@@ -22,10 +22,10 @@ namespace Tablero
         }
     }
 
-    // Conexion: medir la red y mantener el Wi-Fi estable mientras se juega.
+    // Connection: measure the network and keep Wi-Fi stable while playing.
     partial class Ui
     {
-        const int NetCount = 75, NetGap = 200; // 15 segundos
+        const int NetCount = 75, NetGap = 200; // 15 seconds
         internal static int NetTries = NetCount, NetPause = NetGap;
         List<NetTile> netTiles;
         bool testing;
@@ -38,28 +38,33 @@ namespace Tablero
             F<ItemsControl>("NetChecks").ItemTemplate = F<ItemsControl>("Checks").ItemTemplate;
             speedTiles = new List<NetTile> { new NetTile { Label = "Descarga", Main = "…" }, new NetTile { Label = "Subida", Main = "…" }, new NetTile { Label = "Ping con carga", Main = "…" } };
             F<ItemsControl>("SpeedTiles").ItemsSource = speedTiles;
+            ShowNetGame();
             SpeedResult sp = SpeedTest.Load(dir);
             if (sp != null) ShowSpeed(sp, null);
             F<Btn>("SpeedRun").Click += async (s, e) => await TestSpeed();
             F<Btn>("NetRun").Click += async (s, e) => await TestNet();
             F<Btn>("NetTweaks").Click += (s, e) => Open("Red");
             Toggle("NetSteady", () => Prefs.Now.WifiSteady, v => { Prefs.Now.WifiSteady = v; SteadyNow(); });
-            DispatcherTimer t = new DispatcherTimer { Interval = TimeSpan.FromSeconds(3) };
-            t.Tick += (s, e) => SteadyNow();
-            t.Start();
             w.Closed += (s, e) => Wifi.Steady(false);
             NetResult old = NetTest.Load(dir);
             if (old != null) ShowNet(old, null);
             else foreach (NetTile x in netTiles) x.Show(new PingStats());
         }
 
-        // Solo con Fortnite abierto; al cerrarlo el Wi-Fi vuelve a su comportamiento normal.
+        // Valorant servers do not answer the test: only router and internet.
+        void ShowNetGame()
+        {
+            F<ItemsControl>("NetTiles").ItemsSource = game == Game.Valorant ? netTiles.Take(2).ToList() : netTiles;
+            ShowState();
+        }
+        void ShowState() { F<TextBlock>("NetState").Text = Wifi.On ? "Activo ahora." : Prefs.Now.WifiSteady ? "Se activa al abrir el juego." : ""; }
+
+        // Only with a game open; when it closes, Wi-Fi goes back to normal behavior. GameTick calls it with each check.
         void SteadyNow()
         {
-            bool want = Prefs.Now.WifiSteady && IniOp.GameRunning();
+            bool want = Prefs.Now.WifiSteady && lastOpen != null;
             if (want != Wifi.On) Wifi.Steady(want);
-            if (F<FrameworkElement>("NetPage").IsVisible)
-                F<TextBlock>("NetState").Text = Wifi.On ? "Activo ahora." : Prefs.Now.WifiSteady ? "Se activa al abrir Fortnite." : "";
+            if (F<FrameworkElement>("NetPage").IsVisible) ShowState();
         }
 
         async Task OpenNet()
@@ -88,13 +93,14 @@ namespace Tablero
             int signal, channel;
             string router = null;
             await Task.Run(() => { router = NetTest.Router(); r.Wifi = Wifi.Info(out signal, out channel); });
-            r.Region = await NetTest.Nearest();
+            bool epic = game == Game.Fortnite;
+            if (epic) r.Region = await NetTest.Nearest();
             if (r.Region != null) { netTiles[2].Label = "Servidores de Epic: " + NetTest.Name(r.Region); RefreshTiles(); }
             Task<PingStats> a = NetTest.Run(router, NetTries, NetPause, netTiles[0].Show), c = NetTest.Run(NetTest.Internet, NetTries, NetPause, netTiles[1].Show),
                 d = NetTest.Run(r.Region == null ? null : NetTest.Host(r.Region), NetTries, NetPause, netTiles[2].Show);
             r.Router = await a; r.Internet = await c; r.Epic = await d;
-            NetTest.Save(dir, r);
-            ShowNet(r, old);
+            if (epic) NetTest.Save(dir, r);
+            ShowNet(r, epic ? old : null);
             b.IsEnabled = true;
             b.Content = "Medir otra vez";
             F<Btn>("SpeedRun").IsEnabled = true;
@@ -104,8 +110,9 @@ namespace Tablero
         async Task TestSpeed()
         {
             if (testing) return;
-            // Llenar la conexion en mitad de una partida la estropea.
-            if (IniOp.GameRunning()) { Say("Cierra Fortnite antes de medir la velocidad: la prueba llena la conexión.", false); return; }
+            // Saturating the connection in the middle of a match ruins it.
+            Game open = Game.Open;
+            if (open != null) { Say("Cierra " + open.Name + " antes de medir la velocidad: la prueba llena la conexión.", false); return; }
             testing = true;
             Btn b = F<Btn>("SpeedRun");
             b.IsEnabled = F<Btn>("NetRun").IsEnabled = false;
@@ -132,7 +139,7 @@ namespace Tablero
             F<TextBlock>("SpeedBefore").Text = old == null ? "" : "Prueba anterior (" + old.Date.Substring(0, 16) + "): descarga " + Mbps(old.Down) + ", subida " + Mbps(old.Up) + ".";
         }
 
-        void RefreshTiles() { ItemsControl l = F<ItemsControl>("NetTiles"); l.ItemsSource = null; l.ItemsSource = netTiles; }
+        void RefreshTiles() { F<ItemsControl>("NetTiles").ItemsSource = null; ShowNetGame(); }
 
         void ShowNet(NetResult r, NetResult old)
         {
@@ -141,7 +148,7 @@ namespace Tablero
             netTiles[2].Label = "Servidores de Epic" + (r.Region == null ? "" : ": " + NetTest.Name(r.Region));
             RefreshTiles();
             netTiles[2].Show(r.Epic);
-            F<TextBlock>("NetVerdict").Text = NetTest.Verdict(r);
+            F<TextBlock>("NetVerdict").Text = game == Game.Valorant ? NetTest.Home(r) : NetTest.Verdict(r);
             F<TextBlock>("NetBefore").Text = NetTest.Compare(old, r);
         }
     }

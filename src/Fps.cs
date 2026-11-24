@@ -11,19 +11,20 @@ namespace Tablero
 {
     public class Match
     {
-        public string Start { get; set; } // hora local, yyyy-MM-dd HH:mm:ss
+        public string Start { get; set; } // local time, yyyy-MM-dd HH:mm:ss
         public string Map { get; set; }
         public int Seconds { get; set; }
         public int Median { get; set; }
-        public int Low { get; set; }  // el 5 % de segundos mas lentos queda por debajo
+        public int Low { get; set; }  // the slowest 5 % of seconds fall below this
         public int Max { get; set; }
-        public int Cap { get; set; }  // limite de FPS detectado; 0 = sin limite
+        public int Cap { get; set; }  // detected FPS cap; 0 = uncapped
     }
 
-    // Cada linea del registro de Fortnite lleva la hora y el numero de fotograma (modulo 1000): de ahi salen los FPS.
+    // Each Fortnite log line has the time and the frame number (modulo 1000): the FPS come from that.
     public static class FpsLog
     {
         public static string Folder = Environment.ExpandEnvironmentVariables(@"%LOCALAPPDATA%\FortniteGame\Saved\Logs");
+        static string FileOf(string dir, Game g) { return Path.Combine(dir, g == Game.Valorant ? "fps-valorant.json" : "fps.json"); }
         const int Skip = 20, MinSeconds = 60;
 
         static int Num(string s, int at, int len)
@@ -45,22 +46,39 @@ namespace Tablero
             return "Otro modo";
         }
 
-        public static List<Match> Read(TextReader r)
+        const string ValMark = "LogMapLoadModel: Update: [Map Name: ";
+        internal static readonly Dictionary<string, string> ValMaps = new Dictionary<string, string> { { "RangeV2", "Campo de tiro" }, { "Range", "Campo de tiro" }, { "Ascent", "Ascent" }, { "Bonsai", "Split" }, { "Canyon", "Fracture" }, { "Duality", "Bind" }, { "Foxtrot", "Breeze" }, { "Infinity", "Abyss" }, { "Jam", "Lotus" }, { "Juliett", "Sunset" }, { "Pitt", "Pearl" }, { "Port", "Icebox" }, { "Rook", "Corrode" }, { "Triad", "Haven" }, { "HURM_Alley", "District" }, { "HURM_Bowl", "Kasbah" }, { "HURM_Helix", "Drift" }, { "HURM_HighTide", "Glitch" }, { "HURM_Yard", "Piazza" } };
+
+        public static List<Match> Read(TextReader r, bool valorant = false)
         {
             List<Match> res = new List<Match>();
-            string map = null, l;
+            string map = null, code = null, l;
             DateTime start = DateTime.MinValue, prev = DateTime.MinValue, t = DateTime.MinValue;
             int frame = 0, frames = 0;
             double secs = 0;
             List<double> w = new List<double>();
-            Action close = () => { if (map != null && w.Count >= MinSeconds) res.Add(Sum(map, start, w)); map = null; w = new List<double>(); };
+            Action close = () => { if (map != null && w.Count >= MinSeconds) res.Add(Sum(map, start, w)); map = code = null; w = new List<double>(); };
             while ((l = r.ReadLine()) != null)
             {
                 if (l.Length < 31 || l[0] != '[' || l[24] != ']' || l[25] != '[' || l[29] != ']') continue;
                 int n = Num(l, 26, 3), y = Num(l, 1, 4), mo = Num(l, 6, 2), d = Num(l, 9, 2), h = Num(l, 12, 2), mi = Num(l, 15, 2), s = Num(l, 18, 2), ms = Num(l, 21, 3);
                 if (n < 0 || ms < 0 || y < 2000 || mo < 1 || mo > 12 || d < 1 || d > 31 || h < 0 || h > 23 || mi < 0 || mi > 59 || s < 0 || s > 59) continue;
                 t = new DateTime(y, mo, 1, h, mi, s, ms, DateTimeKind.Utc).AddDays(d - 1);
-                if (l.IndexOf("LogLoad: LoadMap:", 30, StringComparison.Ordinal) == 30) close();
+                if (valorant)
+                {
+                    if (l.IndexOf(ValMark, 30, StringComparison.Ordinal) == 30)
+                    {
+                        int from = 30 + ValMark.Length, to = l.IndexOf(' ', from);
+                        string name = to < 0 ? "" : l.Substring(from, to - from);
+                        if (code != null && name != code) close();
+                        if (code == null && l.IndexOf("[Local World: TRUE", StringComparison.Ordinal) > 0)
+                        {
+                            code = name; start = t; prev = DateTime.MinValue;
+                            if (!ValMaps.TryGetValue(name, out map)) map = name;
+                        }
+                    }
+                }
+                else if (l.IndexOf("LogLoad: LoadMap:", 30, StringComparison.Ordinal) == 30) close();
                 else if (l.IndexOf("LogWorld: Bringing World ", 30, StringComparison.Ordinal) == 30)
                 {
                     close();
@@ -69,7 +87,7 @@ namespace Tablero
                 }
                 if (map == null) continue;
                 double dt = (t - prev).TotalSeconds;
-                // Un hueco largo no dice cuantas vueltas de mil dio el contador: se descarta.
+                // A long gap does not tell how many times the counter wrapped past a thousand: it is discarded.
                 if (prev == DateTime.MinValue || dt < 0 || dt > 1.2) { secs = 0; frames = 0; }
                 else
                 {
@@ -100,32 +118,33 @@ namespace Tablero
         {
             public Dictionary<string, string> Files { get; set; }
             public List<Match> Matches { get; set; }
-            public string Since { get; set; } // lo anterior se borro y no vuelve
+            public string Since { get; set; } // the earlier data was deleted and does not come back
         }
 
-        public static void Clear(string dir)
+        public static void Clear(string dir, Game g)
         {
             Store st = new Store { Files = new Dictionary<string, string>(), Matches = new List<Match>(), Since = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture) };
-            Engine.WriteFile(Path.Combine(dir, "fps.json"), new JavaScriptSerializer().Serialize(st));
+            Engine.WriteFile(FileOf(dir, g), new JavaScriptSerializer().Serialize(st));
         }
 
-        // Fortnite borra los registros viejos: lo ya leido se conserva en la carpeta de la app.
-        public static List<Match> Update(string dir)
+        // The game deletes old logs: what was already read is kept in the app folder.
+        public static List<Match> Update(string dir, Game g)
         {
-            string file = Path.Combine(dir, "fps.json");
+            bool val = g == Game.Valorant;
+            string file = FileOf(dir, g), logsIn = val ? Valorant.Logs : Folder;
             JavaScriptSerializer json = new JavaScriptSerializer { MaxJsonLength = int.MaxValue };
             Store st = null;
             if (File.Exists(file))
             {
-                // Un historial ilegible se vuelve a construir desde los registros.
+                // An unreadable history is rebuilt from the logs.
                 try { st = json.Deserialize<Store>(File.ReadAllText(file)); }
                 catch (ArgumentException) { }
                 catch (InvalidOperationException) { }
             }
             if (st == null || st.Files == null || st.Matches == null) st = new Store { Files = new Dictionary<string, string>(), Matches = new List<Match>() };
-            if (Directory.Exists(Folder))
+            if (Directory.Exists(logsIn))
             {
-                FileInfo[] logs = new DirectoryInfo(Folder).GetFiles("FortniteGame*.log");
+                FileInfo[] logs = new DirectoryInfo(logsIn).GetFiles(val ? "ShooterGame*.log" : "FortniteGame*.log");
                 bool changed = false;
                 foreach (FileInfo f in logs)
                 {
@@ -134,14 +153,14 @@ namespace Tablero
                     try
                     {
                         using (StreamReader r = new StreamReader(new FileStream(f.FullName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete, 1 << 16), Encoding.UTF8))
-                            foreach (Match m in Read(r).Where(x => string.CompareOrdinal(x.Start, st.Since ?? "") >= 0)) { st.Matches.RemoveAll(x => x.Start == m.Start); st.Matches.Add(m); }
+                            foreach (Match m in Read(r, val).Where(x => string.CompareOrdinal(x.Start, st.Since ?? "") >= 0)) { st.Matches.RemoveAll(x => x.Start == m.Start); st.Matches.Add(m); }
                         st.Files[f.Name] = stamp;
                         changed = true;
                     }
                     catch (IOException) { }
                 }
                 foreach (string gone in st.Files.Keys.Where(k => !logs.Any(f => f.Name == k)).ToList()) st.Files.Remove(gone);
-                // shortcut: solo las ultimas 300 partidas, ampliar si algun dia se quiere mas historial
+                // shortcut: only the last 300 matches, extend if more history is ever wanted
                 st.Matches = st.Matches.OrderByDescending(m => m.Start, StringComparer.Ordinal).Take(300).ToList();
                 if (changed) Engine.WriteFile(file, json.Serialize(st));
             }
@@ -149,7 +168,7 @@ namespace Tablero
         }
 
         static string FpsOf(List<Match> m) { return (int)Math.Round(m.Average(x => (double)x.Median)) + " FPS en " + m.Count + " partidas"; }
-        // Solo compara partidas del mismo modo y con el mismo limite: si no, la diferencia no seria del cambio.
+        // Only compares matches of the same mode and the same cap: otherwise the difference would not be due to the change.
         public static string Compare(List<Match> all, string change)
         {
             if (change == null) return "Al activar tweaks se comparan aquí los FPS de antes y de después.";
@@ -164,10 +183,10 @@ namespace Tablero
 
     public class Estimate { public int Low, High; public bool GpuLimits; }
 
-    // shortcut: calculo aproximado para modo Rendimiento, anclado a ~550 FPS de una RTX 5060 a 1080p (estimacion de ProSettings); el rango es ancho a proposito
+    // shortcut: rough estimate for Performance mode, anchored to ~550 FPS on an RTX 5060 at 1080p (ProSettings estimate); the range is wide on purpose
     public static class Estimator
     {
-        // Potencia relativa, RTX 3060 = 100. Lo mas especifico va primero.
+        // Relative power, RTX 3060 = 100. The most specific comes first.
         const string Gpus = "5090=450 5080=310 5070 Ti=270 5070=220 5060 Ti=165 5060=140 5050=105 4090=370 4080=290 4070 Ti=230 4070 SUPER=210 4070=180 4060 Ti=140 4060=118 4050=85 "
             + "3090=205 3080=190 3070 Ti=155 3070=145 3060 Ti=130 3060=100 3050=70 2080 Ti=150 2080=125 2070=105 2060=85 1660 Ti=70 1660 SUPER=68 1660=60 1650 SUPER=55 1650=45 1080 Ti=110 1080=85 1070=70 1060=50 1050 Ti=33 1050=26 1030=13 "
             + "9070 XT=265 9070=240 9060 XT=165 7900 XTX=290 7900 XT=240 7900 GRE=215 7800 XT=200 7700 XT=165 7600 XT=118 7600=112 6950 XT=215 6900 XT=205 6800 XT=195 6800=170 6750 XT=140 6700 XT=135 6700=120 6650 XT=112 6600 XT=108 6600=96 6500 XT=45 6400=35 "

@@ -15,23 +15,23 @@ namespace Tablero
         public string Date { get; set; }
         public double Down { get; set; }   // Mbps
         public double Up { get; set; }
-        public int Idle { get; set; }      // ping sin carga
-        public int Loaded { get; set; }    // el peor de bajando y subiendo
+        public int Idle { get; set; }      // unloaded ping
+        public int Loaded { get; set; }    // the worst of download and upload
     }
 
-    // Velocidad con los servidores publicos de Cloudflare: varias descargas a la vez durante unos segundos.
+    // Speed with Cloudflare's public servers: several downloads at once for a few seconds.
     public static class SpeedTest
     {
         const string Base = "https://speed.cloudflare.com/";
         const int Lines = 6, WarmMs = 1500, Seconds = 7;
-        const long DownCap = 500L << 20, UpCap = 250L << 20; // tope de datos por prueba
+        const long DownCap = 500L << 20, UpCap = 250L << 20; // data cap per test
 
         public class Meter
         {
             public long Bytes, AtWarm = -1;
             public readonly Stopwatch Clock = Stopwatch.StartNew();
             long warmMs;
-            // El arranque no cuenta: las conexiones tardan en coger velocidad.
+            // The ramp-up does not count: connections take a while to reach speed.
             public void Add(int n)
             {
                 long total = Interlocked.Add(ref Bytes, n);
@@ -81,7 +81,7 @@ namespace Tablero
             using (r.GetResponse()) { }
         }
 
-        // Sustituibles en las pruebas.
+        // Replaceable in tests.
         public static Func<bool, Action<double>, double> Measure = (down, step) =>
         {
             Meter m = new Meter();
@@ -105,7 +105,7 @@ namespace Tablero
             return r;
         };
 
-        // Baja, sube y mira cuanto sube el ping con la conexion llena. Corre fuera de la ventana.
+        // Downloads, uploads and checks how much ping rises with the connection saturated. Runs off the UI thread.
         public static async Task<SpeedResult> Run(Action<string, double> step)
         {
             SpeedResult r = new SpeedResult { Date = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") };
@@ -129,7 +129,7 @@ namespace Tablero
         public static string Verdict(SpeedResult r)
         {
             int up = r.Idle > 0 && r.Loaded > 0 ? Math.Max(0, r.Loaded - r.Idle) : -1;
-            string a = r.Down < 10 || r.Up < 2 ? "La velocidad es baja: otra descarga en casa puede llenarla y dar tirones." : "Para Fortnite sobra velocidad; lo que importa es el ping.";
+            string a = r.Down < 10 || r.Up < 2 ? "La velocidad es baja: otra descarga en casa puede llenarla y dar tirones." : "Para jugar sobra velocidad; lo que importa es el ping.";
             return up < 0 ? a : a + (up >= 30 ? " Con la conexión llena el ping sube " + up + " ms: descargas o subidas de cualquier equipo de la casa dan tirones. Un router con control de colas (SQM o QoS) lo reduce."
                                               : " Con la conexión llena el ping sube solo " + up + " ms, así que una descarga no debería dar tirones.");
         }

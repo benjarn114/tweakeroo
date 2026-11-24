@@ -12,19 +12,29 @@ namespace Tablero
     {
         public bool StartMin { get; set; }
         public bool Tray { get; set; }
-        public string Page { get; set; }
-        public int Motion { get; set; }   // 0 todas, 1 sin rebotes, 2 apagadas
-        public int Confirm { get; set; }  // segundos para confirmar una resolucion
+        public int Motion { get; set; }   // 0 all, 1 no bounce, 2 off
+        public int Confirm { get; set; }  // seconds to confirm a resolution, 5 to 30
         public bool AutoCheck { get; set; }
         public bool WifiSteady { get; set; }
+        public string Game { get; set; }      // game on screen
+        public bool KeepGame { get; set; }    // do not switch by itself when another game opens
+        public Dictionary<string, ColorPick> Colors { get; set; } // per game
+        public Dictionary<string, List<string>> Boosts { get; set; } // what is applied while playing, per game
+        public Dictionary<string, string> Paths { get; set; } // .exe picked by hand, per game
+        public List<string> Hidden { get; set; }              // games hidden from the selector
+        public string Music { get; set; }     // "noche", "arcade", "lluvia" or "" (off)
+        public int MusicMode { get; set; }    // 0 only with the app in front, 1 always except while playing, 2 muted
+        public int MusicVolume { get; set; }  // 0-100
+        public bool Sfx { get; set; }
+        public int SfxVolume { get; set; }    // 0-100
+        public bool SoundSaved { get; set; }  // false = saved before sound existed: it gets the defaults
+        public string Theme { get; set; }     // "noche", "lluvia", "arcade" or "simple" (palette per game, no background)
 
-        public static readonly string[] PageNames = { "Jugar", "Mi PC", "Mis FPS", "Conexión", "Macros", "Mejoras" };
-        public static readonly int[] Seconds = { 10, 15, 30 };
         public static Prefs Now = Default();
 
-        public static Prefs Default() { return new Prefs { Page = PageNames[0], Confirm = 15, AutoCheck = true }; }
+        public static Prefs Default() { return new Prefs { Confirm = 15, AutoCheck = true, Game = Tablero.Game.Fortnite.Id, Colors = new Dictionary<string, ColorPick>(), Boosts = new Dictionary<string, List<string>>(), Paths = new Dictionary<string, string>(), Hidden = new List<string>(), Music = Sound.Themes[0], MusicVolume = 30, Sfx = true, SfxVolume = 60, SoundSaved = true, Theme = "noche" }; }
         static string FileOf(string dir) { return Path.Combine(dir, "ajustes.json"); }
-        // Lo que no se entiende vuelve a su valor normal.
+        // Anything not understood goes back to its default value.
         public static Prefs Parse(string json)
         {
             Prefs p = null;
@@ -32,15 +42,37 @@ namespace Tablero
             catch (Exception) { }
             Prefs d = Default();
             if (p == null) return d;
-            if (!PageNames.Contains(p.Page)) p.Page = d.Page;
-            if (!Seconds.Contains(p.Confirm)) p.Confirm = d.Confirm;
+            if (p.Confirm < 5 || p.Confirm > 30) p.Confirm = d.Confirm; // an old "Page" is simply ignored
             if (p.Motion < 0 || p.Motion > 2) p.Motion = d.Motion;
+            if (!p.SoundSaved) { p.Music = d.Music; p.MusicMode = d.MusicMode; p.MusicVolume = d.MusicVolume; p.Sfx = d.Sfx; p.SfxVolume = d.SfxVolume; p.SoundSaved = true; }
+            if (p.Music != "" && !Sound.Themes.Contains(p.Music)) p.Music = d.Music;
+            if (p.MusicMode < 0 || p.MusicMode > 2) p.MusicMode = d.MusicMode;
+            p.MusicVolume = Math.Max(0, Math.Min(100, p.MusicVolume));
+            p.SfxVolume = Math.Max(0, Math.Min(100, p.SfxVolume));
+            // Settings saved before themes existed, or not understood: Simple, the look the app already had.
+            p.Theme = Tablero.Theme.LookOf(p.Theme).Id;
+            p.Game = Tablero.Game.Of(p.Game).Id;
+            Dictionary<string, ColorPick> had = p.Colors ?? d.Colors;
+            p.Colors = d.Colors;
+            foreach (Game g in Tablero.Game.All) { ColorPick c; if (had.TryGetValue(g.Id, out c)) p.Colors[g.Id] = Vivid.Clean(c); }
+            Dictionary<string, List<string>> bo = p.Boosts ?? d.Boosts;
+            p.Boosts = d.Boosts;
+            foreach (Game g in Tablero.Game.All) { List<string> l; if (bo.TryGetValue(g.Id, out l) && l != null) p.Boosts[g.Id] = l.Where(x => Boost.All.Any(b => b.Id == x)).Distinct().ToList(); }
+            Dictionary<string, string> pa = p.Paths ?? d.Paths;
+            p.Paths = d.Paths;
+            foreach (Game g in Tablero.Game.All) { string s; if (pa.TryGetValue(g.Id, out s) && g.IsExe(s)) p.Paths[g.Id] = s; }
+            // At least one game always stays in the selector, and the one on screen is one of them.
+            p.Hidden = (p.Hidden ?? d.Hidden).Where(x => Tablero.Game.All.Any(g => g.Id == x)).Distinct().ToList();
+            if (p.Hidden.Count >= Tablero.Game.All.Count) p.Hidden = d.Hidden;
+            if (p.Hidden.Contains(p.Game)) p.Game = Tablero.Game.All.First(g => !p.Hidden.Contains(g.Id)).Id;
             return p;
         }
+        public List<string> BoostsOf(Game g) { List<string> l; return Boosts.TryGetValue(g.Id, out l) ? l : new List<string>(); }
+        public ColorPick ColorOf(Game g) { ColorPick c; return Colors.TryGetValue(g.Id, out c) ? c : Vivid.All[0].Pick; }
         public static void Load(string dir)
         {
             Now = Default();
-            try { if (File.Exists(FileOf(dir))) Now = Parse(File.ReadAllText(FileOf(dir))); }
+            try { if (File.Exists(FileOf(dir))) Now = Parse(File.ReadAllText(FileOf(dir))); else if (Directory.Exists(Path.Combine(dir, "guardados"))) Now.Theme = "simple"; } // updating without settings saved
             catch (IOException) { }
             catch (UnauthorizedAccessException) { }
             Fx.Level = Now.Motion;
@@ -48,20 +80,29 @@ namespace Tablero
         public string Json() { return new JavaScriptSerializer().Serialize(this); }
         public static void Save(string dir) { Directory.CreateDirectory(dir); Engine.WriteFile(FileOf(dir), Now.Json()); }
 
-        // ---- Exportar e importar ----
+        // ---- Export and import ----
         public class Bundle
         {
             public string App { get; set; }
             public Prefs Prefs { get; set; }
             public MacroConfig Macros { get; set; }
             public string Palette { get; set; }
+            public Dictionary<string, string> Palettes { get; set; } // per game
             public string Language { get; set; }
         }
-        public static string Export(string dir, string palette)
+        static string PaletteIn(string dir, Game g)
         {
-            return new JavaScriptSerializer().Serialize(new Bundle { App = "Tweakeroo", Prefs = Now, Macros = Tablero.Macros.Load(dir), Palette = palette, Language = L.En ? "en" : "es" });
+            string f = Path.Combine(dir, g.PaletteFile), s = "";
+            try { if (File.Exists(f)) s = File.ReadAllText(f).Trim(); }
+            catch (IOException) { }
+            return Tablero.Theme.All.Any(p => p.Name == s) ? s : g.Palette;
         }
-        // Solo entra lo conocido y ya revisado. El riesgo de las macros se acepta en cada PC.
+        public static Palette PaletteOf(string dir, Game g) { string n = PaletteIn(dir, g); return Tablero.Theme.All.First(p => p.Name == n); }
+        public static string Export(string dir)
+        {
+            return new JavaScriptSerializer().Serialize(new Bundle { App = "Tweakeroo", Prefs = Now, Macros = Tablero.Macros.Load(dir), Palettes = Tablero.Game.All.ToDictionary(g => g.Id, g => PaletteIn(dir, g)), Language = L.En ? "en" : "es" });
+        }
+        // Only known and already validated values get in. The macro risk is accepted on each PC.
         public static void Import(string dir, string json)
         {
             Bundle b = null;
@@ -74,12 +115,14 @@ namespace Tablero
             MacroConfig m = Tablero.Macros.Clean(b.Macros);
             m.Accepted = false;
             Tablero.Macros.Save(dir, m);
-            if (Theme.All.Any(p => p.Name == b.Palette)) File.WriteAllText(Path.Combine(dir, "paleta.txt"), b.Palette);
+            // Copies older than 4.0 have a single palette, Fortnite's.
+            Dictionary<string, string> pal = b.Palettes ?? new Dictionary<string, string> { { Tablero.Game.Fortnite.Id, b.Palette } };
+            foreach (Game g in Tablero.Game.All) { string n; if (pal.TryGetValue(g.Id, out n) && Tablero.Theme.All.Any(p => p.Name == n)) File.WriteAllText(Path.Combine(dir, g.PaletteFile), n); }
             if (b.Language == "en" || b.Language == "es") L.Save(dir, b.Language == "en");
         }
     }
 
-    // Abrir con Windows: una tarea al iniciar sesion, porque la app necesita permisos de administrador.
+    // Start with Windows: a task at sign-in, because the app needs administrator rights.
     public static class Autostart
     {
         public static string Name = "Tweakeroo";
@@ -96,7 +139,7 @@ namespace Tablero
             if (!on)
             {
                 try { f.DeleteTask(Name, 0); }
-                catch (IOException) { } // no existia
+                catch (IOException) { } // did not exist
                 return;
             }
             string user = System.Security.Principal.WindowsIdentity.GetCurrent().Name;
@@ -129,9 +172,9 @@ namespace Tablero
         public string Date { get; set; }
         public List<string> Notes { get; set; }
         public bool Current { get; set; }
-        public int Missing; // novedades sin ingles
+        public int Missing; // release notes without English
 
-        // historial.txt: "## version fecha" y debajo "- español TAB ingles", de la mas nueva a la mas vieja.
+        // historial.txt: "## version date" and below it "- Spanish TAB English", newest to oldest.
         public static List<VersionRow> All()
         {
             List<VersionRow> r = new List<VersionRow>();

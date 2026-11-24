@@ -19,7 +19,7 @@ namespace Tablero
         public bool Same(Res o) { return o != null && W == o.W && H == o.H; }
     }
 
-    // Resolucion del monitor principal. Los cambios no se guardan en el registro: reiniciar los deshace.
+    // Main monitor resolution. Changes are not saved to the registry: restarting undoes them.
     public static class Display
     {
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
@@ -76,7 +76,7 @@ namespace Tablero
             if (e != Ok) throw new InvalidOperationException("No se pudo restaurar la resolución (código " + e + "). Se restaura al reiniciar el PC.");
         }
 
-        // Sustituibles en las pruebas.
+        // Replaceable in tests.
         public static Func<List<Res>> Modes = All;
         public static Func<Res> Current = () => Get(Now);
         public static Func<Res> Saved = () => Get(Registry);
@@ -84,17 +84,20 @@ namespace Tablero
         public static Action Reset = RealReset;
 
         static readonly string[] Popular = { "1720 × 1080", "1440 × 1080" };
-        // Mas estrechas que la pantalla, con el refresco mas alto de cada una.
-        public static List<Res> Stretched(IEnumerable<Res> modes, Res native)
+        // Narrower than the display, with the highest refresh rate of each.
+        public static List<Res> Stretched(IEnumerable<Res> modes, Res native, double least = 0)
         {
-            return modes.Where(m => m.Aspect < native.Aspect * 0.97 && m.H >= 900 && m.H <= native.H && m.W >= 1200 && m.W < native.W)
+            return modes.Where(m => m.Aspect >= least).Where(m => m.Aspect < native.Aspect * 0.97 && m.H >= 900 && m.H <= native.H && m.W >= 1200 && m.W < native.W)
                 .GroupBy(m => m.Name).Select(g => g.OrderByDescending(m => m.Hz).First())
                 .OrderBy(m => Array.IndexOf(Popular, m.Name) < 0 ? 9 : Array.IndexOf(Popular, m.Name)).ThenByDescending(m => m.W).ToList();
         }
+        // Valorant only stretches from 1.45:1. The most stretched one that works for this display.
+        public const double ValorantRatio = 1.45;
+        public static Res ValorantBest(Res native) { return new Res { W = (int)Math.Ceiling(native.H * 1.4515), H = native.H, Hz = native.Hz }; }
         public static int MaxHz(Res at) { return Modes().Where(m => m.Same(at)).Select(m => m.Hz).DefaultIfEmpty(0).Max(); }
     }
 
-    // Resoluciones nuevas con el controlador NVIDIA: primero a prueba, y solo se guardan si el usuario dice que se ven bien.
+    // New resolutions with the NVIDIA driver: on trial first, and only saved if the user says they look fine.
     public static class Custom
     {
         const int CdSize = 144, TimingIn = 32;
@@ -140,7 +143,7 @@ namespace Tablero
             BitConverter.GetBytes(CdSize | (1 << 16)).CopyTo(b, 0);
             BitConverter.GetBytes(r.W).CopyTo(b, 4); BitConverter.GetBytes(r.H).CopyTo(b, 8);
             BitConverter.GetBytes(32).CopyTo(b, 12); BitConverter.GetBytes(21).CopyTo(b, 16); // 32 bits, A8R8G8B8
-            foreach (int at in new[] { 28, 32, 36, 40 }) BitConverter.GetBytes(1f).CopyTo(b, at); // toda la imagen, sin escalar
+            foreach (int at in new[] { 28, 32, 36, 40 }) BitConverter.GetBytes(1f).CopyTo(b, at); // the whole image, unscaled
             Buffer.BlockCopy(o, 0, b, 44, 96);
             return b;
         }
@@ -155,37 +158,38 @@ namespace Tablero
         static void RealSave() { uint id = Id(); Check(Fn<FSave>(0x49882876)(ref id, 1, 1, 1)); }
         static void RealRevert() { uint id = Id(); Check(Fn<FRevert>(0xCBBD40F0)(ref id, 1)); }
 
-        // Sustituibles en las pruebas.
+        // Replaceable in tests.
         public static Func<bool> Available = RealAvailable;
         public static Action<Res> Try = RealTry;
         public static Action Save = RealSave, Revert = RealRevert;
 
-        // Motivo por el que no vale, o null.
-        public static string Invalid(string w, string h, Res native)
+        // Reason why it is not valid, or null.
+        public static string Invalid(string w, string h, Res native, double least = 0)
         {
             int x, y;
             if (!int.TryParse(w, out x) || !int.TryParse(h, out y)) return "El ancho y el alto deben ser números.";
             if (x < 800 || y < 600) return "Mínimo 800 × 600: por debajo no caben los menús de Fortnite.";
             if (x > native.W || y > native.H) return "Máximo: la resolución de la pantalla, " + native.Name + ".";
+            if (x / (double)y < least - 0.0001) return "Valorant solo estira desde 1,45:1. Con " + y + " de alto, el mínimo de ancho es " + (int)Math.Ceiling(y * least) + ".";
             return null;
         }
     }
-    // Temporizador de Windows a 0,5 ms mientras se juega. Solo llega a Fortnite con GlobalTimerResolutionRequests (Windows 11, tras reiniciar).
+    // Windows timer at 0.5 ms while playing. Only reaches Fortnite with GlobalTimerResolutionRequests (Windows 11, after a restart).
     public static class Precise
     {
         public const string Key = @"HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\kernel", Name = "GlobalTimerResolutionRequests";
-        const uint HalfMs = 5000; // en unidades de 100 ns
+        const uint HalfMs = 5000; // in 100 ns units
         [StructLayout(LayoutKind.Sequential)] struct Throttle { public uint Version, Control, State; }
         [DllImport("ntdll.dll")] static extern int NtSetTimerResolution(uint wanted, bool set, out uint now);
         [DllImport("kernel32.dll")] static extern bool SetProcessInformation(IntPtr process, int kind, ref Throttle t, int size);
         [DllImport("kernel32.dll")] static extern IntPtr GetCurrentProcess();
         static bool on;
         public static bool Wanted { get { return RegOp.ReadValue(Key, Name) == "d:1"; } }
-        // false = Windows no lo acepto. Al cerrar la app Windows lo suelta solo.
+        // false = Windows did not accept it. When the app closes Windows releases it by itself.
         public static bool Set(bool want)
         {
             if (on == want) return true;
-            // Sin esto Windows 11 ignora la peticion con la ventana minimizada o tapada por el juego.
+            // Without this Windows 11 ignores the request when the window is minimized or covered by the game.
             Throttle t = new Throttle { Version = 1, Control = want ? 4u : 0u };
             bool ok = SetProcessInformation(GetCurrentProcess(), 4, ref t, Marshal.SizeOf(t));
             uint now;
@@ -196,7 +200,7 @@ namespace Tablero
     }
 
 
-    // Sesion de stretched: ajusta Fortnite y la pantalla, y despues devuelve las dos cosas.
+    // Stretched session: adjusts Fortnite and the display, then restores both.
     public class StretchSession
     {
         public class Data
@@ -204,30 +208,41 @@ namespace Tablero
             public Res Res { get; set; }
             public Dictionary<string, string> Old { get; set; }
             public List<string> Confirmed { get; set; }
-            public string Limit { get; set; }   // FrameRateLimit; vacio = el que tenga Fortnite
+            public string Limit { get; set; }   // FrameRateLimit; empty = whatever Fortnite has
             public bool Minimize { get; set; }
-            public bool Trial { get; set; }     // resolucion nueva sin guardar todavia
+            public bool Trial { get; set; }     // new resolution not saved yet
+            // Valorant only: whether to stretch, whether already stretched, the previous display and the disabled monitors.
+            public bool Stretch { get; set; }
+            public bool Applied { get; set; }
+            public Res Native { get; set; }
+            public List<string> Off { get; set; }
         }
         const string Section = "/Script/FortniteGame.FortGameUserSettings";
         readonly string file;
-        Data data = new Data { Confirmed = new List<string>() };
+        protected Data data = new Data { Confirmed = new List<string>() };
         static readonly JavaScriptSerializer Json = new JavaScriptSerializer();
 
-        public StretchSession(string dir)
+        public StretchSession(string dir, string name = "stretched.json")
         {
-            file = Path.Combine(dir, "stretched.json");
+            file = Path.Combine(dir, name);
             if (!File.Exists(file)) return;
             data = Json.Deserialize<Data>(File.ReadAllText(file)) ?? data;
             if (data.Confirmed == null) data.Confirmed = new List<string>();
         }
-        void Save() { Engine.WriteFile(file, Json.Serialize(data)); }
+        protected void Save() { Engine.WriteFile(file, Json.Serialize(data)); }
+        public virtual Game Game { get { return Game.Fortnite; } }
+        // Asks for confirmation before opening the game.
+        public virtual bool Asks(Res r) { return !Known(r); }
+        public virtual void Launch(string dir) { Open(Address); }
 
         public Res Last { get { return data.Res; } }
+        // Remembered when picked, without waiting to play.
+        public void Choose(Res r) { if (Pending || r.Same(data.Res)) return; data.Res = r; Save(); }
         public bool Pending { get { return data.Old != null; } }
         public bool Known(Res r) { return r.Same(Display.Saved()) || data.Confirmed.Contains(r.Name); }
         public string Limit { get { return data.Limit ?? ""; } set { data.Limit = value; Save(); } }
         public bool Minimize { get { return data.Minimize; } set { data.Minimize = value; Save(); } }
-        public void Confirm(Res r)
+        public virtual void Confirm(Res r)
         {
             if (data.Trial) { Custom.Save(); data.Trial = false; if (Display.Accepts(r)) Display.Set(r); }
             if (!Known(r)) data.Confirmed.Add(r.Name);
@@ -239,13 +254,13 @@ namespace Tablero
             Dictionary<string, string> t = new Dictionary<string, string>();
             foreach (string p in new[] { "ResolutionSize", "LastUserConfirmedResolutionSize" }) { t[p + "X"] = "s:" + r.W; t[p + "Y"] = "s:" + r.H; }
             foreach (string p in new[] { "DesiredScreen", "LastUserConfirmedDesiredScreen" }) { t[p + "Width"] = "s:" + r.W; t[p + "Height"] = "s:" + r.H; }
-            // 1 = pantalla completa en ventana: el juego usa la resolucion del escritorio, que ya esta estirada.
+            // 1 = windowed fullscreen: the game uses the desktop resolution, which is already stretched.
             foreach (string p in new[] { "FullscreenMode", "LastConfirmedFullscreenMode", "PreferredFullscreenMode" }) t[p] = "s:1";
             return t;
         }
         static IniOp Ini(string name) { return new IniOp(Section, name, "", ""); }
 
-        public void Begin(Res r)
+        public virtual void Begin(Res r)
         {
             if (IniOp.GameRunning()) throw new InvalidOperationException("Fortnite está abierto. Ciérralo e inténtalo de nuevo.");
             if (!File.Exists(IniOp.File)) throw new InvalidOperationException("No se encontró la configuración de Fortnite. Abre el juego una vez e inténtalo de nuevo.");
@@ -267,8 +282,8 @@ namespace Tablero
             catch { End(); throw; }
         }
 
-        // Con el juego abierto solo se devuelve la pantalla; el archivo del juego espera a que cierre.
-        public void End()
+        // With the game open only the display is restored; the game file waits until it closes.
+        public virtual void End()
         {
             if (!Pending) return;
             Exception screen = null;
@@ -277,14 +292,14 @@ namespace Tablero
             if (!IniOp.GameRunning())
             {
                 if (File.Exists(IniOp.File)) foreach (KeyValuePair<string, string> p in data.Old) Ini(p.Key).Write("", p.Value);
-                // Si la pantalla fallo, la sesion sigue pendiente para reintentar.
+                // If the display failed, the session stays pending to retry.
                 if (screen == null) { data.Old = null; Save(); }
             }
             if (screen != null) throw screen;
         }
 
-        // Por el explorador, para que Epic no herede los permisos de administrador.
+        // Through Explorer, so Epic does not inherit administrator rights.
         public static Action<string> Open = url => Process.Start(new ProcessStartInfo("explorer.exe", "\"" + url + "\"") { UseShellExecute = false });
-        public const string Game = "com.epicgames.launcher://apps/fn%3A4fe75bbc5a674f4f9b356b5c90567da5%3AFortnite?action=launch&silent=true";
+        const string Address = "com.epicgames.launcher://apps/fn%3A4fe75bbc5a674f4f9b356b5c90567da5%3AFortnite?action=launch&silent=true";
     }
 }

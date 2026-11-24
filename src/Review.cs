@@ -15,13 +15,16 @@ namespace Tablero
         public string Text { get; set; }
         public Kind Kind;
         public string Url;
+        public Action Fix;    // fixes it right away; without it, the button opens Url
+        public string Button; // button text if it is not the usual one
         public string Tag { get { return Kind == Kind.Gratis ? "Gratis" : Kind == Kind.Comprar ? "Compras opcionales" : "Correcto"; } }
         public bool Ok { get { return Kind == Kind.Bien; } }
         public bool Todo { get { return !Ok; } }
-        public bool HasUrl { get { return Url != null; } }
+        public bool HasUrl { get { return Url != null || Fix != null; } }
+        public string Act { get { return Button ?? (Fix != null ? "Arreglar" : Url != null && Url.StartsWith("https:") ? "Abrir web" : "Abrir ajustes"); } }
     }
 
-    // Revisa el PC y dice que mejorar: primero lo gratis, despues lo que cuesta dinero.
+    // Reviews the PC and says what to improve: free things first, then what costs money.
     public static class Review
     {
         static IEnumerable<ManagementObject> Q(string cls, string scope)
@@ -31,7 +34,7 @@ namespace Tablero
         }
         static void Try(Action a)
         {
-            // Lo que no se puede leer se queda sin dato y no genera consejo.
+            // What cannot be read stays without data and generates no advice.
             try { a(); } catch (Exception) { }
         }
 
@@ -46,6 +49,7 @@ namespace Tablero
             Try(() => h.Socket = ((string)Q("Win32_Processor", @"root\cimv2").First()["SocketDesignation"] ?? "").Trim());
             Try(() => h.Board = ((string)Q("Win32_BaseBoard", @"root\cimv2").First()["Product"] ?? "").Trim());
             Try(() => h.DriverDate = ManagementDateTimeConverter.ToDateTime((string)Q("Win32_VideoController", @"root\cimv2").First(g => (string)g["Name"] == h.Gpu)["DriverDate"]));
+            Try(() => h.Driver = (string)Q("Win32_VideoController", @"root\cimv2").First(g => (string)g["Name"] == h.Gpu)["DriverVersion"] ?? "");
             Try(() => { Res r = Display.Saved(); h.ScreenW = r.W; h.ScreenH = r.H; h.Hz = r.Hz; h.MaxHz = Display.MaxHz(r); });
             Try(() => { string v = RegOp.ReadValue(@"HKLM\SYSTEM\CurrentControlSet\Control\SecureBoot\State", "UEFISecureBootEnabled"); if (v != Op.None) h.SecureBoot = v == "d:1"; });
             Try(() =>
@@ -56,7 +60,7 @@ namespace Tablero
             Try(() => h.Iommu = ((uint[])Q("Win32_DeviceGuard", @"root\Microsoft\Windows\DeviceGuard").First()["AvailableSecurityProperties"]).Contains(3u));
         }
 
-        // FPS que el PC da de verdad, o 0 si las partidas estan limitadas por debajo de la pantalla.
+        // FPS the PC really delivers, or 0 if matches are capped below the display.
         public static int Real(List<Match> m, int hz)
         {
             List<Match> last = m.Take(5).Where(x => x.Cap == 0 || x.Cap >= hz * 0.95).ToList();
@@ -83,10 +87,13 @@ namespace Tablero
             }
             if (h.RamModules == 1) add(Kind.Comprar, "Un solo módulo de RAM", "Con dos iguales la memoria trabaja en doble canal. En Fortnite ayuda sobre todo a los bajones.");
             if (h.RamGb > 0 && h.RamGb < 16) add(Kind.Comprar, "Ampliar a 16 GB de RAM", "Con " + h.RamGb + " GB, Windows y el juego compiten por memoria.");
-            if (h.DriverDate != DateTime.MinValue)
+            Check driver = Drivers.Advice(h);
+            if (driver != null) r.Add(driver);
+            else if (h.DriverDate != DateTime.MinValue)
             {
                 int months = (int)((DateTime.Now - h.DriverDate).TotalDays / 30);
-                if (months >= 6) add(Kind.Gratis, "Antigüedad del driver de la gráfica: " + months + " meses", "Se actualiza desde la app de " + (h.Nvidia ? "NVIDIA" : "la gráfica") + ". No es urgente si todo funciona bien.");
+                string web = h.Gpu.Contains("Radeon") ? "https://www.amd.com/en/support/download/drivers.html" : h.Gpu.Contains("Intel") ? "https://www.intel.com/content/www/us/en/support/detect.html" : null;
+                if (months >= 6) r.Add(new Check { Kind = Kind.Gratis, Title = "Antigüedad del driver de la gráfica: " + months + " meses", Text = "Se actualiza desde la app de " + (h.Nvidia ? "NVIDIA" : "la gráfica") + ". No es urgente si todo funciona bien.", Url = web });
                 else add(Kind.Bien, "Driver de la gráfica reciente", "Fecha: " + h.DriverDate.ToString("dd/MM/yyyy") + ".");
             }
             if (h.Wifi && !h.Ethernet) add(Kind.Gratis, "Conexión por cable recomendada", "El Wi-Fi provoca picos de ping que ningún tweak elimina. Sin cable, es mejor la banda de 5 o 6 GHz.");
@@ -126,7 +133,7 @@ namespace Tablero
             else add(Kind.Comprar, "Cuello de botella: el procesador", why + Cpu(h.Socket));
         }
 
-        // Que mejorar despues, aunque hoy no haga falta: de lo que mas se nota a lo que menos.
+        // What to improve next, even if not needed today: from most to least noticeable.
         static readonly string[,] Ladder = { { "RTX 5060", "RX 9060 XT" }, { "RTX 5060 Ti", "RX 9060 XT de 16 GB" }, { "RTX 5070", "RX 9070" }, { "RTX 5070 Ti", "RX 9070 XT" }, { "RTX 5080", "RX 9070 XT" } };
         public static List<Check> Plan(Hw h, List<Match> matches)
         {

@@ -24,11 +24,11 @@ namespace Tablero
     }
     public class Signed
     {
-        public string Data { get; set; } // el JSON de Release en base64, que es lo que va firmado
+        public string Data { get; set; } // the Release JSON in base64, which is what gets signed
         public string Signature { get; set; }
     }
 
-    // Busca una version nueva, comprueba la firma del autor y cambia el .exe. Sin firma valida no se instala nada.
+    // Looks for a new version, verifies the author's signature and swaps the .exe. Without a valid signature nothing is installed.
     public static class Updater
     {
         const int MaxFeed = 64 * 1024, MaxExe = 64 * 1024 * 1024;
@@ -37,7 +37,7 @@ namespace Tablero
             using (Stream s = Assembly.GetExecutingAssembly().GetManifestResourceStream(name))
                 return s == null ? "" : new StreamReader(s).ReadToEnd().Trim();
         }
-        // "usuario/repositorio" de GitHub; vacio = todavia no hay donde buscar.
+        // GitHub "user/repository"; empty = nowhere to look yet.
         public static string Channel = Resource("canal.txt");
         public static string PublicKey = Resource("clave-publica.xml");
         public static bool Ready { get { return Channel.Length > 0 && PublicKey.Length > 0; } }
@@ -60,7 +60,24 @@ namespace Tablero
             }
         };
 
-        public static Release Parse(string json, Version mine)
+        // Tag of the latest release, read from GitHub's redirect without following it; null if unknown.
+        public static Func<string> LatestTag = () =>
+        {
+            try
+            {
+                HttpWebRequest q = (HttpWebRequest)WebRequest.Create("https://github.com/" + Channel + "/releases/latest");
+                q.AllowAutoRedirect = false; q.Method = "HEAD"; q.UserAgent = "Tweakeroo"; q.Timeout = 10000;
+                using (HttpWebResponse a = (HttpWebResponse)q.GetResponse())
+                {
+                    string l = a.Headers["Location"] ?? "";
+                    int i = l.LastIndexOf("/tag/", StringComparison.Ordinal);
+                    return i < 0 ? null : Uri.UnescapeDataString(l.Substring(i + 5));
+                }
+            }
+            catch (WebException) { return null; }
+        };
+
+        public static Release Parse(string json, Version mine, string tag = null)
         {
             JavaScriptSerializer js = new JavaScriptSerializer();
             Signed s = js.Deserialize<Signed>(json);
@@ -75,11 +92,15 @@ namespace Tablero
             if (!r.Url.StartsWith("https://", StringComparison.Ordinal)) throw new InvalidDataException("La actualización no usa una dirección segura.");
             Version v = Version.Parse(r.Version);
             Version now = new Version(mine.Major, mine.Minor, Math.Max(0, mine.Build));
+            // Feed is /releases/latest, so the tag is only known via Url: ignore manifests pointing at another tag
+            if (r.Url.IndexOf("/v" + r.Version + "/", StringComparison.Ordinal) < 0) return null;
+            // An old manifest re-attached to a renamed release (v0.37.0 serving Version 3.7.0) is not an update.
+            if (tag != null && tag != "v" + r.Version) return null;
             return v > now ? r : null;
         }
-        public static Release Check() { return Parse(Encoding.UTF8.GetString(Download(Feed, MaxFeed)), Installer.MyVersion); }
+        public static Release Check() { return Parse(Encoding.UTF8.GetString(Download(Feed, MaxFeed)), Installer.MyVersion, LatestTag()); }
 
-        // Deja la version nueva en el sitio de la actual; si algo falla, vuelve la actual.
+        // Puts the new version in place of the current one; if something fails, the current one comes back.
         public static void Apply(Release r, string exe)
         {
             byte[] b = Download(r.Url, MaxExe);
@@ -104,11 +125,11 @@ namespace Tablero
     class UpdateUi
     {
         readonly Window w;
-        readonly Func<string> blocked;   // motivo para no actualizar ahora, o null
+        readonly Func<string> blocked;   // reason not to update now, or null
         T F<T>(string n) where T : class { return w.FindName(n) as T; }
         Release release;
         bool working;
-        public static Action<string> Restart = exe => { Installer.Start(exe); Application.Current.Shutdown(); }; // al cerrar asi, la ventana no se esconde
+        public static Action<string> Restart = exe => { Installer.Start(exe); Application.Current.Shutdown(); }; // when closing this way, the window does not hide
 
         public UpdateUi(Window w, Func<string> blocked)
         {
@@ -119,8 +140,8 @@ namespace Tablero
             w.Closing += (s, e) => { if (working) e.Cancel = true; };
         }
 
-        // Sin internet o sin canal no molesta: se vuelve a mirar la proxima vez que se abra.
-        // Devuelve qué paso, o null si hay version nueva y ya se enseña.
+        // Without internet or without a channel it does not bother: it checks again the next time it opens.
+        // Returns what happened, or null if there is a new version and it is already shown.
         public async Task<string> Check()
         {
             if (!Updater.Ready) return "No hay dónde buscar actualizaciones.";

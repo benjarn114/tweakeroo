@@ -14,24 +14,25 @@ namespace Tablero
         public string Cpu = "", Gpu = "", DiskName = "", NetName = "";
         public int Cores, Threads, RamGb, RamMhz, GpuCount, VramGb, Hz, DiskFreeGb;
         public bool Nvidia, Ssd, Nvme, Wifi, Ethernet, Laptop;
-        // Solo los llena Review.Read; null o 0 = no se pudo leer.
+        // Only filled by Review.Read; null or 0 = could not be read.
         public int RamModules, Ddr, MaxHz, ScreenW, ScreenH;
         public string Socket = "", Board = "";
         public Hw With(string gpu, string cpu) { Hw h = (Hw)MemberwiseClone(); h.Gpu = gpu; h.Cpu = cpu; return h; }
         public DateTime DriverDate;
+        public string Driver = "";
         public bool? SecureBoot, Tpm2, Iommu;
         public bool Dual3d { get { return Regex.IsMatch(Cpu, @"\b(79[05]0|99[05]0)X3D", RegexOptions.IgnoreCase); } }
         public bool Weak { get { return RamGb <= 8 || Cores <= 4; } }
     }
 
-    // Lo que se guarda de un escaneo para no repetirlo al abrir. Text = lo que enseña cada tarjeta.
+    // What is saved from a scan so it is not repeated on open. Text = what each card shows.
     public class ScanData
     {
         public Hw Hw { get; set; }
         public Dictionary<string, string> Text { get; set; }
     }
 
-    // Detecta los componentes y decide que conviene. Cada paso llena una parte de Hw.
+    // Detects the components and decides what is worth doing. Each step fills part of Hw.
     public static class Scanner
     {
         public class Step { public string Key; public Func<Hw, string> Run; }
@@ -71,7 +72,7 @@ namespace Tablero
                 h.Nvme = Int(d["BusType"]) == 17; h.Ssd = h.Nvme || Int(d["MediaType"]) == 4;
                 return h.DiskName + "\n" + (h.Nvme ? "NVMe" : h.Ssd ? "SSD" : "Disco duro") + ", " + h.DiskFreeGb + " GB libres en " + root.TrimEnd('\\'); } },
             new Step { Key = "Net", Run = h => {
-                // Solo cuentan tarjetas fisicas con puerta de enlace: descarta VPN y adaptadores virtuales.
+                // Only physical cards with a gateway count: skips VPNs and virtual adapters.
                 HashSet<string> pci = new HashSet<string>(Q("Win32_NetworkAdapter").Where(a => a["PNPDeviceID"] != null && Regex.IsMatch((string)a["PNPDeviceID"], @"^(PCI|USB)\\")).Select(a => (string)a["GUID"] ?? ""), StringComparer.OrdinalIgnoreCase);
                 foreach (NetworkInterface n in NetworkInterface.GetAllNetworkInterfaces())
                 {
@@ -85,7 +86,7 @@ namespace Tablero
                 return h.Hz + " Hz\n" + System.Windows.SystemParameters.PrimaryScreenWidth + " × " + System.Windows.SystemParameters.PrimaryScreenHeight; } },
         };
 
-        // Todo de una vez y sin pantalla; null si falla algo.
+        // All at once and without UI; null if anything fails.
         public static ScanData Run()
         {
             ScanData d = new ScanData { Hw = new Hw(), Text = new Dictionary<string, string>() };
@@ -95,7 +96,7 @@ namespace Tablero
             return d;
         }
         static string FileOf(string dir) { return Path.Combine(dir, "scan.json"); }
-        // Si no se puede guardar, la proxima vez se escanea otra vez.
+        // If it cannot be saved, the next time it scans again.
         public static void Save(string dir, ScanData d)
         {
             try { Engine.WriteFile(FileOf(dir), new JavaScriptSerializer().Serialize(d)); }
@@ -103,7 +104,7 @@ namespace Tablero
             catch (UnauthorizedAccessException) { }
         }
         public static void Delete(string dir) { File.Delete(FileOf(dir)); }
-        // null = no hay escaneo guardado o no sirve.
+        // null = no saved scan, or it is not usable.
         public static ScanData Load(string dir)
         {
             ScanData d;
@@ -112,6 +113,7 @@ namespace Tablero
             if (d == null || d.Hw == null || d.Text == null) return null;
             Hw h = d.Hw;
             if (Steps.Any(s => !d.Text.ContainsKey(s.Key) || d.Text[s.Key] == null) || new[] { h.Cpu, h.Gpu, h.DiskName, h.NetName, h.Socket, h.Board }.Contains(null)) return null;
+            if (h.Driver == null) h.Driver = "";
             h.DriverDate = h.DriverDate.Year < 1990 ? DateTime.MinValue : h.DriverDate.ToLocalTime();
             return d;
         }
@@ -158,7 +160,7 @@ namespace Tablero
                 case "pw-min": return A(false, "La CPU ya sube de frecuencia sola; solo daría más calor.");
                 case "pw-boost": case "pw-epp": case "pw-cool": case "pw-aspm": case "pw-usb": case "pw-usb3": case "pw-sleep": case "pw-disk": case "pw-throttle":
                     return h.Laptop ? A(false, "En un portátil gasta batería.") : A(true, "PC de mesa: no hay batería que cuidar.");
-                case "fn-gpu": return h.GpuCount > 1 ? A(true, "Detectadas " + h.GpuCount + " gráficas.") : A(false, "Una sola gráfica.");
+                case "fn-gpu": case "val-gpu": return h.GpuCount > 1 ? A(true, "Detectadas " + h.GpuCount + " gráficas.") : A(false, "Una sola gráfica.");
                 case "fn-reflex": return h.Nvidia ? A(true, "Compatible con la gráfica NVIDIA.") : A(false, "Solo funciona con NVIDIA.");
                 case "fn-texture": return h.VramGb > 0 && h.VramGb < 6 ? A(true, "Detectados " + h.VramGb + " GB de vídeo.") : A(false, h.VramGb > 0 ? "Con " + h.VramGb + " GB de vídeo apenas cambia los FPS." : "No se pudo leer la memoria de vídeo.");
                 case "fn-viewdistance": return h.Cores < 6 ? A(true, "Alivia la CPU de " + h.Cores + " núcleos.") : A(false, "Los " + h.Cores + " núcleos son suficientes.");
@@ -170,11 +172,13 @@ namespace Tablero
                 case "ui-menu": return A(true, "Se nota en cualquier PC.");
             }
             if (t.Cat == "Interfaz") return h.Weak ? A(true, "Un escritorio ligero ayuda en este PC.") : A(false, "Innecesario en este PC.");
+            if (t.Id == "lt-paging" && h.RamGb > 0 && h.RamGb < 16) return A(false, "Con " + h.RamGb + " GB conviene dejarlo.");
+            if (t.Level == Level.Avanzado && (t.Cat == "Retraso" || t.Game != null)) return A(false, "Opcional: el efecto depende del PC.");
             if (t.Level == Level.Avanzado) return A(false, "Opcional: quita una función de Windows.");
-            return A(true, t.Cat == "Fortnite" ? "Mejor respuesta en partida." : t.Cat.StartsWith("Gráficos") ? "Adecuado para esta gráfica." : "Seguro en cualquier PC.");
+            return A(true, t.Cat == "Fortnite" || t.Cat == "Valorant" ? "Mejor respuesta en partida." : t.Cat.StartsWith("Gráficos") ? "Adecuado para esta gráfica." : "Seguro en cualquier PC.");
         }
 
-        // Frases con lo que decidio el escaneo.
+        // Sentences with what the scan decided.
         public static List<string> Notes(Hw h)
         {
             List<string> n = new List<string>();

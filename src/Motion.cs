@@ -6,7 +6,7 @@ using System.Windows.Media.Animation;
 
 namespace Tablero
 {
-    // Resorte amortiguado: pasa un poco de largo y vuelve.
+    // Damped spring: overshoots a little and comes back.
     public class SpringEase : EasingFunctionBase
     {
         public double Damping = 0.5, Freq = 11;
@@ -27,8 +27,8 @@ namespace Tablero
 
     public static class Fx
     {
-        // Si Windows tiene las animaciones apagadas, todo salta al estado final.
-        // Level: 0 todas, 1 sin rebotes, 2 apagadas (Ajustes).
+        // If Windows has animations turned off, everything jumps to the final state.
+        // Level: 0 all, 1 no bounce, 2 off (Settings).
         public static int Level;
         public static bool On { get { return Level < 2 && SystemParameters.ClientAreaAnimation; } }
         public static readonly IEasingFunction Out = new QuinticEase { EasingMode = EasingMode.EaseOut };
@@ -52,7 +52,7 @@ namespace Tablero
             a.KeyFrames.Add(new EasingDoubleKeyFrame(to, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(delay + ms))) { EasingFunction = ease });
             t.BeginAnimation(p, a);
         }
-        // Entrada de una lista: sube y aparece, 30 ms entre elementos.
+        // List entrance: rises and fades in, 30 ms between items.
         public static void Enter(FrameworkElement e, int index, double rise)
         {
             TranslateTransform t = new TranslateTransform();
@@ -75,13 +75,13 @@ namespace Tablero
             To(s, ScaleTransform.ScaleXProperty, v, ms, ease);
             To(s, ScaleTransform.ScaleYProperty, v, ms, ease);
         }
-        public static void Pop(FrameworkElement e, double from, int delay = 0)
+        public static void Pop(FrameworkElement e, double from, int delay = 0, int ms = 620)
         {
             ScaleTransform s = Scale(e);
-            From(s, ScaleTransform.ScaleXProperty, from, 1, 620, Spring, delay);
-            From(s, ScaleTransform.ScaleYProperty, from, 1, 620, Spring, delay);
+            From(s, ScaleTransform.ScaleXProperty, from, 1, ms, Spring, delay);
+            From(s, ScaleTransform.ScaleYProperty, from, 1, ms, Spring, delay);
         }
-        // Los botones entran con rebote; el resto sube y aparece.
+        // Buttons enter with a bounce; the rest rises and fades in.
         public static void Arrive(FrameworkElement e, int index)
         {
             if (!(e is Btn)) { Enter(e, index, 20); return; }
@@ -89,7 +89,7 @@ namespace Tablero
             From(e, UIElement.OpacityProperty, 0, 1, 160, Out, index * 30);
         }
 
-        // El numero se desliza hasta el nuevo valor en vez de cambiar de golpe.
+        // The number slides to the new value instead of changing abruptly.
         static readonly DependencyProperty CountProperty = DependencyProperty.RegisterAttached("Count", typeof(double), typeof(Fx),
             new PropertyMetadata(0.0, (d, e) => ((TextBlock)d).Text = ((int)Math.Round((double)e.NewValue)).ToString()));
         public static void CountTo(TextBlock t, int v)
@@ -99,7 +99,7 @@ namespace Tablero
         }
     }
 
-    // Boton que se hunde al pulsar y vuelve con rebote.
+    // Button that sinks when pressed and bounces back.
     public class Btn : Button
     {
         public static readonly DependencyProperty IconProperty = DependencyProperty.Register("Icon", typeof(Geometry), typeof(Btn));
@@ -114,7 +114,7 @@ namespace Tablero
         protected override void OnMouseEnter(System.Windows.Input.MouseEventArgs e) { base.OnMouseEnter(e); Fx.ScaleTo(this, 1.03, 420, Fx.Spring); }
         protected override void OnMouseLeave(System.Windows.Input.MouseEventArgs e) { base.OnMouseLeave(e); Fx.ScaleTo(this, 1, 420, Fx.Spring); }
 
-        // Brillo que cruza el boton principal y halo que late, para que se vea que hay que tocarlo.
+        // A shine across the main button and a pulsing halo, so it is clear it should be clicked.
         public static readonly DependencyProperty GlintProperty = DependencyProperty.Register("Glint", typeof(bool), typeof(Btn), new PropertyMetadata(false, (d, e) => ((Btn)d).Shine()));
         public bool Glint { get { return (bool)GetValue(GlintProperty); } set { SetValue(GlintProperty, value); } }
         Border shine, halo;
@@ -156,7 +156,7 @@ namespace Tablero
         }
     }
 
-    // Interruptor: la perilla viaja con resorte al cambiar, y salta sin animar cuando la fila se recicla al desplazarse.
+    // Toggle: the knob travels with a spring when changing, and jumps without animating when the row is recycled on scroll.
     public class Switch : Button
     {
         const double Travel = 26;
@@ -201,7 +201,7 @@ namespace Tablero
         {
             base.OnIsPressedChanged(e);
             if (knob == null) return;
-            // Al pulsar, la perilla se estira como en un interruptor de telefono.
+            // On press, the knob stretches like a phone toggle.
             ScaleTransform s = (ScaleTransform)((TransformGroup)knob.RenderTransform).Children[0];
             Fx.To(s, ScaleTransform.ScaleXProperty, IsPressed ? 1.18 : 1, IsPressed ? 110 : 480, IsPressed ? Fx.Out : Fx.Spring);
         }

@@ -14,11 +14,12 @@ namespace Tablero
     {
         public string Id, Cat, Name, Desc, Effect, Restart;
         public Level Level;
+        public string Game { get { return Tablero.Game.OfTweak(Id); } }
         public List<Op> Ops;
         List<Op> usable;
-        // La disponibilidad se calcula una vez por sesion: consultar tareas y controlador es lento.
+        // Availability is computed once per session: querying tasks and the driver is slow.
         public List<Op> Usable { get { if (usable == null) usable = Ops.Where(Readable).ToList(); return usable; } }
-        // Lo que no se puede leer no se podria restaurar, asi que no se ofrece.
+        // What cannot be read could not be restored, so it is not offered.
         static bool Readable(Op o)
         {
             try { if (!o.Available()) return false; foreach (string k in o.AllKeys()) o.Read(k); return true; }
@@ -28,7 +29,7 @@ namespace Tablero
         }
         public bool Available { get { return Usable.Count > 0; } }
         public State Read() { return Read(new Dictionary<string, string>()); }
-        // cache evita releer lo que ya se leyo en la misma pasada.
+        // cache avoids rereading what was already read in the same pass.
         public State Read(Dictionary<string, string> cache)
         {
             int on = 0, total = 0;
@@ -81,7 +82,7 @@ namespace Tablero
 
         class Change { public Op Op; public string Key, Old, New; }
 
-        // Escribe y comprueba cada cambio; si uno falla, deshace los anteriores.
+        // Writes and checks each change; if one fails, undoes the previous ones.
         static void Commit(List<Change> changes)
         {
             int i = 0;
@@ -122,9 +123,10 @@ namespace Tablero
             SaveOriginals();
             try { Commit(ch); }
             catch { foreach (string k in added) originals.Remove(k); SaveOriginals(); throw; }
+            Live.After(t);
         }
 
-        // onlyMine: solo deshace lo que prendio la app; lo que ya estaba asi no se toca.
+        // onlyMine: only undoes what the app turned on; what was already like that is left alone.
         public void Disable(Tweak t, bool onlyMine)
         {
             List<Change> ch = new List<Change>();
@@ -139,6 +141,7 @@ namespace Tablero
             Commit(ch);
             foreach (Change c in ch) originals.Remove(c.Key);
             SaveOriginals();
+            Live.After(t);
         }
 
         public bool Mine(Tweak t) { return t.Usable.Any(o => o.AllKeys().Any(k => originals.ContainsKey(k))); }
@@ -158,7 +161,7 @@ namespace Tablero
             List<Snapshot> r = new List<Snapshot>();
             foreach (string f in Directory.GetFiles(Path.Combine(dir, "guardados"), "*.json"))
             {
-                // Un guardado ilegible se omite de la lista, pero el archivo se conserva.
+                // An unreadable save is left out of the list, but the file is kept.
                 try
                 {
                     Snapshot s = Json.Deserialize<Snapshot>(File.ReadAllText(f));
@@ -186,7 +189,8 @@ namespace Tablero
                     foreach (string k in o.AllKeys())
                     {
                         string v;
-                        if (!s.Values.TryGetValue(k, out v)) continue;
+                        // Tweaks from newer versions are not in an old Original: they go back to what was there before enabling them.
+                        if (!s.Values.TryGetValue(k, out v) && (s.Kind != "original" || !originals.TryGetValue(k, out v))) continue;
                         string cur = o.Read(k);
                         if (cur != v) ch.Add(new Change { Op = o, Key = k, Old = cur, New = v });
                     }
@@ -198,9 +202,13 @@ namespace Tablero
             foreach (Tweak t in Tweaks) foreach (Op o in t.Usable) foreach (string k in o.AllKeys()) r[k] = o.Read(k);
             return r;
         }
-        public int DiffCount(Snapshot s, Dictionary<string, string> now) { return s.Values.Count(p => { string v; return now.TryGetValue(p.Key, out v) && v != p.Value; }); }
+        public int DiffCount(Snapshot s, Dictionary<string, string> now)
+        {
+            Func<KeyValuePair<string, string>, bool> differs = p => { string v; return now.TryGetValue(p.Key, out v) && v != p.Value; };
+            return s.Values.Count(differs) + (s.Kind == "original" ? originals.Where(p => !s.Values.ContainsKey(p.Key)).Count(differs) : 0);
+        }
 
-        // Restaura cada valor por separado: un fallo no impide recuperar el resto.
+        // Restores each value separately: one failure does not prevent recovering the rest.
         public List<string> Restore(Snapshot s, out int restored)
         {
             List<Change> ch = Diff(s);
@@ -212,6 +220,7 @@ namespace Tablero
                 try { Commit(new List<Change> { c }); restored++; }
                 catch (Exception ex) { errors.Add(c.Key + ": " + ex.Message); }
             }
+            foreach (Tweak t in Tweaks.Where(x => x.Usable.Any(o => ch.Any(c => c.Op == o)))) Live.After(t);
             foreach (Tweak t in Tweaks)
                 foreach (Op o in t.Usable)
                     foreach (string k in o.AllKeys().Where(x => originals.ContainsKey(x)))

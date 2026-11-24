@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
@@ -33,6 +34,7 @@ namespace Tablero
         public Row(Tweak t) { T = t; }
         public string Name { get { return T.Name; } }
         public string Desc { get { return T.Desc; } }
+        public string Cat { get { return T.Cat; } }
         public string StateText { get { return State == State.On ? "Activado" : State == State.Off ? "Sin activar" : "A medias"; } }
         public string Spoken { get { return L.T(T.Name) + ", " + L.T(StateText).ToLowerInvariant(); } }
         public bool? Checked { get { return State == State.On ? true : State == State.Off ? (bool?)false : null; } }
@@ -46,11 +48,13 @@ namespace Tablero
             {
                 List<string> n = new List<string>();
                 if (T.Level == Level.Avanzado) n.Add("Avanzado");
-                if (T.Restart.Length > 0) n.Add("Reinicia " + T.Restart);
+                if (Waiting) n.Add("Reinicia " + T.Restart);
                 return string.Join("\n", n);
             }
         }
         public bool HasNote { get { return Note.Length > 0; } }
+        public bool Waiting;   // really needs a restart
+        public void SetWaiting(bool on) { if (Waiting == on) return; Waiting = on; Raise("Note"); Raise("HasNote"); }
         public string AdviceText { get { return Advice == null ? "" : (Advice.Yes ? "Recomendado. " : "No recomendado. ") + Advice.Why; } }
         public bool HasAdvice { get { return Advice != null; } }
         public string Error { get { return error; } }
@@ -67,11 +71,15 @@ namespace Tablero
         public List<Row> Rows;
         public string Page = "ListPage";
         public bool Sub { get; set; }
+        public bool Quick;                // shortcut under Tweaks; not Sub, so BuildSubs keeps it selected
+        public bool Rule { get; set; }    // thin line between the shortcuts and the categories
+        public Func<List<Row>> Pick;      // rows taken on entering, grouped by category; the count is live
         public bool Open;
-        public bool HasSubs { get { return Page == "UpgradePage"; } }
-        public double Size { get { return Sub ? 13 : 16; } }
-        public double IconSize { get { return Sub ? 15 : 21; } }
-        public string Count { get { return Rows == null ? "" : Rows.Count(r => r.State == State.On) + "/" + Rows.Count; } }
+        public bool HasSubs { get; set; }
+        public bool Small { get { return Sub || Quick; } }
+        public double Size { get { return Small ? 13 : 16; } }
+        public double IconSize { get { return Small ? 15 : 21; } }
+        public string Count { get { return HasSubs || Rule ? "" : Pick != null ? Pick().Count.ToString() : Rows == null ? "" : Rows.Count(r => r.State == State.On) + "/" + Rows.Count; } }
         public void Refresh() { Raise("Count"); }
     }
 
@@ -132,7 +140,7 @@ namespace Tablero
         public bool CanDelete { get { return S.Kind != "original"; } }
         public string RestoreText { get { return armedRestore ? "Sí, restaurar" : "Restaurar"; } }
         public string DeleteText { get { return armedDelete ? "Sí, borrar" : "Borrar"; } }
-        // Primer clic pide confirmacion en el mismo boton; el segundo actua.
+        // First click asks for confirmation on the same button; the second acts.
         public bool Arm(bool restore)
         {
             bool was = restore ? armedRestore : armedDelete;
@@ -152,23 +160,24 @@ namespace Tablero
         Engine engine;
         List<Row> rows;
         ObservableCollection<Circuit> circuits;
-        List<Circuit> subs;   // salen de Mejoras al desplegarla
-        Circuit upgrades;
+        List<Circuit> subs;   // categories; they come out of Tweaks when it expands
+        List<Circuit> shorts; // Off, On and the line, above the categories
+        Circuit upgrades;     // the Tweaks section (GameUi.cs uses this name)
+        Circuit review;       // Upgrades: advice and purchases, always last
         LinearGradientBrush shimmer;
         Task fpsTask;
-        Hw quick;             // solo CPU y grafica, para estimar sin escaneo
-        bool fpsRead;
+        Hw quick;             // only CPU and GPU, to estimate without a scan
         readonly DispatcherTimer slow = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(350) };
         DateTime skelAt;
+        readonly TaskCompletionSource<bool> loaded = new TaskCompletionSource<bool>();   // set once the load skeletons are gone
         List<Part> parts;
         Hw hw;
         bool working, ready;
-        static readonly string[] Pages = { "PcPage", "StretchPage", "FpsPage", "MacroPage", "NetPage", "SettingsPage", "UpgradePage", "ListPage" };
+        static readonly string[] Pages = { "PcPage", "StretchPage", "ResPage", "BoostPage", "ColorPage", "FpsPage", "MacroPage", "NetPage", "SettingsPage", "UpgradePage", "ListPage" };
         StretchSession stretch;
         DispatcherTimer watch;
         bool confirming, gameSeen;
         DateTime limit;
-        List<Match> matches = new List<Match>();
         T F<T>(string n) where T : class { return w.FindName(n) as T; }
         Geometry Ico(string n) { return (Geometry)w.Resources["Ico" + n]; }
 
@@ -178,13 +187,13 @@ namespace Tablero
             this.dir = dir;
             hide.Tick += (s, e) => { hide.Stop(); HideToast(); };
             Skeleton();
-            // El boton derecho no selecciona nada; solo los campos de texto tienen menu.
+            // Right click selects nothing; only text fields have a menu.
             w.PreviewMouseRightButtonDown += (s, e) => { if (capture == null && !(Keyboard.FocusedElement is TextBox && ((TextBox)Keyboard.FocusedElement).IsMouseOver)) e.Handled = true; };
         }
 
-        // ---- Carga ----
+        // ---- Loading ----
 
-        // Un solo brillo gris recorre todas las piezas; gris para que se note en paletas claras y oscuras.
+        // A single gray shine runs across all pieces; gray so it shows on light and dark palettes.
         void Skeleton()
         {
             Color g = Color.FromArgb(0, 128, 128, 128);
@@ -194,8 +203,8 @@ namespace Tablero
             shimmer.GradientStops.Add(new GradientStop(g, 0.8));
             shimmer.RelativeTransform = new TranslateTransform(-1, 0);
             w.Resources["Shimmer"] = shimmer;
-            // Solo aparecen si la carga tarda de verdad.
-            slow.Tick += (s, e) => { slow.Stop(); if (!ready) ShowSkeletons("SkelPage", "SkelNav", "SkelSaves"); };
+            // They only appear if loading really takes a while.
+            slow.Tick += (s, e) => { slow.Stop(); if (!loaded.Task.IsCompleted) ShowSkeletons("SkelPage", "SkelNav", "SkelSaves"); };
             slow.Start();
         }
         void Shimmer(bool on)
@@ -209,12 +218,13 @@ namespace Tablero
             {
                 FrameworkElement p = F<FrameworkElement>(n);
                 p.BeginAnimation(UIElement.OpacityProperty, null);
+                p.IsHitTestVisible = true;
                 p.Visibility = Visibility.Visible;
             }
             skelAt = DateTime.Now;
             Shimmer(true);
         }
-        // Si llegaron a verse, se quedan un momento para que no parpadeen.
+        // If they were shown, they stay a moment so they do not flicker.
         async Task HideSkeletons()
         {
             slow.Stop();
@@ -223,13 +233,14 @@ namespace Tablero
             foreach (string n in new[] { "SkelPage", "SkelNav", "SkelSaves" })
             {
                 FrameworkElement p = F<FrameworkElement>(n);
-                if (p.Visibility != Visibility.Visible) continue;
+                // Not hit-testable = already fading; restarting would split the pieces.
+                if (p.Visibility != Visibility.Visible || !p.IsHitTestVisible) continue;
                 p.IsHitTestVisible = false;
                 Fx.To(p, UIElement.OpacityProperty, 0, 200, Fx.Out, 0, () => p.Visibility = Visibility.Collapsed);
             }
             Shimmer(false);
         }
-        // Las partes de la pagina entran en orden; botones y tarjetas, uno a uno.
+        // The parts of the page come in order; buttons and cards, one by one.
         void EnterPage(string page)
         {
             ScrollViewer sv = F<ScrollViewer>(page);
@@ -250,25 +261,137 @@ namespace Tablero
         static List<Tweak> LoadCatalog() { List<Tweak> c = Catalog.Build(); foreach (Tweak t in c) { bool ignore = t.Available; } return c; }
         internal static Func<List<Tweak>> Source = LoadCatalog;
 
-        string PaletteFile { get { return Path.Combine(dir, "paleta.txt"); } }
+        string PaletteFile { get { return Path.Combine(dir, game.PaletteFile); } }
 
         public void LoadPalette()
         {
             string saved = "";
             try { if (File.Exists(PaletteFile)) saved = File.ReadAllText(PaletteFile).Trim(); }
             catch (IOException) { }
-            Palette p = Theme.All.FirstOrDefault(x => x.Name == saved) ?? Theme.All[0];
-            Theme.Apply(w, p);
+            Palette p = Theme.All.FirstOrDefault(x => x.Name == saved) ?? Theme.All.First(x => x.Name == game.Palette);
             ListBox l = F<ListBox>("Palettes");
             l.ItemsSource = Theme.All;
             l.SelectedItem = p;
             F<TextBlock>("PaletteName").Text = "Color: " + p.Name;
-            l.SelectionChanged += (s, e) => ChangePalette((Palette)l.SelectedItem);
+            l.SelectionChanged += (s, e) => { if (!swapping) ChangePalette((Palette)l.SelectedItem); };
             PaletteMenu(l);
-            w.SourceInitialized += (s, e) => Theme.Apply(w, (Palette)l.SelectedItem);
+            StartLooks();
+            w.SourceInitialized += (s, e) => Theme.Apply(w, Applied(), !look.Simple);
         }
 
-        // Plegado solo se ve el color activo; al pasar el raton salen los demas con rebote.
+        // ---- Themes: background, music and colors for the whole app ----
+
+        Look look;
+        Scene scene;          // background on screen; null with Simple
+        EventHandler sceneTick; // on CompositionTarget.Rendering while the background moves
+        readonly Stopwatch sceneClock = new Stopwatch();
+        long sceneDone;       // frames of the clock already used
+        Action showMusic;    // the Settings music list follows the theme
+        readonly Dictionary<string, Scene> scenes = new Dictionary<string, Scene>();
+        readonly Dictionary<string, WriteableBitmap> frames = new Dictionary<string, WriteableBitmap>();
+        // Simple uses the palette of the game on screen; the others, their own.
+        Palette Applied() { return look.Simple ? (Palette)F<ListBox>("Palettes").SelectedItem : look.Pal; }
+
+        void StartLooks()
+        {
+            look = Theme.LookOf(Prefs.Now.Theme);
+            Theme.LookOf("simple").Pal = (Palette)F<ListBox>("Palettes").SelectedItem;
+            ListBox l = F<ListBox>("Themes");
+            l.ItemsSource = Theme.Looks;
+            l.SelectedItem = look;
+            l.SelectionChanged += (s, e) => { if (!swapping) ChangeLook(l.SelectedItem as Look); };
+            // 15 frames per second by the clock, checked on every render: a late frame catches up instead of slowing the scene.
+            // While the wipe shows a still copy, the background waits.
+            sceneTick = (s, e) =>
+            {
+                long due = sceneClock.ElapsedMilliseconds * 15 / 1000, n = due - sceneDone;
+                if (n <= 0) return;
+                sceneDone = due;
+                if (F<Image>("Wipe").Visibility == Visibility.Visible) return;
+                scene.Skip((int)Math.Min(n, 30)); // after more than 2 s stuck (sleep, a long block) it does not replay all of it
+                Show(look.Id);
+            };
+            w.Activated += (s, e) => SceneNow();
+            w.Deactivated += (s, e) => SceneNow();
+            w.StateChanged += (s, e) => SceneNow();
+            w.IsVisibleChanged += (s, e) => SceneNow();
+            F<Grid>("Shell").SizeChanged += (s, e) => SafeArea();
+            refresh.Add(() =>
+            {
+                Look x = Theme.LookOf(Prefs.Now.Theme);
+                if (x != look) { look = x; swapping = true; l.SelectedItem = x; swapping = false; ShowLook(); }
+                SceneNow();
+            });
+            ShowLook();
+            // The other thumbnails: one still frame each, once the window is idle.
+            w.Dispatcher.BeginInvoke(new Action(() => { foreach (string id in Scene.Ids) Theme.LookOf(id).Thumb = FrameOf(id); }), DispatcherPriority.ApplicationIdle);
+        }
+
+        void ShowLook()
+        {
+            Theme.Apply(w, Applied(), !look.Simple);
+            F<TextBlock>("ThemeName").Text = "Temática: " + look.Name;
+            F<FrameworkElement>("PaletteBox").Visibility = look.Simple ? Visibility.Visible : Visibility.Collapsed;
+            Image img = F<Image>("Scene");
+            img.Source = look.Simple ? null : FrameOf(look.Id);
+            img.Visibility = look.Simple ? Visibility.Collapsed : Visibility.Visible;
+            scene = look.Simple ? null : scenes[look.Id];
+            if (!look.Simple) look.Thumb = img.Source; // the thumbnail of the theme in use moves with it
+            SceneNow();
+        }
+
+        // Each scene draws into its own bitmap, which is also its thumbnail. Opaque: Bgr32 saves blending.
+        WriteableBitmap FrameOf(string id)
+        {
+            WriteableBitmap b;
+            if (frames.TryGetValue(id, out b)) return b;
+            Scene s = Scene.Make(id);
+            s.Skip(0);
+            scenes[id] = s;
+            frames[id] = b = new WriteableBitmap(Scene.W, Scene.H, 96, 96, PixelFormats.Bgr32, null);
+            Show(id);
+            return b;
+        }
+        void Show(string id) { frames[id].WritePixels(new Int32Rect(0, 0, Scene.W, Scene.H), scenes[id].Fb, Scene.W * 4, 0); }
+
+        // The background only moves with the window in front, shown and not minimized, with no game open and with animations on.
+        // Otherwise it leaves the render loop and the last frame stays.
+        internal static bool Always = false; // tests: the test window is never active
+        internal void SceneNow()
+        {
+            if (sceneTick == null) return;
+            bool on = scene != null && (Always || w.IsActive && w.IsVisible && w.WindowState != WindowState.Minimized && lastOpen == null && Fx.On);
+            if (on == sceneClock.IsRunning) return;
+            if (on) { sceneClock.Restart(); sceneDone = 0; CompositionTarget.Rendering += sceneTick; }
+            else { sceneClock.Stop(); CompositionTarget.Rendering -= sceneTick; }
+        }
+        internal void SkipScene(int n) { if (scene == null) return; scene.Skip(n); Show(look.Id); }
+
+        // Scene columns not covered by the menu and Guardados: the Arcade HUD stays there.
+        void SafeArea()
+        {
+            Grid shell = F<Grid>("Shell"), main = F<Grid>("Main");
+            double sw = shell.ActualWidth, sh = shell.ActualHeight, k = Math.Max(sw / Scene.W, sh / Scene.H), ox = (Scene.W * k - sw) / 2;
+            if (k <= 0) return;
+            Scene.SafeL = (int)Math.Ceiling((main.ColumnDefinitions[0].ActualWidth + ox) / k);
+            Scene.SafeR = (int)Math.Floor((sw - main.ColumnDefinitions[2].ActualWidth + ox) / k);
+        }
+
+        // The new theme opens in a circle from its thumbnail, with its music.
+        internal void ChangeLook(Look x)
+        {
+            if (x == null || x == look) return;
+            FrameworkElement from = F<ListBox>("Themes").ItemContainerGenerator.ContainerFromItem(x) as FrameworkElement;
+            Wipe(from, 620, null, () => { look = x; ShowLook(); }, () => { });
+            if (from != null) Fx.Pop(from, 0.7);
+            Prefs.Now.Theme = x.Id;
+            Prefs.Now.Music = Theme.MusicOf(x, Prefs.Now.Music);
+            MusicNow();
+            if (showMusic != null) showMusic();
+            SavePrefs();
+        }
+
+        // Collapsed, only the active color shows; on hover the others come out with a bounce.
         void PaletteMenu(ListBox l)
         {
             Border zone = F<Border>("PaletteZone");
@@ -300,68 +423,58 @@ namespace Tablero
             zone.MouseEnter += (s, e) => update();
             zone.MouseLeave += (s, e) => { if (zone.IsKeyboardFocusWithin) Keyboard.ClearFocus(); update(); };
             zone.IsKeyboardFocusWithinChanged += (s, e) => update();
-            // Con el boton pulsado, el color cambia al pasar por encima.
+            // With the button held, the color changes when hovering over it. Each swatch hovered sounds, at most every 60 ms.
+            DependencyObject hovered = null;
+            DateTime hoverAt = DateTime.MinValue;
             l.PreviewMouseMove += (s, e) =>
             {
-                if (e.LeftButton != MouseButtonState.Pressed) return;
                 DependencyObject o = l.InputHitTest(e.GetPosition(l)) as DependencyObject;
                 while (o != null && !(o is ListBoxItem)) o = VisualTreeHelper.GetParent(o);
+                if (o != hovered && o != null && open && (DateTime.Now - hoverAt).TotalMilliseconds >= 60) { hoverAt = DateTime.Now; Sound.Effect("hover"); }
+                hovered = o;
+                if (e.LeftButton != MouseButtonState.Pressed) return;
                 if (o != null) ((ListBoxItem)o).IsSelected = true;
             };
+            l.MouseLeave += (s, e) => hovered = null;
             l.SelectionChanged += (s, e) => { if (!open) place(false); };
             w.Loaded += (s, e) => place(false);
         }
 
-        // La paleta nueva se abre en circulo desde la muestra pulsada.
+        // The new palette opens in a circle from the pressed swatch.
         internal void ChangePalette(Palette p)
         {
             if (p == null) return;
-            Grid shell = F<Grid>("Shell");
-            Image wipe = F<Image>("Wipe");
-            double W = shell.ActualWidth, H = shell.ActualHeight;
-            if (Fx.On && W > 0)
-            {
-                wipe.Visibility = Visibility.Collapsed;
-                RenderTargetBitmap old = new RenderTargetBitmap((int)W, (int)H, 96, 96, PixelFormats.Pbgra32);
-                old.Render(shell);
-                wipe.Source = old;
-                ListBox l = F<ListBox>("Palettes");
-                FrameworkElement sw = l.ItemContainerGenerator.ContainerFromItem(p) as FrameworkElement;
-                Point c = sw == null ? new Point(60, H - 40) : sw.TranslatePoint(new Point(sw.ActualWidth / 2, sw.ActualHeight / 2), shell);
-                EllipseGeometry hole = new EllipseGeometry(c, 0, 0);
-                wipe.Clip = new CombinedGeometry(GeometryCombineMode.Exclude, new RectangleGeometry(new Rect(0, 0, W, H)), hole);
-                wipe.Visibility = Visibility.Visible;
-                double r = Math.Sqrt(W * W + H * H);
-                IEasingFunction ease = new CubicEase { EasingMode = EasingMode.EaseInOut };
-                Fx.To(hole, EllipseGeometry.RadiusXProperty, r, 620, ease);
-                Fx.To(hole, EllipseGeometry.RadiusYProperty, r, 620, ease, 0, () => { if (wipe.Source == old) { wipe.Visibility = Visibility.Collapsed; wipe.Source = null; } });
-                if (sw != null) Fx.Pop(sw, 0.7);
-            }
-            Theme.Apply(w, p);
+            FrameworkElement sw = F<ListBox>("Palettes").ItemContainerGenerator.ContainerFromItem(p) as FrameworkElement;
+            if (look.Simple) Wipe(sw, 620, null, () => Theme.Apply(w, p), () => { }); // other themes keep their own colors
+            if (sw != null) Fx.Pop(sw, 0.7);
             F<TextBlock>("PaletteName").Text = "Color: " + p.Name;
+            Theme.LookOf("simple").Pal = p;
             try { Directory.CreateDirectory(dir); File.WriteAllText(PaletteFile, p.Name); }
             catch (IOException ex) { Say("No se pudo guardar la paleta: " + ex.Message, false); }
         }
 
         public async Task Start()
         {
+            Sound.Start(dir);
+#if !SHOT
+            Task sounds = Task.Run(() => Sound.Extract(dir));
+#endif
             SetWorking(true, "Leyendo el estado del PC…");
             try { engine = await Task.Run(() => new Engine(dir, Source())); }
-            catch (Exception ex) { Say("No se pudieron leer los datos de la app y no se hará ningún cambio. Revisa " + dir + ". Detalle: " + ex.Message, true); Task hid = HideSkeletons(); return; }
-            rows = engine.Tweaks.Select(t => new Row(t)).ToList();
-            Dictionary<string, string> icons = new Dictionary<string, string> {
-                { "Fortnite", "Game" }, { "Gráficos y captura", "Gpu" }, { "Energía y CPU", "Bolt" }, { "Ratón y teclado", "Mouse" }, { "Red", "Net" },
-                { "Segundo plano", "Layers" }, { "Servicios", "Server" }, { "Tareas programadas", "Clock" }, { "Interrupciones", "Bell" },
-                { "Publicidad", "Tag" }, { "Búsqueda", "Search" }, { "Telemetría", "Eye" }, { "Interfaz", "Window" } };
-            circuits = new ObservableCollection<Circuit> { new Circuit { Name = "Jugar", Icon = Ico("Launch"), Page = "StretchPage" }, new Circuit { Name = "Mi PC", Icon = Ico("Pc"), Page = "PcPage" },
+            catch (Exception ex) { Say("No se pudieron leer los datos de la app y no se hará ningún cambio. Revisa " + dir + ". Detalle: " + ex.Message, true); Task hid = HideSkeletons(); loaded.TrySetResult(true); return; }
+            every = engine.Tweaks.Select(t => new Row(t)).ToList();
+            circuits = new ObservableCollection<Circuit> { new Circuit { Name = "Jugar", Icon = Ico("Launch"), Page = "StretchPage" }, new Circuit { Name = "Stretched Resolution", Icon = Ico("Wide"), Page = "ResPage" }, new Circuit { Name = "Colores", Icon = Ico("Drop"), Page = "ColorPage" }, new Circuit { Name = "Al jugar", Icon = Ico("Bolt"), Page = "BoostPage" }, new Circuit { Name = "Mi PC", Icon = Ico("Pc"), Page = "PcPage" },
                 new Circuit { Name = "Mis FPS", Icon = Ico("Gauge"), Page = "FpsPage" } };
             circuits.Add(new Circuit { Name = "Conexión", Icon = Ico("Net"), Page = "NetPage" });
-            circuits.Add(new Circuit { Name = "Macros", Icon = Ico("Keys"), Page = "MacroPage" });
-            upgrades = new Circuit { Name = "Mejoras", Icon = Ico("Up"), Page = "UpgradePage" };
+            macroCircuit = new Circuit { Name = "Macros", Icon = Ico("Keys"), Page = "MacroPage" };
+            if (game == Game.Fortnite) circuits.Add(macroCircuit);
+            upgrades = new Circuit { Name = "Tweaks", Icon = Ico("Layers"), HasSubs = true, Pick = () => rows };
+            review = new Circuit { Name = "Mejoras", Icon = Ico("Up"), Page = "UpgradePage" };
             circuits.Add(upgrades);
-            subs = new List<Circuit> { new Circuit { Name = "Todos", Rows = rows, Icon = Ico("All"), Sub = true } };
-            foreach (IGrouping<string, Row> g in rows.GroupBy(r => r.T.Cat))
-                subs.Add(new Circuit { Name = g.Key, Rows = g.ToList(), Icon = Ico(icons.ContainsKey(g.Key) ? icons[g.Key] : "All"), Sub = true });
+            circuits.Add(review);
+            shorts = new List<Circuit> { new Circuit { Name = "Apagados", Icon = Ico("Power"), Quick = true, Pick = () => rows.Where(r => r.State != State.On).ToList() },
+                new Circuit { Name = "Activados", Icon = Ico("Check"), Quick = true, Pick = () => rows.Where(r => r.State == State.On).ToList() }, new Circuit { Name = "", Quick = true, Rule = true } };
+            BuildSubs();
             parts = new List<Part> {
                 new Part { Key = "Gpu", Title = "Gráfica", Icon = Ico("Gpu") }, new Part { Key = "Cpu", Title = "Procesador", Icon = Ico("Cpu") },
                 new Part { Key = "Ram", Title = "Memoria", Icon = Ico("Ram") }, new Part { Key = "Disk", Title = "Disco", Icon = Ico("Disk") },
@@ -372,7 +485,7 @@ namespace Tablero
             string fail = null;
             try { if (first) await Task.Run(() => engine.Save("Original", "original")); }
             catch (Exception ex) { fail = ex.Message; }
-            if (fail != null) { Say("No se pudo crear el guardado original y no se hará ningún cambio. Detalle: " + fail, true); await HideSkeletons(); return; }
+            if (fail != null) { Say("No se pudo crear el guardado original y no se hará ningún cambio. Detalle: " + fail, true); await HideSkeletons(); loaded.TrySetResult(true); return; }
 
             F<ItemsControl>("Parts").ItemsSource = parts;
             F<ListBox>("Circuits").ItemsSource = circuits;
@@ -382,7 +495,7 @@ namespace Tablero
             {
                 FrameworkElement hit = e.OriginalSource as FrameworkElement;
                 if (hit == null || hit.DataContext != upgrades) return;
-                // Abre siempre; solo se cierra si ya estabas en Mejoras.
+                // Always opens; only closes if you were already in Tweaks.
                 bool open = !(upgrades.Open && nav.SelectedItem == upgrades);
                 w.Dispatcher.BeginInvoke(new Action(() => Expand(open)), DispatcherPriority.Input);
             };
@@ -421,48 +534,51 @@ namespace Tablero
             {
                 if (working) { e.Cancel = true; Say("Hay cambios en curso. Espera a que terminen.", true); }
                 else if (HideOnClose()) e.Cancel = true;
-                else if (stretch != null && stretch.Pending && IniOp.GameRunning()) { e.Cancel = true; Say("Tweakeroo debe quedar abierto hasta cerrar Fortnite para restaurar la resolución.", true); }
+                else if (stretch != null && stretch.Pending && game.Running()) { e.Cancel = true; Say("Tweakeroo debe quedar abierto hasta cerrar " + game.Name + " para restaurar la resolución.", true); }
                 else if (stretch != null && stretch.Pending) try { stretch.End(); } catch (Exception ex) { MessageBox.Show(w, ex.Message, "Tweakeroo"); }
             };
             F<ItemsControl>("Checks").AddHandler(ButtonBase.ClickEvent, new RoutedEventHandler(CheckClick));
+            F<ItemsControl>("ValChecks").AddHandler(ButtonBase.ClickEvent, new RoutedEventHandler(CheckClick));
             F<Btn>("Review").Click += async (s, e) => await Scan();
             StartStretch();
             StartMacros();
             StartSettings();
             StartNet();
+            StartGames();
+            StartColors();
+            StartBoosts();
             w.Closed += (s, e) => Macros.Stop();
 
             await Refresh();
             ScanData saved = await Task.Run(() => Scanner.Load(dir));
             if (saved != null) ApplyScan(saved);
             ready = true;
-            slow.Stop();
-            // El canguro levanta las orejas cuando la app termina de cargar.
-            ScaleTransform ears = new ScaleTransform();
-            F<FrameworkElement>("LogoEars").RenderTransform = ears;
-            Fx.From(ears, ScaleTransform.ScaleYProperty, 0.25, 1, 700, Fx.Spring, 150);
-            nav.SelectedItem = circuits.First(x => x.Name == Prefs.Now.Page);
+            // The kangaroo raises its ears when the app finishes loading.
+            Ears();
+            nav.SelectedItem = circuits[0];
             await HideSkeletons();
+            loaded.SetResult(true);
             for (int i = 0; i < circuits.Count; i++)
             {
                 FrameworkElement item = nav.ItemContainerGenerator.ContainerFromIndex(i) as FrameworkElement;
                 if (item != null) Fx.Enter(item, i, 14);
             }
             SetWorking(false, first ? "Estado actual guardado como Original. Se puede restaurar en cualquier momento." : "Listo. Los interruptores muestran el estado real del PC.");
+            if (resume != null && SwitchGame(resume, false)) { gameSeen = true; watch.Start(); ShowStretch(); }
             if (saved != null) { Task again = Recheck(); }
         }
 
-        // Motivo para no reiniciar la app ahora, o null.
-        internal string Busy() { return working ? "Hay un cambio en curso. Espera a que termine." : stretch != null && stretch.Pending ? "Cierra Fortnite primero: la resolución aún no se ha restaurado." : null; }
+        // Reason not to restart the app now, or null.
+        internal string Busy() { return working ? "Hay un cambio en curso. Espera a que termine." : stretch != null && stretch.Pending ? "Cierra " + game.Name + " primero: la resolución aún no se ha restaurado." : null; }
 
         // ---- Menu ----
 
         internal void Open(string name)
         {
             if (name == "Ajustes") { OpenSettings(); return; }
-            Circuit c = circuits.Concat(subs).FirstOrDefault(x => x.Name == name);
+            Circuit c = circuits.Concat(subs).Concat(shorts).FirstOrDefault(x => x.Name == name && !x.Rule);
             if (c == null) return;
-            if (c.Sub) Expand(true);
+            if (c.Small) Expand(true);
             F<ListBox>("Circuits").SelectedItem = c;
         }
 
@@ -479,14 +595,15 @@ namespace Tablero
             return null;
         }
 
-        // Las secciones salen de Mejoras y caen a su sitio con rebote; al cerrar vuelven a ella.
+        // Sections come out of Tweaks and drop into place with a bounce; on close they go back into it.
         void Expand(bool open)
         {
             if (upgrades.Open == open) return;
             upgrades.Open = open;
             ListBox l = F<ListBox>("Circuits");
-            if (open && !circuits.Contains(subs[0])) foreach (Circuit c in subs) circuits.Add(c);
-            if (!open && subs.Contains(l.SelectedItem)) l.SelectedItem = upgrades;
+            List<Circuit> kids = shorts.Concat(subs).ToList();
+            if (open && !circuits.Contains(subs[0])) for (int i = 0; i < kids.Count; i++) circuits.Insert(circuits.IndexOf(upgrades) + 1 + i, kids[i]);
+            if (!open && kids.Contains(l.SelectedItem)) l.SelectedItem = upgrades;
             l.UpdateLayout();
             FrameworkElement head = (FrameworkElement)l.ItemContainerGenerator.ContainerFromItem(upgrades);
             FrameworkElement chev = Find<FrameworkElement>(head, "Chevron");
@@ -497,9 +614,9 @@ namespace Tablero
                 Fx.To(r, RotateTransform.AngleProperty, open ? 180 : 0, open ? 480 : 180, open ? Fx.Spring : Fx.Out);
             }
             double top = VisualTreeHelper.GetOffset(head).Y;
-            for (int i = 0; i < subs.Count; i++)
+            for (int i = 0; i < kids.Count; i++)
             {
-                FrameworkElement item = l.ItemContainerGenerator.ContainerFromItem(subs[i]) as FrameworkElement;
+                FrameworkElement item = l.ItemContainerGenerator.ContainerFromItem(kids[i]) as FrameworkElement;
                 if (item == null) continue;
                 double y = VisualTreeHelper.GetOffset(item).Y - top;
                 TranslateTransform t = new TranslateTransform();
@@ -513,65 +630,16 @@ namespace Tablero
                 else
                 {
                     Action done = null;
-                    if (i == subs.Count - 1) done = () => { if (!upgrades.Open) foreach (Circuit c in subs) circuits.Remove(c); };
+                    if (i == kids.Count - 1) done = () => { if (!upgrades.Open) foreach (Circuit c in kids) circuits.Remove(c); };
                     Fx.To(t, TranslateTransform.YProperty, -y, 170, Fx.In);
                     Fx.To(item, UIElement.OpacityProperty, 0, 170, Fx.In, 0, done);
                 }
             }
         }
 
-        // ---- Jugar ----
+        // ---- Play ----
 
-        void StartStretch()
-        {
-            watch = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
-            watch.Tick += (s, e) => Watch();
-            BitmapImage photo = new BitmapImage();
-            photo.BeginInit();
-            photo.StreamSource = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("personaje.jpg");
-            photo.CacheOption = BitmapCacheOption.OnLoad;
-            photo.EndInit();
-            foreach (string n in new[] { "FigureNormal", "FigureWide" }) ((ImageBrush)w.FindName(n)).ImageSource = photo;
-            ListBox l = F<ListBox>("Resolutions");
-            Btn play = F<Btn>("Play");
-            List<Res> list;
-            try
-            {
-                stretch = new StretchSession(dir);
-                Res native = Display.Saved();
-                native.Note = "Normal, " + native.Hz + " Hz";
-                list = Display.Stretched(Display.Modes(), native);
-                foreach (Res r in list) r.Note = "Stretched, " + r.Hz + " Hz";
-                list.Insert(0, native);
-            }
-            catch (Exception ex) { play.IsEnabled = false; F<TextBlock>("StretchInfo").Text = "No se pudo preparar el stretched: " + ex.Message; return; }
-            l.ItemsSource = list;
-            l.SelectionChanged += (s, e) => { Preview(); if (F<Border>("ResPanel").IsVisible) ToggleRes(false); };
-            l.SelectedItem = list.FirstOrDefault(r => r.Same(stretch.Last)) ?? (list.Count > 1 ? list[1] : list[0]);
-            F<Btn>("ResOpen").Click += (s, e) => ToggleRes(!F<Border>("ResPanel").IsVisible);
-            F<Btn>("CustomGo").Click += (s, e) => UseCustom();
-            foreach (string n in new[] { "CustomW", "CustomH" }) F<TextBox>(n).KeyDown += (s, e) => { if (e.Key == Key.Enter) UseCustom(); };
-            bool can = Custom.Available();
-            F<WrapPanel>("CustomRow").Visibility = can ? Visibility.Visible : Visibility.Collapsed;
-            F<TextBlock>("CustomHint").Text = can ? "Admite casi cualquier resolución menor que la de la pantalla. Se crea en modo de prueba y solo se guarda al confirmarla." : "Esta gráfica no permite crear resoluciones desde la app. Créala en el panel del fabricante y aparecerá en la lista.";
-            List<LimitOption> limits = new List<LimitOption> { new LimitOption { Name = "El de Fortnite", Note = "Sin cambios", Value = "" }, new LimitOption { Name = Display.Saved().Hz + " FPS", Note = "Igual que la pantalla", Value = Display.Saved().Hz.ToString() }, new LimitOption { Name = "Sin límite", Note = "Menos retraso, más calor", Value = "0" } };
-            ListBox lim = F<ListBox>("Limits");
-            lim.ItemsSource = limits;
-            lim.SelectedItem = limits.FirstOrDefault(x => x.Value == stretch.Limit) ?? limits[0];
-            lim.SelectionChanged += (s, e) => Try(() => stretch.Limit = ((LimitOption)lim.SelectedItem).Value);
-            CheckBox min = F<CheckBox>("Minimize");
-            min.IsChecked = stretch.Minimize;
-            min.Click += (s, e) => Try(() => stretch.Minimize = min.IsChecked == true);
-            play.Click += (s, e) => Play();
-            F<Btn>("Back").Click += (s, e) => StopStretch("Resolución restaurada.");
-            if (list.Count == 1) F<TextBlock>("StretchInfo").Text = "La pantalla no ofrece ninguna resolución más estrecha. Para usar stretched, crea 1720 × 1080 en el panel de la gráfica y reinicia la app.";
-            if (!stretch.Pending) return;
-            // La app se cerro a medias la ultima vez.
-            if (IniOp.GameRunning()) { gameSeen = true; watch.Start(); ShowStretch(); }
-            else StopStretch(null);
-        }
-
-        // La foto de la derecha se ensancha igual que lo haran los personajes.
+        // The photo on the right widens just like the characters will.
         void Preview()
         {
             Res r = F<ListBox>("Resolutions").SelectedItem as Res;
@@ -579,48 +647,58 @@ namespace Tablero
             double native = Display.Saved().Aspect, wide = native / r.Aspect;
             F<TextBlock>("StretchInfo").Text = wide < 1.005 ? "Sin estirar: los personajes se ven normales." : "Personajes " + Math.Round((wide - 1) * 100) + " % más anchos y " + Math.Round((1 - r.Aspect / native) * 100) + " % menos de visión lateral.";
             Fx.To((ScaleTransform)w.FindName("FigureScale"), ScaleTransform.ScaleXProperty, wide, 560, Fx.Spring);
-            F<Btn>("ResOpen").Content = r.Name + "   " + L.T(r.Note);
+            F<Drop>("ResOpen").Content = F<Drop>("ResDrop").Content = r;
+            if (stretch != null) Try(() => stretch.Choose(r));
             if (stretch != null && !stretch.Pending) ShowStretch();
             ShowPlay();
-        }
-
-        // La lista se despliega con rebote debajo del boton.
-        void ToggleRes(bool open)
-        {
-            Border p = F<Border>("ResPanel");
-            p.BeginAnimation(UIElement.OpacityProperty, null);
-            if (!open) { Fx.To(p, UIElement.OpacityProperty, 0, 130, Fx.In, 0, () => p.Visibility = Visibility.Collapsed); return; }
-            p.Visibility = Visibility.Visible;
-            ListBox l = F<ListBox>("Resolutions");
-            l.UpdateLayout();
-            for (int i = 0; i < l.Items.Count; i++)
-            {
-                FrameworkElement c = l.ItemContainerGenerator.ContainerFromIndex(i) as FrameworkElement;
-                if (c == null) continue;
-                Fx.Pop(c, 0.6, i * 14);
-                Fx.From(c, UIElement.OpacityProperty, 0, 1, 120, Fx.Out, i * 14);
-            }
         }
 
         void UseCustom()
         {
             Res native = Display.Saved();
-            string ws = F<TextBox>("CustomW").Text.Trim(), hs = F<TextBox>("CustomH").Text.Trim(), bad = Custom.Invalid(ws, hs, native);
-            if (bad != null) { F<TextBlock>("CustomHint").Text = bad; return; }
+            string ws = F<TextBox>("CustomW").Text.Trim(), hs = F<TextBox>("CustomH").Text.Trim(), bad = Custom.Invalid(ws, hs, native, game == Game.Valorant ? Display.ValorantRatio : 0);
+            if (bad != null) { CustomError(bad, ws, hs, native); return; }
+            CustomOk();
             ListBox l = F<ListBox>("Resolutions");
-            List<Res> list = l.Items.Cast<Res>().ToList();
             Res r = new Res { W = int.Parse(ws), H = int.Parse(hs), Hz = native.Hz };
-            Res had = list.FirstOrDefault(x => x.Same(r));
-            if (had == null)
+            if (!l.Items.Cast<Res>().Any(x => x.Same(r)))
             {
                 Res mode = Display.Modes().Where(m => m.Same(r)).OrderByDescending(m => m.Hz).FirstOrDefault();
                 if (mode != null) r.Hz = mode.Hz;
-                r.Note = "Personalizada, " + r.Hz + " Hz";
-                list.Add(r);
-                l.ItemsSource = list;
-                had = r;
+                extra.Add(r);
+                swapping = true;
+                l.ItemsSource = ResRows();
+                swapping = false;
             }
-            l.SelectedItem = had;
+            l.SelectedItem = l.Items.Cast<Res>().First(x => x.Same(r));
+        }
+
+        string customHint;
+        static readonly SolidColorBrush ErrorRed = (SolidColorBrush)new BrushConverter().ConvertFrom("#E5484D");
+        static Border Edge(TextBox t) { t.ApplyTemplate(); return t.Template.FindName("b", t) as Border; }
+        // Rejection like a bad login: red text, red border on the offending field and a shake.
+        void CustomError(string bad, string ws, string hs, Res native)
+        {
+            TextBlock hint = F<TextBlock>("CustomHint");
+            hint.Text = bad; hint.Foreground = ErrorRed; hint.FontWeight = FontWeights.SemiBold;
+            Sound.Effect("error");
+            int x, y;
+            bool badW = !int.TryParse(ws, out x) || x < 800 || x > native.W, badH = !int.TryParse(hs, out y) || y < 600 || y > native.H;
+            if (!badW && !badH) badW = true; // only Valorant's aspect ratio is left: it needs more width
+            if (badW) Edge(F<TextBox>("CustomW")).BorderBrush = ErrorRed;
+            if (badH) Edge(F<TextBox>("CustomH")).BorderBrush = ErrorRed;
+            if (!Fx.On) return;
+            WrapPanel row = F<WrapPanel>("CustomRow");
+            TranslateTransform t = row.RenderTransform as TranslateTransform;
+            if (t == null) row.RenderTransform = t = new TranslateTransform();
+            t.BeginAnimation(TranslateTransform.XProperty, Frames(420, new[] { 0, 1 / 7.0, 2 / 7.0, 3 / 7.0, 4 / 7.0, 5 / 7.0, 6 / 7.0, 1 }, new double[] { 0, -10, 10, -7, 7, -3, 3, 0 }));
+        }
+        void CustomOk()
+        {
+            TextBlock hint = F<TextBlock>("CustomHint");
+            if (hint.Foreground != ErrorRed) return;
+            hint.Text = customHint; hint.SetResourceReference(TextBlock.ForegroundProperty, "Ink2"); hint.FontWeight = FontWeights.Normal;
+            foreach (string n in new[] { "CustomW", "CustomH" }) Edge(F<TextBox>(n)).ClearValue(Border.BorderBrushProperty);
         }
 
         async Task LoadPlay()
@@ -631,7 +709,7 @@ namespace Tablero
             await Task.Run(() =>
             {
                 int session = Process.GetCurrentProcess().SessionId;
-                string[] skip = { "Tweakeroo", "explorer", "dwm", "Memory Compression", "FortniteClient-Win64-Shipping", "SearchHost", "StartMenuExperienceHost", "ShellExperienceHost", "svchost" };
+                string[] skip = { "Tweakeroo", "explorer", "dwm", "Memory Compression", "FortniteClient-Win64-Shipping", "VALORANT-Win64-Shipping", "SearchHost", "StartMenuExperienceHost", "ShellExperienceHost", "svchost" };
                 try { heavy = Process.GetProcesses().Where(p => p.SessionId == session && !skip.Contains(p.ProcessName)).GroupBy(p => p.ProcessName).Select(g => new { g.Key, Mb = g.Sum(p => p.WorkingSet64) / (1 << 20) }).Where(x => x.Mb >= 300).OrderByDescending(x => x.Mb).Take(5).ToDictionary(x => x.Key, x => x.Mb >= 1024 ? (x.Mb / 1024.0).ToString("0.0") + " GB" : x.Mb + " MB"); }
                 catch (InvalidOperationException) { heavy = new Dictionary<string, string>(); }
                 catch (Win32Exception) { heavy = new Dictionary<string, string>(); }
@@ -644,7 +722,8 @@ namespace Tablero
             Res r = F<ListBox>("Resolutions").SelectedItem as Res;
             Hw h = hw ?? quick;
             Estimate e = r == null || h == null ? null : Estimator.For(h, r.W, r.H);
-            F<TextBlock>("PlayEst").Text = e == null ? "…" : e.Low + "–" + e.High;
+            List<Match> ten = matches.Take(10).ToList();
+            F<TextBlock>("PlayEst").Text = game == Game.Valorant ? (ten.Count == 0 ? "…" : (int)Math.Round(ten.Average(m => (double)m.Median)) + " FPS") : e == null ? "…" : e.Low + "–" + e.High;
             F<TextBlock>("PlayLast").Text = matches.Count == 0 ? "…" : matches[0].Median + " FPS";
             F<TextBlock>("PlayRam").Text = Display.FreeRamGb().ToString("0.0") + " GB";
         }
@@ -652,13 +731,12 @@ namespace Tablero
         void ShowStretch()
         {
             Btn play = F<Btn>("Play");
-            Res r = F<ListBox>("Resolutions").SelectedItem as Res;
-            bool on = stretch.Pending;
-            play.IsEnabled = !on || confirming;
-            play.Content = confirming ? play.Content : on ? (IniOp.GameRunning() ? "Jugando a " + r.Name : "Abriendo Fortnite…") : r == null ? "Abrir Fortnite" : "Jugar a " + r.Name;
-            F<Btn>("Back").Visibility = on ? Visibility.Visible : Visibility.Collapsed;
-            F<Btn>("ResOpen").IsEnabled = F<ListBox>("Limits").IsEnabled = !on;
-            if (on && F<Border>("ResPanel").IsVisible) ToggleRes(false);
+            ValorantSession v = Val;
+            bool on = stretch.Pending, open = on && game.Running(), hand = v != null && open && v.CanApply && !confirming;
+            play.IsEnabled = !on && game.Installed() || confirming || hand;
+            play.Content = confirming ? play.Content : hand ? "Estirar ahora" : on ? (open ? "Jugando" : "Abriendo " + game.Name + "…") : "Jugar";
+            F<Btn>("Back").Visibility = on && !(v != null && open && !v.Applied) ? Visibility.Visible : Visibility.Collapsed;
+            F<Drop>("ResDrop").IsEnabled = F<Drop>("ResOpen").IsEnabled = F<Btn>("CustomGo").IsEnabled = F<ListBox>("Limits").IsEnabled = F<CheckBox>("ValOn").IsEnabled = !on;
         }
 
         void Play()
@@ -673,11 +751,12 @@ namespace Tablero
             }
             Res r = F<ListBox>("Resolutions").SelectedItem as Res;
             if (r == null || working) return;
+            if (Val != null && stretch.Pending) { Widen(true); return; }
             try { stretch.Begin(r); }
             catch (Exception ex) { ShowStretch(); Say(ex.Message, true); return; }
-            // Si la ventana no cabe en la resolucion nueva, los botones tienen que verse igual.
+            // If the window does not fit the new resolution, the buttons must still be visible.
             if (w.ActualWidth > SystemParameters.WorkArea.Width || w.ActualHeight > SystemParameters.WorkArea.Height) w.WindowState = WindowState.Maximized;
-            if (stretch.Known(r)) { Launch(); return; }
+            if (!stretch.Asks(r)) { Launch(); return; }
             confirming = true;
             limit = DateTime.Now.AddSeconds(Prefs.Now.Confirm);
             watch.Start();
@@ -690,11 +769,22 @@ namespace Tablero
         {
             gameSeen = false;
             limit = DateTime.Now.AddMinutes(10);
-            try { StretchSession.Open(StretchSession.Game); }
-            catch (Exception ex) { StopStretch("No se pudo abrir Fortnite: " + ex.Message); return; }
+            try { stretch.Launch(dir); }
+            catch (Exception ex) { StopStretch("No se pudo abrir " + game.Name + ": " + ex.Message); return; }
             watch.Start();
             ShowStretch();
-            Say("Abriendo Fortnite. La resolución se restaura al cerrarlo; Tweakeroo debe quedar abierto.", false);
+            ValorantSession v = Val;
+            Say(v != null && v.Warning != null ? "Algún monitor no se pudo desactivar: " + v.Warning : v == null ? "Abriendo Fortnite. La resolución se restaura al cerrarlo; Tweakeroo debe quedar abierto." : v.CanApply ? "Abriendo Riot Client: pulsa Jugar allí. La pantalla se estira al cargar un mapa; Tweakeroo debe quedar abierto." : "Abriendo Riot Client: pulsa Jugar allí.", false);
+        }
+
+        // Valorant: when a map loads, or with the button.
+        void Widen(bool byHand)
+        {
+            ValorantSession v = Val;
+            if (v == null || !v.CanApply) return;
+            try { if (v.Arrive(byHand)) Say("Pantalla estirada. Se restaura al cerrar Valorant.", false); }
+            catch (Exception ex) { Say(ex.Message, true); v.End(); }
+            ShowStretch();
         }
 
         void Watch()
@@ -706,12 +796,13 @@ namespace Tablero
                 else F<Btn>("Play").Content = "Conservar (" + left + ")";
                 return;
             }
-            bool running = IniOp.GameRunning();
+            bool running = game.Running();
             Precise.Set(running && Precise.Wanted);
             if (running && !gameSeen && stretch.Minimize) w.WindowState = WindowState.Minimized;
             if (running) gameSeen = true;
-            else if (gameSeen) { StopStretch("Fortnite cerrado: resolución restaurada."); return; }
-            else if (DateTime.Now > limit) { StopStretch("Fortnite no se abrió en 10 minutos: resolución restaurada."); return; }
+            else if (gameSeen) { StopStretch(game.Name + " cerrado: resolución restaurada."); return; }
+            else if (DateTime.Now > limit) { StopStretch(game.Name + " no se abrió en 10 minutos: resolución restaurada."); return; }
+            if (running) Widen(false);
             ShowStretch();
         }
 
@@ -721,8 +812,8 @@ namespace Tablero
             if (stretch.Minimize && w.WindowState == WindowState.Minimized) w.WindowState = WindowState.Normal;
             string err = null;
             try { stretch.End(); } catch (Exception ex) { err = ex.Message; }
-            // Con el juego abierto falta reponer su archivo: se sigue vigilando.
-            if (stretch.Pending && IniOp.GameRunning()) { gameSeen = true; watch.Start(); if (err == null) msg = "Pantalla restaurada. La configuración de Fortnite se restaura al cerrar el juego."; }
+            // With the game open its file still needs restoring: keep watching.
+            if (stretch.Pending && game.Running()) { gameSeen = true; watch.Start(); if (err == null) msg = Val != null ? "Pantalla restaurada." : "Pantalla restaurada. La configuración de Fortnite se restaura al cerrar el juego."; }
             else { watch.Stop(); Precise.Set(false); }
             ShowStretch();
             if (err != null || msg != null) Say(err ?? msg, err != null);
@@ -733,7 +824,7 @@ namespace Tablero
 
         MacroConfig macros;
         List<MacroRow> macroRows;
-        Action<int> capture;   // recibe la proxima tecla o boton
+        Action<int> capture;   // receives the next key or button
         int captureAt;
 
         void StartMacros()
@@ -862,17 +953,28 @@ namespace Tablero
             F<TextBlock>("MacroState").Text = "Estado: " + Macros.Status;
         }
 
-        // ---- Mis FPS ----
+        // ---- My FPS ----
 
         Task LoadFps()
         {
             if (fpsTask == null || fpsTask.IsCompleted) fpsTask = ReadFps();
+            else if (fpsGame != game) fpsTask = After(fpsTask);
             return fpsTask;
         }
+        Game fpsGame;
+        async Task After(Task t) { await t; await ReadFps(); }
         async Task OpenFps()
         {
-            bool first = !fpsRead;
+            bool first = !fpsRead.Contains(game.Id);
             Task t = LoadFps();
+            if (!loaded.Task.IsCompleted)
+            {
+                // During the app load the shared skeletons cover this page and leave all together.
+                await t;
+                await loaded.Task;
+                if (first && F<FrameworkElement>("FpsPage").IsVisible) EnterPage("FpsPage");
+                return;
+            }
             if (first && await Task.WhenAny(t, Task.Delay(350)) != t) ShowSkeletons("SkelPage");
             await t;
             if (!first) return;
@@ -881,18 +983,23 @@ namespace Tablero
         }
         async Task ReadFps()
         {
-            List<Match> m = null;
+            List<Match> m = null, f = null;
             string err = null;
+            Game g = fpsGame = game;
+            // Purchases are recommended using Fortnite's FPS.
+            bool also = g != Game.Fortnite && !fpsRead.Contains(Game.Fortnite.Id);
             await Task.Run(() =>
             {
-                try { m = FpsLog.Update(dir); } catch (Exception ex) { err = ex.Message; }
+                try { m = FpsLog.Update(dir, g); if (also) f = FpsLog.Update(dir, Game.Fortnite); } catch (Exception ex) { err = ex.Message; }
                 if (hw != null || quick != null) return;
                 Hw q = new Hw();
                 try { foreach (Scanner.Step s in Scanner.Steps.Where(x => x.Key == "Cpu" || x.Key == "Gpu")) s.Run(q); quick = q; } catch (Exception) { }
             });
-            fpsRead = true;
-            if (err != null) { F<TextBlock>("FpsText").Text = "No se pudieron leer los registros de Fortnite: " + err; return; }
-            matches = m;
+            fpsRead.Add(g.Id);
+            if (f != null) { fpsRead.Add(Game.Fortnite.Id); played[Game.Fortnite.Id] = f; }
+            if (m != null) played[g.Id] = m;
+            if (g != game) return;
+            if (err != null) { F<TextBlock>("FpsText").Text = "No se pudieron leer los registros de " + g.Name + ": " + err; return; }
             ShowFps();
         }
 
@@ -900,7 +1007,7 @@ namespace Tablero
         {
             bool any = matches.Count > 0;
             F<FrameworkElement>("FpsNow").Visibility = any ? Visibility.Visible : Visibility.Collapsed;
-            F<TextBlock>("FpsText").Text = any ? "Se leen de los registros de Fortnite, segundo a segundo, sin modificar el juego." : "No hay partidas de más de un minuto en los registros de Fortnite.";
+            F<TextBlock>("FpsText").Text = any ? "Se leen de los registros de " + game.Name + ", segundo a segundo, sin modificar el juego." : "No hay partidas de más de un minuto en los registros de " + game.Name + ".";
             if (any)
             {
                 Match a = matches[0];
@@ -908,7 +1015,7 @@ namespace Tablero
                 Fx.CountTo(F<TextBlock>("FpsLow"), a.Low);
                 Fx.CountTo(F<TextBlock>("FpsMax"), a.Max);
                 F<TextBlock>("FpsLast").Text = "Última partida: " + FpsRow.Day(a) + ", " + a.Map + (a.Cap > 0 ? ", con límite de " + a.Cap + " FPS" : ", sin límite");
-                // El ultimo cambio masivo separa el antes del despues.
+                // The last bulk change separates before from after.
                 Snapshot last = engine.List().Where(s => s.Kind == "auto" && s.Name.StartsWith("Antes de activar")).OrderByDescending(s => s.Date, StringComparer.Ordinal).FirstOrDefault();
                 F<TextBlock>("FpsCompare").Text = FpsLog.Compare(matches, last == null ? null : last.Date);
                 List<FpsRow> list = matches.Take(30).Select(m => new FpsRow { M = m }).ToList();
@@ -916,6 +1023,7 @@ namespace Tablero
                 foreach (FpsRow x in list) x.BarW = 100 * x.M.Median / top;
                 F<ItemsControl>("FpsRows").ItemsSource = list;
             }
+            if (game != Game.Fortnite) return;
             Hw h = hw ?? quick;
             Res native = Display.Saved();
             Res chosen = F<ListBox>("Resolutions").SelectedItem as Res;
@@ -933,17 +1041,17 @@ namespace Tablero
                 : "Aproximado, en modo Rendimiento y sin límite de FPS. A la resolución nativa limita " + (gpu ? "la gráfica." : "el procesador.");
         }
 
-        // ---- Mejoras ----
+        // ---- Upgrades ----
 
         void ShowReview()
         {
-            List<Check> c = Review.For(hw, matches);
+            List<Check> c = Review.For(hw, PlayedIn(Game.Fortnite));
             int todo = c.Count(x => x.Kind == Kind.Gratis), buy = c.Count(x => x.Kind == Kind.Comprar);
             F<TextBlock>("UpTitle").Text = todo + buy == 0 ? "Configuración correcta" : "Mejoras disponibles";
             F<TextBlock>("UpText").Text = (todo == 0 ? "Ninguna mejora gratis pendiente" : todo == 1 ? "1 mejora gratis" : todo + " mejoras gratis") + (buy == 0 ? " y ninguna compra recomendada." : buy == 1 ? " y 1 compra recomendada." : " y " + buy + " compras recomendadas.");
             F<Btn>("Review").Content = "Revisar otra vez";
             F<Btn>("Review").Glint = false;
-            F<ItemsControl>("Plan").ItemsSource = Review.Plan(hw, matches);
+            F<ItemsControl>("Plan").ItemsSource = Review.Plan(hw, PlayedIn(Game.Fortnite));
             F<FrameworkElement>("PlanBox").Visibility = Visibility.Visible;
             ItemsControl l = F<ItemsControl>("Checks");
             l.ItemsSource = c;
@@ -959,14 +1067,20 @@ namespace Tablero
         {
             Button b = e.OriginalSource as Button;
             Check c = b == null ? null : b.DataContext as Check;
-            if (c == null || c.Url == null) return;
+            if (c == null || !c.HasUrl) return;
+            if (c.Fix != null)
+            {
+                try { c.Fix(); } catch (Exception ex) { Say(ex is InvalidOperationException ? ex.Message : "No se pudo cambiar: " + ex.Message, false); }
+                Task t = ShowValChecks();
+                return;
+            }
             try { StretchSession.Open(c.Url); } catch (Exception ex) { Say("No se pudo abrir: " + ex.Message, false); }
         }
 
-        List<Row> Shown() { return ((IEnumerable<Row>)F<ListBox>("Rows").ItemsSource).ToList(); }
+        List<Row> Shown() { return F<ListBox>("Rows").Items.Cast<Row>().ToList(); }
         List<Row> Wanted() { return rows.Where(r => r.Advice != null && r.Advice.Yes).ToList(); }
 
-        // Aviso inferior: entra con resorte y se va solo, un poco mas rapido.
+        // Bottom notice: comes in with a spring and leaves by itself, a bit faster.
         void Say(string msg, bool stay)
         {
             Border t = F<Border>("Toast");
@@ -1022,19 +1136,24 @@ namespace Tablero
             Circuit c = F<ListBox>("Circuits").SelectedItem as Circuit;
             if (c == null) return;
             MoveMark();
+            ShowMissing();
             foreach (string p in Pages) F<FrameworkElement>(p).Visibility = p == c.Page ? Visibility.Visible : Visibility.Collapsed;
-            if (c.Page != "FpsPage" && ready && F<FrameworkElement>("SkelPage").Opacity > 0) F<FrameworkElement>("SkelPage").Visibility = Visibility.Collapsed;
+            if (c.Page != "FpsPage" && loaded.Task.IsCompleted && F<FrameworkElement>("SkelPage").Opacity > 0) F<FrameworkElement>("SkelPage").Visibility = Visibility.Collapsed;
             if (c.Page == "PcPage") Meter(true);
             if (c.Page == "FpsPage") { Task t = OpenFps(); }
             if (c.Page == "StretchPage") { Task t = LoadPlay(); }
+            if (c.Page == "ColorPage") ShowColors();
+            if (c.Page == "BoostPage") ShowBoosts();
             if (c.Page == "NetPage") { Task t = OpenNet(); }
             if (c.Page == "MacroPage" && macros != null && Macros.Sync(macros)) { ShowMacros(); Macros.Use(macros); }
+            // The list is taken on entering: a switched row does not jump away under the mouse.
+            if (c.Pick != null) c.Rows = c.Pick();
             if (c.Rows == null) { if (ready) EnterPage(c.Page); return; }
             F<TextBox>("Search").Text = "";
             Filter(true);
         }
 
-        // La marca de seleccion es una sola pieza que viaja entre secciones.
+        // The selection mark is a single piece that travels between sections.
         void MoveMark()
         {
             ListBox l = F<ListBox>("Circuits");
@@ -1042,7 +1161,7 @@ namespace Tablero
             FrameworkElement item = l.ItemContainerGenerator.ContainerFromItem(l.SelectedItem) as FrameworkElement;
             if (item == null) return;
             Border m = F<Border>("NavMark");
-            // Posicion de reposo: sin la animacion que pueda llevar el elemento.
+            // Rest position: without any animation the element may carry.
             double y = VisualTreeHelper.GetOffset(item).Y;
             m.Height = item.ActualHeight;
             m.Visibility = Visibility.Visible;
@@ -1057,23 +1176,25 @@ namespace Tablero
             if (c == null || c.Rows == null) return;
             string q = F<TextBox>("Search").Text.Trim();
             bool off = F<CheckBox>("OnlyOff").IsChecked == true;
-            // Con texto en el buscador se busca en todo.
+            // With text in the search box it searches everything.
             IEnumerable<Row> src = q.Length > 0 ? rows : c.Rows;
             CompareInfo ci = CultureInfo.GetCultureInfo("es").CompareInfo;
             const CompareOptions o = CompareOptions.IgnoreCase | CompareOptions.IgnoreNonSpace;
             List<Row> r = src.Where(x => (q.Length == 0 || ci.IndexOf(L.T(x.Name) + " " + L.T(x.Desc), q, o) >= 0) && (!off || x.State != State.On)).ToList();
             ListBox list = F<ListBox>("Rows");
-            list.ItemsSource = r;
+            ListCollectionView view = new ListCollectionView(r);
+            if (c.Pick != null && q.Length == 0) view.GroupDescriptions.Add(new PropertyGroupDescription("Cat"));
+            list.ItemsSource = view;
             F<TextBlock>("CatTitle").Text = q.Length > 0 ? "Búsqueda: " + r.Count + (r.Count == 1 ? " tweak" : " tweaks") : c.Name;
             TextBlock empty = F<TextBlock>("Empty");
             empty.Visibility = r.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
-            empty.Text = q.Length > 0 ? "Sin resultados para “" + q + "”. Usa una palabra más corta." : "Todo activado en esta sección.";
-            if (r.Count > 0) list.ScrollIntoView(r[0]);
+            empty.Text = q.Length > 0 ? "Sin resultados para “" + q + "”. Usa una palabra más corta." : c.Name == "Activados" ? "Nada activado en esta sección." : "Todo activado en esta sección.";
+            if (r.Count > 0) list.ScrollIntoView(list.Items[0]);
             if (!animate) return;
             list.UpdateLayout();
             for (int i = 0; i < Math.Min(r.Count, 12); i++)
             {
-                FrameworkElement item = list.ItemContainerGenerator.ContainerFromIndex(i) as FrameworkElement;
+                FrameworkElement item = list.ItemContainerGenerator.ContainerFromItem(list.Items[i]) as FrameworkElement;
                 if (item != null) Fx.Enter(item, i, 18);
             }
         }
@@ -1095,7 +1216,17 @@ namespace Tablero
 
         void Totals()
         {
-            foreach (Circuit c in subs) c.Refresh();
+            foreach (Circuit c in subs.Concat(shorts)) c.Refresh();
+            // BuildSubs appends the categories at the end; Upgrades goes back below them.
+            int u = circuits.IndexOf(review);
+            if (u >= 0 && u < circuits.Count - 1)
+            {
+                ListBox l = F<ListBox>("Circuits");
+                object at = l.SelectedItem;
+                circuits.Move(u, circuits.Count - 1);
+                l.SelectedItem = at;
+                MoveMark();
+            }
             List<Row> goal = hw == null ? rows : Wanted();
             int on = goal.Count(r => r.State == State.On), left = goal.Count - on;
             Fx.CountTo(F<TextBlock>("TotalOn"), on);
@@ -1117,6 +1248,7 @@ namespace Tablero
         async Task Scan()
         {
             if (working) return;
+            Sound.Effect("scan");
             SetWorking(true, "Escaneando el PC…");
             F<Btn>("Scan").Content = "Escaneando…";
             Hw found = new Hw();
@@ -1136,19 +1268,21 @@ namespace Tablero
             }
             if (fails.Count > 0)
             {
-                // Con datos a medias no se recomienda nada: mejor volver a intentar.
+                // With partial data nothing is recommended: better to try again.
                 hw = null;
+                Sound.Effect("error");
                 F<Btn>("Scan").Content = "Escanear otra vez";
                 SetWorking(false, "No se pudo leer: " + string.Join(", ", fails) + ". Sin esos datos no hay recomendaciones; repite el escaneo.");
                 return;
             }
-            await Task.Run(() => Review.Read(found));
+            await Task.Run(() => { Review.Read(found); Drivers.Check(dir, found); });
             await LoadFps();
             ScanData d = new ScanData { Hw = found, Text = texts };
             ApplyScan(d);
             ShowFps();
             Scanner.Save(dir, d);
             Fx.Pop(F<Btn>("Scan"), 0.92);
+            Sound.Effect("done");
             SetWorking(false, "Escaneo completado. Los resultados están en Recomendados.");
         }
 
@@ -1158,12 +1292,12 @@ namespace Tablero
             p.Set(s[0], p.Title + (s.Length > 1 && s[1].Length > 0 ? ". " + s[1] : ""));
         }
 
-        // Con el escaneo guardado ya en pantalla, mira por detras si cambio algo (cable, disco, driver, una pieza).
+        // With the saved scan already on screen, checks in the background whether something changed (cable, disk, driver, a part).
         async Task Recheck()
         {
             Hw before = hw;
             ScanData now = null;
-            await Task.Run(() => { now = Scanner.Run(); });
+            await Task.Run(() => { now = Scanner.Run(); if (now != null && Prefs.Now.AutoCheck && !Drivers.Fresh) Drivers.Check(dir, now.Hw); });
             await LoadFps();
             if (working || hw != before) return;
             if (now == null) { ShowReview(); return; }
@@ -1177,15 +1311,10 @@ namespace Tablero
             hw = d.Hw;
             foreach (Part p in parts) ShowPart(p, d.Text[p.Key]);
             ShowReview();
-            foreach (Row r in rows) r.SetAdvice(Advisor.For(r.T, hw));
+            foreach (Row r in every) r.SetAdvice(Advisor.For(r.T, hw));
             Circuit rec = subs.FirstOrDefault(c => c.Name == Recommended);
-            if (rec == null)
-            {
-                rec = new Circuit { Name = Recommended, Icon = Ico("Check"), Sub = true };
-                subs.Insert(0, rec);
-                if (circuits.Contains(subs[1])) circuits.Insert(circuits.IndexOf(upgrades) + 1, rec);
-            }
-            rec.Rows = Wanted();
+            if (rec == null) BuildSubs();
+            else rec.Rows = Wanted();
             MoveMark();
             ItemsControl notes = F<ItemsControl>("Notes");
             notes.ItemsSource = Advisor.Notes(hw);
@@ -1206,10 +1335,11 @@ namespace Tablero
             await Task.Run(() =>
             {
                 Dictionary<string, string> now = engine.ReadAll();
-                st = rows.ToDictionary(r => r, r => r.T.Read(now));
+                st = every.ToDictionary(r => r, r => r.T.Read(now));
                 sv = engine.List().Select(s => new SaveRow { S = s, Diff = engine.DiffCount(s, now) }).ToList();
             });
             foreach (KeyValuePair<Row, State> p in st) if (!ready || p.Key.State != p.Value) p.Key.SetState(p.Value);
+            ShowWaiting();
             ListBox l = F<ListBox>("Saves");
             HashSet<string> had = new HashSet<string>(l.Items.Cast<SaveRow>().Select(x => x.S.File));
             l.ItemsSource = sv;
@@ -1231,7 +1361,7 @@ namespace Tablero
             catch (Exception ex) { Say("No se pudo actualizar el estado: " + ex.Message, true); }
         }
 
-        // Punto de restauracion de Windows, una sola vez, antes del primer cambio.
+        // Windows restore point, only once, before the first change.
         string RestorePoint()
         {
             string flag = Path.Combine(dir, "punto-de-restauracion.txt");
@@ -1255,8 +1385,9 @@ namespace Tablero
             if (r == null || working) return;
             bool on = r.State != State.On;
             if (on && r.T.Level == Level.Riesgo && MessageBox.Show(w, L.T(r.T.Desc) + "\n\n" + L.T("¿Activar de todas formas?"), L.T(r.T.Name), MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No) != MessageBoxResult.Yes) return;
+            Sound.Effect(on ? "toggle-on" : "toggle-off");
             SetWorking(true, null);
-            // La perilla responde al momento; si Windows lo rechaza, Refresh la devuelve.
+            // The knob responds immediately; if Windows rejects it, Refresh puts it back.
             r.SetState(on ? State.On : State.Off);
             string err = null, note = "";
             await Task.Run(() =>
@@ -1265,8 +1396,10 @@ namespace Tablero
                 catch (Exception ex) { err = ex.Message; }
             });
             r.SetError(err ?? "");
+            if (err == null) pending.Change(r.T);
+            else Sound.Effect("error");
             await SafeRefresh();
-            SetWorking(false, err != null ? "No se cambió: " + r.Name + "." : r.Name + (on ? ": activado." : ": quitado.") + (r.T.Restart.Length > 0 ? " Reinicia " + r.T.Restart + " para que haga efecto." : "") + note);
+            SetWorking(false, err != null ? "No se cambió: " + r.Name + "." : r.Name + (on ? ": activado." : ": quitado.") + (pending.Need(r.T) ? " Reinicia " + r.T.Restart + " para que haga efecto." : "") + note);
         }
 
         async Task Bulk(List<Row> target, bool on)
@@ -1299,11 +1432,11 @@ namespace Tablero
                     catch (Exception ex) { errs[r] = ex.Message; }
                 }
             });
-            foreach (Row r in todo) r.SetError(errs.ContainsKey(r) ? errs[r] : "");
+            foreach (Row r in todo) { r.SetError(errs.ContainsKey(r) ? errs[r] : ""); if (stop == null && !errs.ContainsKey(r)) pending.Change(r.T); }
             await SafeRefresh();
             string msg = stop != null ? "Ningún cambio aplicado: falló el guardado previo: " + stop
                 : ok + (on ? " activados." : " deshechos.") + (errs.Count > 0 ? " " + errs.Count + " fallaron y quedaron como estaban; el motivo está en cada fila." : "")
-                  + (todo.Any(r => !errs.ContainsKey(r) && r.T.Restart.Length > 0) ? " Reinicia el PC para completar los cambios." : "");
+                  + pending.Ask(todo.Where(r => !errs.ContainsKey(r)).Select(r => r.T));
             SetWorking(false, msg + skip + note);
         }
 
@@ -1331,6 +1464,7 @@ namespace Tablero
         async Task SaveAction(SaveRow s, bool restore)
         {
             SetWorking(true, restore ? "Restaurando " + s.Name + "…" : "Borrando " + s.Name + "…");
+            Dictionary<Row, State> was = every.ToDictionary(r => r, r => r.State);
             string err = null;
             int n = 0;
             List<string> errs = new List<string>();
@@ -1344,9 +1478,12 @@ namespace Tablero
                 catch (Exception ex) { err = ex.Message; }
             });
             await SafeRefresh();
+            List<Row> moved = every.Where(r => r.State != was[r]).ToList();
+            foreach (Row r in moved) pending.Change(r.T);
+            ShowWaiting();
             SetWorking(false, err != null ? err
                 : !restore ? "Borrado: " + s.Name + "."
-                : n + (n == 1 ? " ajuste restaurado." : " ajustes restaurados.") + (errs.Count > 0 ? " No se pudo con " + errs.Count + ": " + errs[0] : "") + " Reinicia el PC para completar.");
+                : n + (n == 1 ? " ajuste restaurado." : " ajustes restaurados.") + (errs.Count > 0 ? " No se pudo con " + errs.Count + ": " + errs[0] : "") + pending.Ask(moved.Select(r => r.T)));
         }
     }
 }

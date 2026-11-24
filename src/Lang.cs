@@ -10,7 +10,7 @@ using System.Windows.Controls;
 
 namespace Tablero
 {
-    // El codigo se escribe en español; en.txt trae el ingles (español TAB ingles, con {0} para lo variable).
+    // The code is written in Spanish; en.txt holds the English (Spanish TAB English, with {0} for variable parts).
     public static class L
     {
         public static bool En;
@@ -31,7 +31,7 @@ namespace Tablero
                 if (p.Length != 2) continue;
                 if (Regex.IsMatch(p[0], @"\{\d\}")) tpl.Add(p); else map[p[0]] = p[1];
             }
-            // Las frases con mas texto fijo se prueban antes.
+            // Phrases with more fixed text are tried first.
             foreach (string[] p in tpl.OrderByDescending(x => Regex.Replace(x[0], @"\{\d\}", "").Length))
                 patterns.Add(new KeyValuePair<Regex, string>(new Regex("^" + Regex.Replace(Regex.Escape(p[0]), @"\\\{(\d)}", "(?<g$1>.+?)") + "$", RegexOptions.Singleline), p[1]));
         }
@@ -41,7 +41,7 @@ namespace Tablero
         {
             string s = "";
             try { if (File.Exists(FileOf(dir))) s = File.ReadAllText(FileOf(dir)).Trim(); } catch (IOException) { }
-            En = s != "es"; // ingles por defecto
+            En = s != "es"; // English by default
         }
         public static void Save(string dir, bool en) { Directory.CreateDirectory(dir); File.WriteAllText(FileOf(dir), en ? "en" : "es"); }
         public static string Terms() { return Resource(En ? "terminos.en.txt" : "terminos.txt"); }
@@ -57,7 +57,7 @@ namespace Tablero
             }
             return null;
         }
-        // Lo capturado puede ser un nombre propio: si no tiene traduccion se deja igual.
+        // The captured text may be a proper name: if it has no translation it is left as is.
         static string Soft(string s) { return Parts(s, false); }
         static string Parts(string s, bool note)
         {
@@ -72,7 +72,7 @@ namespace Tablero
         }
         public static string T(string s) { return !En || string.IsNullOrEmpty(s) ? s : Parts(s, true); }
 
-        // Textos fijos de la ventana: se traducen antes de leer el XAML.
+        // Fixed window texts: translated before reading the XAML.
         public static string Xaml(string x)
         {
             if (!En) return x;
@@ -81,7 +81,7 @@ namespace Tablero
         }
     }
 
-    // Texto que se traduce solo, venga de donde venga.
+    // Text that translates itself, wherever it comes from.
     public class Tb : TextBlock
     {
         static Tb() { TextProperty.OverrideMetadata(typeof(Tb), new FrameworkPropertyMetadata("", null, (d, v) => L.T((string)v ?? ""))); }

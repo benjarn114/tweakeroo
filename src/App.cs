@@ -6,13 +6,14 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Input;
 using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
 [assembly: AssemblyTitle("Tweakeroo")]
 [assembly: AssemblyProduct("Tweakeroo")]
-[assembly: AssemblyVersion("3.7.0.0")]
+[assembly: AssemblyVersion("1.0.0.0")]
 
 namespace Tablero
 {
@@ -35,7 +36,29 @@ namespace Tablero
                 File.WriteAllText(args[1], r);
                 return code;
             }
-            // Tras instalar o actualizar, espera a que cierre la copia anterior.
+#if SHOT
+            // "--escenas folder": each scene at a few frames, 4x without smoothing, and its cost per frame.
+            if (args.Length == 2 && args[0] == "--escenas")
+            {
+                string txt = "";
+                foreach (string id in Scene.Ids)
+                {
+                    foreach (int at in new[] { 0, 300, 900 })
+                    {
+                        Scene s = Scene.Make(id);
+                        s.Skip(at);
+                        int[] big = new int[Scene.W * 4 * Scene.H * 4];
+                        for (int y = 0; y < Scene.H * 4; y++) for (int x = 0; x < Scene.W * 4; x++) big[y * Scene.W * 4 + x] = s.Fb[(y / 4) * Scene.W + x / 4];
+                        PngBitmapEncoder png = new PngBitmapEncoder();
+                        png.Frames.Add(BitmapFrame.Create(BitmapSource.Create(Scene.W * 4, Scene.H * 4, 96, 96, PixelFormats.Bgra32, null, big, Scene.W * 16)));
+                        using (FileStream f = File.Create(Path.Combine(args[1], id + "-" + at + ".png"))) png.Save(f);
+                    }
+                    txt += id + " " + Scene.Cost(id, 600).ToString("0.00") + " ms\r\n";                }
+                File.WriteAllText(Path.Combine(args[1], "escenas.txt"), txt);
+                return 0;
+            }
+#endif
+            // After installing or updating, wait for the previous copy to close.
             if (args.Length == 2 && args[0] == "--espera")
             {
                 int pid;
@@ -53,7 +76,7 @@ namespace Tablero
                 if (!mine)
                 {
                     if (boot) return 0;
-                    // La copia abierta se enseña, aunque este escondida junto al reloj.
+                    // The open copy is shown, even if it is hidden by the clock.
                     EventWaitHandle other;
                     if (EventWaitHandle.TryOpenExisting(mutex + "_mostrar", out other)) using (other) other.Set();
                     else MessageBox.Show(L.T("Tweakeroo ya está abierto."), "Tweakeroo");
@@ -70,7 +93,7 @@ namespace Tablero
                 string data = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
                 string dir = Path.Combine(data, "Tweakeroo");
 #if !SHOT
-                // Antes se llamaba Tablero: se conservan sus guardados.
+                // It used to be called Tablero: its saved data is kept.
                 string old = Path.Combine(data, "Tablero");
                 if (Directory.Exists(old) && !Directory.Exists(dir))
                 {
@@ -87,18 +110,37 @@ namespace Tablero
                 Window w = Load();
                 w.Title = "Tweakeroo " + Installer.Short;
 #if SHOT
-                // Solo para revisar el diseno: carpeta propia, fuera de pantalla y sin robar el foco.
+                // Only for reviewing the design: own folder, off screen and without stealing focus.
                 dir = Path.Combine(Path.GetTempPath(), "tablero-shot");
                 w.WindowStartupLocation = WindowStartupLocation.Manual; w.Left = -4000; w.ShowActivated = false; w.ShowInTaskbar = false;
                 w.Width = int.Parse(args[1]); w.Height = int.Parse(args[2]);
                 if (args[3] == "click") ClickTest.Prepare(ref dir);
                 Ui.TrayIcon = false;
                 Prefs.Load(dir);
+                // No saved scan: with one, the button would apply the recommended tweaks on the real PC.
+                if (Array.IndexOf(args, "scan") >= 0) Scanner.Delete(dir);
+                if (Array.IndexOf(args, "fortnite") >= 0) Prefs.Now.Game = "fortnite";
+                if (Array.IndexOf(args, "valorant") >= 0 && Array.IndexOf(args, "medio") < 0) Prefs.Now.Game = "valorant";
+                if (Array.IndexOf(args, "noinst") >= 0) Game.Valorant.Installed = () => false;
+                // "tema noche|lluvia|arcade|simple"; without it, what the test folder has saved.
+                int theme = Array.IndexOf(args, "tema");
+                if (theme >= 0) Prefs.Now.Theme = Theme.LookOf(args[theme + 1]).Id;
 #endif
 #if !SHOT
-                // Una descarga suelta instala; si ya hay una igual o mas nueva, abre esa.
+                // A standalone download installs; if an equal or newer one is already installed, opens that one.
                 bool remove = args.Length > 0 && args[0] == "--desinstalar";
                 if (!remove && !Installer.RunningInstalled && Installer.InstalledIsEnough() && Installer.TermsOk(dir)) { Installer.Start(Installer.Exe); return 0; }
+                // Running as administrator, Windows does not pass PrtScn or Win+Shift+S from this window to the Snipping Tool, which is not elevated:
+                // it is opened from here, through Explorer so it does not inherit the rights. The keys are not swallowed.
+                Action snip = () => { try { StretchSession.Open("ms-screenclip:"); } catch (System.ComponentModel.Win32Exception) { } };
+                w.PreviewKeyDown += (s, e) => { if (e.Key == Key.S && !e.IsRepeat && Keyboard.Modifiers == (ModifierKeys.Windows | ModifierKeys.Shift)) snip(); };
+                w.PreviewKeyUp += (s, e) =>
+                {
+                    if (e.Key != Key.Snapshot) return; // PrtScn only arrives as key up
+                    // With the option off, Windows copies the screen by itself. Without the value, Windows 11 has it on.
+                    object on = Microsoft.Win32.Registry.GetValue(@"HKEY_CURRENT_USER\Control Panel\Keyboard", "PrintScreenKeyForSnippingEnabled", null);
+                    if (on is int ? (int)on != 0 : Environment.OSVersion.Version.Build >= 22000) snip();
+                };
 #endif
                 Ui ui = new Ui(w, dir);
                 ui.LoadPalette();
@@ -117,21 +159,24 @@ namespace Tablero
                     if (quiet && Prefs.Now.Tray) w.Hide();
                     if (Prefs.Now.AutoCheck) { Task check = update.Check(); }
 #else
-                    // "instalar-N" y "actualizar" solo dibujan esas pantallas.
+                    // "instalar-N" and "actualizar" only draw those screens.
                     if (args[3] == "carga") ui.ShowSkeletons("SkelPage", "SkelNav", "SkelSaves");
                     if (args[3].StartsWith("Setup")) new SetupUi(w, dir).Show(args[3]);
                     if (args[3] == "actualizar") update.Show(new Release { Version = "3.1.0", Notes = new System.Collections.Generic.List<string> { "Stretched más rápido al abrir Fortnite.", "Dos tweaks nuevos para gráficas AMD.", "Arreglado un parpadeo blanco en Guardados." } });
                     bool still = args[3] == "carga" || args[3].StartsWith("Setup") || args[3] == "actualizar";
 #endif
 #if SHOT
-                    // "carga" captura los skeletons antes de leer nada.
+                    // "carga" captures the skeletons before reading anything.
                     if (!still)
 #endif
                     await ui.Start();
 #if SHOT
                     if (args[3] == "click") { string res; try { res = await ClickTest.Run(w, ui); } catch (Exception ex) { res = ex.ToString(); } File.WriteAllText(args[0], res); app.Shutdown(); return; }
-                    // args: salida ancho alto seccion paleta [scan]
-                    ((ListBox)w.FindName("Palettes")).SelectedIndex = int.Parse(args[4]);
+                    // args: output width height section palette [scan]
+                    int half = Array.IndexOf(args, "medio");
+                    if (half >= 0) { ui.SwitchGame(Game.Fortnite, true); await Task.Delay(2500); ui.SwitchGame(Game.Valorant, true); await Task.Delay(int.Parse(args[half + 1])); }
+                    if (Array.IndexOf(args, "estirar") >= 0) { CheckBox vo = (CheckBox)w.FindName("ValOn"); vo.IsChecked = true; vo.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent)); }
+                    if (args[4] != "-") ((ListBox)w.FindName("Palettes")).SelectedIndex = int.Parse(args[4]);
                     if (Array.IndexOf(args, "scan") >= 0)
                     {
                         Btn scan = (Btn)w.FindName("Scan");
@@ -139,15 +184,40 @@ namespace Tablero
                         while (!scan.IsEnabled) await Task.Delay(100);
                     }
                     if (!still) ui.Open(args[3]);
-                    if (Array.IndexOf(args, "abierto") >= 0) { ((Btn)w.FindName("ResOpen")).RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent)); ((ScrollViewer)w.FindName("UpgradePage")).ScrollToEnd(); }
+                    if (Array.IndexOf(args, "abierto") >= 0) { ((ScrollViewer)w.FindName("UpgradePage")).ScrollToEnd(); }
                     if (Array.IndexOf(args, "versiones") >= 0) ((Btn)w.FindName("ShowVersions")).RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
-                    if (Array.IndexOf(args, "fin") >= 0) foreach (string n in new[] { "SettingsPage", "MacroPage", "NetPage" }) ((ScrollViewer)w.FindName(n)).ScrollToEnd();
+                    if (Array.IndexOf(args, "fin") >= 0) foreach (string n in new[] { "SettingsPage", "MacroPage", "NetPage", "ResPage", "BoostPage" }) ((ScrollViewer)w.FindName(n)).ScrollToEnd();
                     if (Array.IndexOf(args, "medir") >= 0) { Btn run = (Btn)w.FindName("NetRun"); run.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent)); while (!run.IsEnabled) await Task.Delay(200); }
-                    await Task.Delay(1800);
+                    if (Array.IndexOf(args, "vivo") >= 0) ((ListBox)w.FindName("ColorProfiles")).SelectedIndex = 3;
+                    // "fotograma N": the background as it is N frames later (the test window is never active, so it does not move).
+                    int fr = Array.IndexOf(args, "fotograma");
+                    if (fr >= 0) ui.SkipScene(int.Parse(args[fr + 1]));
+                    // "animar N": process CPU for N seconds with the background still and N more with it moving.
+                    int an = Array.IndexOf(args, "animar");
+                    if (an >= 0)
+                    {
+                        int secs = int.Parse(args[an + 1]);
+                        System.Diagnostics.Process me = System.Diagnostics.Process.GetCurrentProcess();
+                        Func<Task<double>> cpu = async () => { me.Refresh(); TimeSpan t0 = me.TotalProcessorTime; await Task.Delay(secs * 1000); me.Refresh(); return (me.TotalProcessorTime - t0).TotalMilliseconds / (secs * 10.0); };
+                        await Task.Delay(3000);
+                        double idle = await cpu();
+                        Ui.Always = true; ui.SceneNow();
+                        double moving = await cpu();
+                        Ui.Always = false; ui.SceneNow();
+                        File.WriteAllText(args[0] + ".cpu.txt", "CPU de un núcleo: quieto " + idle.ToString("0.00") + " %, moviéndose " + moving.ToString("0.00") + " %. Núcleos: " + Environment.ProcessorCount + ". Del total: " + (moving / Environment.ProcessorCount).ToString("0.00") + " %.");
+                    }
+                    // "tirones N [raton]": time between background frames for N seconds, in output.tirones.txt (Jank.cs).
+                    int jk = Array.IndexOf(args, "tirones");
+                    if (jk >= 0) File.WriteAllText(args[0] + ".tirones.txt", await Jank.Measure(w, ui, int.Parse(args[jk + 1]), Array.IndexOf(args, "raton") >= 0));
+                    if (Array.IndexOf(args, "medio") < 0) await Task.Delay(1800);
+                    // "abrir Name" captures with that dropdown open (the popup is drawn over the window).
+                    int dd = Array.IndexOf(args, "abrir");
+                    if (dd >= 0) { Drop d = (Drop)w.FindName(args[dd + 1]); d.BringIntoView(); await Task.Delay(300); d.Open(); await Task.Delay(600); }
+                    if (Array.IndexOf(args, "limpio") >= 0) ((UIElement)w.FindName("Toast")).Visibility = Visibility.Collapsed;
                     FrameworkElement root = (FrameworkElement)w.Content;
                     RenderTargetBitmap bmp = new RenderTargetBitmap((int)root.ActualWidth, (int)root.ActualHeight, 96, 96, PixelFormats.Pbgra32);
                     bmp.Render(root);
-                    PngBitmapEncoder enc = new PngBitmapEncoder(); enc.Frames.Add(BitmapFrame.Create(bmp));
+                    PngBitmapEncoder enc = new PngBitmapEncoder(); enc.Frames.Add(BitmapFrame.Create(Drop.Shown != null ? Drop.Shown.Over(root, bmp) : bmp));
                     using (FileStream f = File.Create(args[0])) enc.Save(f);
                     app.Shutdown();
 #endif

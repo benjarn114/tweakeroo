@@ -7,12 +7,12 @@ using System.Text;
 
 namespace Tablero
 {
-    // Teclas que el jugador tiene puestas en Fortnite, leidas de su copia local de ajustes. No se escribe nada.
+    // Keys the player has set in Fortnite, read from their local settings copy. Nothing is written.
     public class Binds
     {
-        public int Edit, Select, Reset;          // 0 = no encontrada
+        public int Edit, Select, Reset;          // 0 = not found
         public bool Confirm, HasConfirm;
-        public Dictionary<int, List<string>> Uses = new Dictionary<int, List<string>>(); // tecla -> acciones del juego
+        public Dictionary<int, List<string>> Uses = new Dictionary<int, List<string>>(); // key -> game actions
 
         public static string Folder = Environment.ExpandEnvironmentVariables(@"%LOCALAPPDATA%\FortniteGame\Saved\Cloud");
         public static Binds Load()
@@ -27,7 +27,7 @@ namespace Tablero
             return raw == null ? null : Parse(raw);
         }
 
-        // El contenido va comprimido (zlib) tras una cabecera corta.
+        // The content is compressed (zlib) after a short header.
         public static byte[] Inflate(byte[] b)
         {
             for (int i = 0; i < Math.Min(64, b.Length - 2); i++)
@@ -50,7 +50,7 @@ namespace Tablero
 
         public static Binds Parse(byte[] raw)
         {
-            // Textos con su longitud delante: son los nombres de propiedades y valores.
+            // Strings prefixed by their length: they are property names and values.
             List<KeyValuePair<int, string>> tok = new List<KeyValuePair<int, string>>();
             for (int i = 0; i < raw.Length - 5; i++)
             {
@@ -62,11 +62,11 @@ namespace Tablero
                 tok.Add(new KeyValuePair<int, string>(i, Encoding.ASCII.GetString(raw, i + 4, n - 1)));
                 i += 3 + n;
             }
-            // Hay un juego de teclas de fabrica y otro del jugador: el suyo es el ultimo completo.
+            // There is a default key set and the player's own: theirs is the last complete one.
             List<Dictionary<string, List<string>>> sets = new List<Dictionary<string, List<string>>>();
             Binds r = new Binds();
             string action = null;
-            bool keyboard = false; // lo que sigue a los botones de mando no cuenta
+            bool keyboard = false; // what follows the controller buttons does not count
             for (int k = 0; k < tok.Count; k++)
             {
                 string t = tok[k].Value, next = After(tok, k);
@@ -81,7 +81,7 @@ namespace Tablero
                 }
                 else if (t == "bEditConfirmOnReleaseEnabled" && k + 1 < tok.Count && tok[k + 1].Value == "BoolProperty")
                 {
-                    int at = tok[k + 1].Key + 4 + 13 + 8; // longitud, "BoolProperty\0", indice y tamaño
+                    int at = tok[k + 1].Key + 4 + 13 + 8; // length, "BoolProperty\0", index and size
                     if (at < raw.Length) { r.HasConfirm = true; r.Confirm = (raw[at] & 0x10) != 0; }
                 }
             }
@@ -112,7 +112,7 @@ namespace Tablero
             return set.TryGetValue(action, out l) ? l.Select(Vk).FirstOrDefault(x => x != 0) : 0;
         }
 
-        // Lo que el juego hace a menudo: una macro en esa tecla haria las dos cosas.
+        // What the game often does: a macro on that key would do both things.
         static readonly string[] Common = { "Reload", "TogglePickAxe", "HotbarKey", "Jump", "Crouch", "Sprint", "Use", "Interact", "ToggleInventory", "ToggleFullScreenMap", "Emote", "PushToTalk", "TrapPicker", "CreativeToggle", "Move", "Fire", "Target", "PerformBuildingEdit", "SwitchQuickbar" };
         public string Conflict(int vk)
         {

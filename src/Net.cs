@@ -13,15 +13,15 @@ using System.Web.Script.Serialization;
 
 namespace Tablero
 {
-    // Resultado de una tanda de pings a un sitio. Ms = -1 es un paquete perdido.
+    // Result of a batch of pings to a host. Ms = -1 is a lost packet.
     public class PingStats
     {
         public int Sent { get; set; }
         public int Lost { get; set; }
         public int Median { get; set; }
         public int Max { get; set; }
-        public double Jitter { get; set; }  // cuanto cambia de un paquete al siguiente
-        public int Spikes { get; set; }     // paquetes 30 ms por encima de lo normal
+        public double Jitter { get; set; }  // how much it changes from one packet to the next
+        public int Spikes { get; set; }     // packets 30 ms above normal
         public double Loss { get { return Sent == 0 ? 0 : 100.0 * Lost / Sent; } }
         public bool Silent { get { return Sent > 0 && Lost == Sent; } }
 
@@ -51,12 +51,12 @@ namespace Tablero
 
     public static class NetTest
     {
-        // Servidores de medicion de Epic, por region.
+        // Epic measurement servers, by region.
         public static readonly string[,] Regions = { { "br", "Brasil" }, { "nae", "Norteamérica este" }, { "nac", "Norteamérica centro" }, { "naw", "Norteamérica oeste" }, { "eu", "Europa" }, { "me", "Oriente Medio" }, { "asia", "Asia" }, { "oce", "Oceanía" } };
         public const string Internet = "1.1.1.1";
         public static string Host(string region) { return "ping-" + region + ".ds.on.epicgames.com"; }
 
-        // Sustituible en las pruebas. -1 = perdido.
+        // Replaceable in tests. -1 = lost.
         public static Func<string, int, Task<int>> Ping = async (host, timeout) =>
         {
             try
@@ -81,7 +81,7 @@ namespace Tablero
             return null;
         };
 
-        // La region con menos ping de las que contestan; null si ninguna.
+        // The region with the lowest ping among those that answer; null if none.
         public static async Task<string> Nearest()
         {
             string best = null;
@@ -102,7 +102,7 @@ namespace Tablero
             return "";
         }
 
-        // Un sitio: un ping cada 200 ms; step enseña como va.
+        // One host: one ping every 200 ms; step reports progress.
         public static async Task<PingStats> Run(string host, int count, int gap, Action<PingStats> step)
         {
             List<int> ms = new List<int>();
@@ -117,8 +117,19 @@ namespace Tablero
             return PingStats.Of(ms);
         }
 
-        // Donde esta el problema, de dentro hacia fuera.
+        // Where the problem is, from inside out.
         public static string Verdict(NetResult r)
+        {
+            string home = Trouble(r);
+            if (home != null) return home;
+            if (r.Epic.Silent) return "Los servidores de Epic no contestan a la prueba. El resto de la conexión va bien.";
+            if (r.Epic.Bad) return "La red de casa y el proveedor van bien; las pérdidas o picos están en la ruta hasta Epic.";
+            if (r.Epic.Median > 80) return "Conexión estable. El ping alto viene de la distancia al servidor: " + r.Epic.Median + " ms.";
+            return "Conexión estable.";
+        }
+        // No game servers to measure.
+        public static string Home(NetResult r) { return r.Internet.Silent ? "Sin respuesta de internet. Comprueba la conexión." : Trouble(r) ?? "Conexión estable."; }
+        static string Trouble(NetResult r)
         {
             if (r.Internet.Silent && r.Epic.Silent) return "Sin respuesta de internet. Comprueba la conexión.";
             if (!r.Router.Silent && r.Router.Bad)
@@ -126,10 +137,7 @@ namespace Tablero
                               : "El problema empieza en el cable o el router: hay pérdidas o picos dentro de casa. Prueba otro cable u otro puerto.";
             if (!r.Internet.Silent && r.Internet.Bad)
                 return (r.Router.Silent ? "El router no contesta a la prueba, así que puede ser tu red o tu proveedor." : "La red de casa va bien; las pérdidas o picos están en el proveedor de internet.") + " Cierra descargas y, si sigue, avisa al proveedor con estos datos.";
-            if (r.Epic.Silent) return "Los servidores de Epic no contestan a la prueba. El resto de la conexión va bien.";
-            if (r.Epic.Bad) return "La red de casa y el proveedor van bien; las pérdidas o picos están en la ruta hasta Epic.";
-            if (r.Epic.Median > 80) return "Conexión estable. El ping alto viene de la distancia al servidor: " + r.Epic.Median + " ms.";
-            return "Conexión estable.";
+            return null;
         }
 
         public static string Compare(NetResult old, NetResult now)
@@ -156,12 +164,12 @@ namespace Tablero
             catch (UnauthorizedAccessException) { }
         }
 
-        // Programas que suelen descargar o subir sin avisar.
+        // Programs that often download or upload without warning.
         static readonly string[] Heavy = { "OneDrive", "GoogleDriveFS", "Dropbox", "steam", "qbittorrent", "uTorrent", "BitTorrent", "Battle.net", "EADesktop", "Medal", "obs64" };
         public static List<string> Busy() { return Heavy.Where(n => { Process[] p = Process.GetProcessesByName(n); foreach (Process x in p) x.Dispose(); return p.Length > 0; }).ToList(); }
     }
 
-    // Wi-Fi por la API de Windows. Lo que se cambia vale mientras la app tiene abierta la sesion: al soltarla vuelve solo.
+    // Wi-Fi through the Windows API. Changes last while the app keeps the session open: when released it reverts by itself.
     public static class Wifi
     {
         [DllImport("wlanapi.dll")] static extern uint WlanOpenHandle(uint version, IntPtr reserved, out uint negotiated, out IntPtr handle);
@@ -182,7 +190,7 @@ namespace Tablero
                 int n = Marshal.ReadInt32(list);
                 for (int i = 0; i < n; i++)
                 {
-                    IntPtr p = new IntPtr(list.ToInt64() + 8 + i * 532); // GUID, nombre de 256 letras y estado
+                    IntPtr p = new IntPtr(list.ToInt64() + 8 + i * 532); // GUID, 256-character name and state
                     if (!connected || Marshal.ReadInt32(p, 528) == Connected) r.Add((Guid)Marshal.PtrToStructure(p, typeof(Guid)));
                 }
             }
@@ -192,7 +200,7 @@ namespace Tablero
 
         static IntPtr held = IntPtr.Zero;
         public static bool On { get { return held != IntPtr.Zero; } }
-        // Sin buscar otras redes y en modo de transmision. Sustituible en las pruebas.
+        // Without scanning for other networks and in streaming mode. Replaceable in tests.
         public static Func<bool, bool> Steady = want =>
         {
             if (want == On) return true;
@@ -213,7 +221,7 @@ namespace Tablero
             return true;
         };
 
-        // Señal (0-100) y canal de la conexion actual; false si no hay Wi-Fi.
+        // Signal (0-100) and channel of the current connection; false if there is no Wi-Fi.
         public static bool Info(out int signal, out int channel)
         {
             signal = 0; channel = 0;
@@ -229,7 +237,7 @@ namespace Tablero
                     int size;
                     IntPtr data;
                     if (WlanQueryInterface(h, ref id, Current, IntPtr.Zero, out size, out data, IntPtr.Zero) != 0) continue;
-                    // estado, modo, perfil (512) + SSID (36) + tipo + BSSID (6, alineado a 8) + PHY tipo e indice = 576
+                    // state, mode, profile (512) + SSID (36) + type + BSSID (6, aligned to 8) + PHY type and index = 576
                     signal = size >= 580 ? Marshal.ReadInt32(data, 576) : 0;
                     WlanFreeMemory(data);
                     if (WlanQueryInterface(h, ref id, Channel, IntPtr.Zero, out size, out data, IntPtr.Zero) == 0) { channel = Marshal.ReadInt32(data); WlanFreeMemory(data); }
@@ -240,7 +248,7 @@ namespace Tablero
             finally { WlanCloseHandle(h, IntPtr.Zero); }
         }
 
-        // Consejos segun la señal, la banda y lo que hay abierto.
+        // Tips based on the signal, the band and what is open.
         public static List<Check> Advice(bool wifi, int signal, int channel, List<string> busy)
         {
             List<Check> r = new List<Check>();

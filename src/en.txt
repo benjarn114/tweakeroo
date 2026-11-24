@@ -444,7 +444,7 @@ Bosque	Forest
 Marfil	Ivory
 Ciruela	Plum
 Abre Fortnite con la resolución elegida. Al cerrarlo, la pantalla y la configuración se restauran.	Opens Fortnite at the selected resolution. When it closes, the screen and settings are restored.
-Abrir Fortnite	Open Fortnite
+Abrir {0}	Open {0}
 Restaurar resolución	Restore resolution
 FPS estimados	Estimated FPS
 Última partida	Last match
@@ -477,14 +477,14 @@ Sin estirar: los personajes se ven normales.	Not stretched: characters look norm
 Personajes {0} % más anchos y {1} % menos de visión lateral.	Characters {0}% wider and {1}% less side vision.
 Jugar a {0}	Play at {0}
 Jugando a {0}	Playing at {0}
-Abriendo Fortnite…	Opening Fortnite…
+Abriendo {0}…	Opening {0}…
 Conservar ({0})	Keep ({0})
 ¿Conservar esta resolución? Sin confirmación se restaura la anterior.	Keep this resolution? Without confirmation the previous one is restored.
 Abriendo Fortnite. La resolución se restaura al cerrarlo; Tweakeroo debe quedar abierto.	Opening Fortnite. The resolution is restored when it closes; Tweakeroo must stay open.
-No se pudo abrir Fortnite: {0}	Couldn't open Fortnite: {0}
+No se pudo abrir {0}: {1}	Couldn't open {0}: {1}
 Sin respuesta: resolución restaurada.	No response: resolution restored.
-Fortnite cerrado: resolución restaurada.	Fortnite closed: resolution restored.
-Fortnite no se abrió en 10 minutos: resolución restaurada.	Fortnite didn't open in 10 minutes: resolution restored.
+{0} cerrado: resolución restaurada.	{0} closed: resolution restored.
+{0} no se abrió en 10 minutos: resolución restaurada.	{0} didn't open in 10 minutes: resolution restored.
 Pantalla restaurada. La configuración de Fortnite se restaura al cerrar el juego.	Screen restored. Fortnite's settings are restored when the game closes.
 Resolución restaurada.	Resolution restored.
 No se pudo preparar el stretched: {0}	Couldn't set up stretched: {0}
@@ -497,11 +497,11 @@ La gráfica no aceptó esa resolución (código {0}).	The GPU didn't accept that
 No se pudo restaurar la resolución (código {0}). Se restaura al reiniciar el PC.	Couldn't restore the resolution (code {0}). It is restored when the PC restarts.
 Windows no devolvió la resolución de la pantalla.	Windows didn't return the screen resolution.
 No se encontró la pantalla principal.	The main screen wasn't found.
-Tweakeroo debe quedar abierto hasta cerrar Fortnite para restaurar la resolución.	Tweakeroo must stay open until Fortnite closes to restore the resolution.
+Tweakeroo debe quedar abierto hasta cerrar {0} para restaurar la resolución.	Tweakeroo must stay open until {0} closes to restore the resolution.
 FPS reales	Real FPS
-Se leen de los registros de Fortnite, segundo a segundo, sin modificar el juego.	Read from Fortnite's logs, second by second, without modifying the game.
-No hay partidas de más de un minuto en los registros de Fortnite.	There are no matches over a minute in Fortnite's logs.
-No se pudieron leer los registros de Fortnite: {0}	Couldn't read Fortnite's logs: {0}
+Se leen de los registros de {0}, segundo a segundo, sin modificar el juego.	Read from {0}'s logs, second by second, without modifying the game.
+No hay partidas de más de un minuto en los registros de {0}.	There are no matches over a minute in {0}'s logs.
+No se pudieron leer los registros de {0}: {1}	Couldn't read {0}'s logs: {1}
 Última partida: {0}, {1}, con límite de {2} FPS	Last match: {0}, {1}, limited to {2} FPS
 Última partida: {0}, {1}, sin límite	Last match: {0}, {1}, no limit
 FPS la mitad del tiempo o más	FPS half the time or more
@@ -669,7 +669,7 @@ No se pudieron leer los datos de la app y no se hará ningún cambio. Revisa {0}
 No se pudo crear el guardado original y no se hará ningún cambio. Detalle: {0}	Couldn't create the original save, so no changes will be made. Detail: {0}
 Hay cambios en curso. Espera a que terminen.	Changes are in progress. Wait for them to finish.
 Hay un cambio en curso. Espera a que termine.	A change is in progress. Wait for it to finish.
-Cierra Fortnite primero: la resolución aún no se ha restaurado.	Close Fortnite first: the resolution hasn't been restored yet.
+Cierra {0} primero: la resolución aún no se ha restaurado.	Close {0} first: the resolution hasn't been restored yet.
 No se pudo leer: {0}. Sin esos datos no hay recomendaciones; repite el escaneo.	Couldn't read: {0}. Without that data there are no recommendations; scan again.
 Escaneo completado. Los resultados están en Recomendados.	Scan complete. The results are in Recommended.
 No se pudo actualizar el estado: {0}	Couldn't refresh the state: {0}
@@ -748,7 +748,7 @@ Desinstalar	Uninstall
 Desinstalando…	Uninstalling…
 Cerrar	Close
 Tweakeroo se ha desinstalado.	Tweakeroo has been uninstalled.
-Cierra Fortnite y vuelve a intentarlo.	Close Fortnite and try again.
+Cierra {0} y vuelve a intentarlo.	Close {0} and try again.
 No se pudo: {0}	Couldn't do it: {0}
 No se pudieron restaurar {0} ajustes; los guardados se conservan.	Couldn't restore {0} settings; the saves are kept.
 No se pudo restaurar 1 ajuste; los guardados se conservan.	Couldn't restore 1 setting; the saves are kept.
@@ -820,11 +820,11 @@ Al cerrar, quedarse junto al reloj	When closed, stay next to the clock
 Las macros y la resolución siguen funcionando. Para salir, clic derecho en el icono.	Macros and the resolution keep working. To exit, right click the icon.
 Idioma	Language
 La app se reinicia al cambiarlo.	The app restarts when it changes.
-Sección con la que se abre	Section it opens on
 Apariencia	Appearance
 Animaciones	Animations
 Todas	All
-Sin rebotes	No bounces
+Sin rebote	No bounce
+Ninguna	None
 Tiempo para confirmar una resolución nueva	Time to confirm a new resolution
 Actualizaciones	Updates
 Buscar al abrir	Check when it opens
@@ -945,7 +945,7 @@ Descarga	Download
 Subida	Upload
 Ping con carga	Ping under load
 Dura unos 15 segundos y puede usar hasta 750 MB. Usa los servidores de Cloudflare.	Takes about 15 seconds and can use up to 750 MB. Uses Cloudflare's servers.
-Cierra Fortnite antes de medir la velocidad: la prueba llena la conexión.	Close Fortnite before testing the speed: the test fills the connection.
+Cierra {0} antes de medir la velocidad: la prueba llena la conexión.	Close {0} before testing the speed: the test fills the connection.
 No se pudo medir: {0}	Couldn't test: {0}
 La prueba no recibió datos.	The test received no data.
 La velocidad es baja: otra descarga en casa puede llenarla y dar tirones.	The speed is low: another download at home can fill it and cause stutters.
@@ -959,3 +959,282 @@ Manda solo la tecla de editar, por si te quedas dentro.	Sends only the edit key,
 Usar las teclas que hay en Fortnite	Use the keys set in Fortnite
 Se leen solas de Fortnite. Si se ponen a mano, deben ser las mismas que en el juego, también confirmar al soltar: si no coinciden, la macro puede quedarse dentro de la edición.	Read from Fortnite automatically. If set by hand, they must match the game, confirm on release included: if they don't, the macro can get stuck in edit.
 Tweakeroo no pasa el tráfico por otros servidores, como hace ExitLag, así que no acorta la distancia hasta Epic. Al medir hace ping al router, a 1.1.1.1 y a los servidores de medición de Epic, y la velocidad se mide con Cloudflare.	Tweakeroo doesn't send your traffic through other servers, as ExitLag does, so it doesn't shorten the distance to Epic. When testing, it pings the router, 1.1.1.1 and Epic's measuring servers, and speed is tested with Cloudflare.
+Colores	Colors
+Carmesí	Crimson
+Estirar ahora	Stretch now
+Jugando	Playing
+Media de 10 partidas	Average of 10 matches
+Juego	Game
+Estirar Valorant	Stretch Valorant
+Cambia la resolución de Windows al cargar un mapa. No toca la memoria del juego. Riot no ha publicado una norma clara sobre esto: se usa bajo responsabilidad propia.	Changes the Windows resolution when a map loads. It does not touch the game memory. Riot has not published a clear rule about this: use it at your own risk.
+Abre Valorant y, si está activado, estira la pantalla al cargar un mapa. Al cerrarlo, todo se restaura.	Opens Valorant and, if enabled, stretches the screen when a map loads. Everything is restored when it closes.
+Abriendo Riot Client: pulsa Jugar allí. La pantalla se estira al cargar un mapa; Tweakeroo debe quedar abierto.	Opening Riot Client: press Play there. The screen stretches when a map loads; Tweakeroo must stay open.
+Algún monitor no se pudo desactivar: {0}	A monitor could not be disabled: {0}
+Pantalla estirada. Se restaura al cerrar Valorant.	Screen stretched. It is restored when Valorant closes.
+Pantalla restaurada.	Screen restored.
+Tweakeroo debe quedar abierto durante la partida. Si la pantalla no se estira sola, el botón Estirar ahora lo hace a mano.	Tweakeroo must stay open during the match. If the screen does not stretch by itself, the Stretch now button does it by hand.
+No se encontró Riot Client. Abre Valorant una vez e inténtalo de nuevo.	Riot Client was not found. Open Valorant once and try again.
+Windows no encontró el monitor (código {0}).	Windows did not find the monitor (code {0}).
+Windows no cambió el monitor (código {0}).	Windows did not change the monitor (code {0}).
+La gráfica no aceptó el color (código {0}).	The graphics card did not accept the color (code {0}).
+La intensidad necesita una gráfica NVIDIA.	Vibrance needs an NVIDIA graphics card.
+Windows no permite cambiar brillo, contraste y gamma en esta pantalla.	Windows does not allow changing brightness, contrast and gamma on this screen.
+Pasa con HDR o con el monitor desactivado en el Administrador de dispositivos.	This happens with HDR or with the monitor disabled in Device Manager.
+Ahora	Now
+Ahora, intensidad {0} %	Now, vibrance {0}%
+Con el perfil	With the profile
+Probando. Vuelve solo en unos segundos.	Trying it. It goes back by itself in a few seconds.
+Sin perfil: la pantalla no cambia.	No profile: the screen does not change.
+Windows no aceptó ese brillo. Prueba valores más cercanos a 50.	Windows did not accept that brightness. Try values closer to 50.
+No se pudo cambiar el color: {0}	The color could not be changed: {0}
+Se activa al abrir el juego.	Turns on when the game opens.
+Se aplica al abrir {0}.	Applied when {0} opens.
+Cierra {0} antes de cambiar de juego.	Close {0} before switching games.
+Un perfil para cada juego. Se pone al abrirlo y se quita al cerrarlo; mientras tanto cambia toda la pantalla principal.	One profile for each game. It is applied when the game opens and removed when it closes; meanwhile the whole main screen changes.
+La foto es aproximada. La prueba enseña el resultado real.	The picture is approximate. The test shows the real result.
+Probar 10 segundos	Try for 10 seconds
+Perfil de color	Color profile
+Ajuste fino	Fine tuning
+Intensidad	Vibrance
+Brillo	Brightness
+Contraste	Contrast
+Gamma	Gamma
+La pantalla como está	The screen as it is
+Natural	Natural
+Intensidad 50 %	Vibrance 50%
+Competitivo	Competitive
+Más claro en zonas oscuras	Brighter in dark areas
+Vivo	Vivid
+88 %, brillo 55 %	88%, brightness 55%
+Intensidad 100 %	Vibrance 100%
+Personalizado	Custom
+Con los controles de abajo	With the controls below
+Cambiar de juego solo	Switch games automatically
+Al abrir Fortnite o Valorant, Tweakeroo pasa a ese juego.	When Fortnite or Valorant opens, Tweakeroo switches to that game.
+Con un juego abierto, Windows deja de buscar otras redes, que es una causa de tirones. Al cerrarlo vuelve a lo normal. Algunas tarjetas no lo respetan.	With a game open, Windows stops looking for other networks, which is a cause of stutters. It goes back to normal when the game closes. Some cards ignore it.
+Mide el ping, los tirones y los paquetes perdidos, y dice dónde está el problema: tu red, el proveedor o la ruta hasta el servidor.	Measures ping, stutters and lost packets, and says where the problem is: your network, your provider or the route to the server.
+Optimización de Windows para Fortnite y Valorant	Windows optimization for Fortnite and Valorant
+Para jugar sobra velocidad; lo que importa es el ping.	This speed is more than enough for gaming; what matters is ping.
+Campo de tiro	Practice range
+Ajustes de Valorant sin leer	Valorant settings not read
+Abre el juego una vez y entra en una partida.	Open the game once and join a match.
+Modo de pantalla	Display mode
+Ventana a pantalla completa.	Windowed fullscreen.
+En Valorant, Vídeo, General: elige Ventana a pantalla completa.	In Valorant, Video, General: choose Windowed Fullscreen.
+Relación de aspecto	Aspect ratio
+Rellenar.	Fill.
+En Valorant, Vídeo, General: elige Rellenar en vez de Bandas negras.	In Valorant, Video, General: choose Fill instead of Letterbox.
+Monitores	Monitors
+Ya están desactivados en el Administrador de dispositivos; se dejan como están.	Already disabled in Device Manager; they are left as they are.
+Se desactivan en el Administrador de dispositivos al pulsar Jugar y se reactivan al cerrar el juego.	Disabled in Device Manager when you press Play and enabled again when the game closes.
+Escala de la gráfica	Graphics scaling
+En el panel de NVIDIA, Ajustar tamaño y posición: Pantalla completa, escalar en la GPU y anular el modo del juego.	In the NVIDIA panel, Adjust desktop size and position: Full-screen, perform scaling on GPU, and override the mode set by games.
+Valorant usa la gráfica potente	Valorant uses the powerful graphics card
+NVIDIA a máximo rendimiento en Valorant	NVIDIA at maximum performance in Valorant
+Filtrado de texturas rápido en Valorant	Fast texture filtering in Valorant
+Menos trabajo de textura, solo en Valorant.	Less texture work, only in Valorant.
+VSync apagado en Valorant	VSync off in Valorant
+Quita la espera al monitor desde el perfil de NVIDIA, sin tocar el juego.	Removes the wait for the monitor from the NVIDIA profile, without touching the game.
+Abriendo Riot Client: pulsa Jugar allí.	Opening Riot Client: press Play there.
+Antes de jugar	Before playing
+Baja latencia de NVIDIA en {0}	NVIDIA low latency in {0}
+Un solo fotograma en espera. Con Reflex encendido en el juego apenas cambia.	A single queued frame. With Reflex on in the game it barely changes.
+Un solo fotograma en espera.	A single queued frame.
+Con Reflex encendido en el juego apenas cambia.	With Reflex on in the game it barely changes.
+Texturas con muestreo rápido en {0}	Fast texture sampling in {0}
+Optimización de muestreo anisótropo de NVIDIA.	NVIDIA anisotropic sample optimization.
+Ansel apagado en {0}	Ansel off in {0}
+El capturador de NVIDIA no se carga con el juego.	NVIDIA's capture tool doesn't load with the game.
+Máxima frecuencia de pantalla en {0}	Highest refresh rate in {0}
+El juego usa los Hz más altos del monitor.	The game uses the monitor's highest Hz.
+Prioridad alta de CPU para {0}	High CPU priority for {0}
+Windows abre el juego con prioridad alta de CPU y disco. Es un ajuste de Windows.	Windows opens the game with high CPU and disk priority. It's a Windows setting.
+Windows abre el juego con prioridad alta de CPU y disco.	Windows opens the game with high CPU and disk priority.
+Es un ajuste de Windows.	It's a Windows setting.
+Sin optimización de pantalla completa en {0}	No fullscreen optimizations in {0}
+Ayuda en algunos PC y en otros empeora: conviene comparar.	It helps on some PCs and hurts on others: compare before and after.
+Más CPU para la ventana activa	More CPU for the active window
+Turnos de CPU cortos y con prioridad para el juego. Efecto pequeño.	Short CPU turns with priority for the game. Small effect.
+Turnos de CPU cortos y con prioridad para el juego.	Short CPU turns with priority for the game.
+Efecto pequeño.	Small effect.
+Retraso	Latency
+Prioridad alta para juegos en MMCSS	High priority for games in MMCSS
+Windows atiende antes a los programas que se registran como juego. Efecto no demostrado.	Windows serves programs registered as games first. Unproven effect.
+Windows atiende antes a los programas que se registran como juego.	Windows serves programs registered as games first.
+Efecto no demostrado.	Unproven effect.
+Menos CPU reservada para el fondo	Less CPU reserved for background
+Baja del 20 al 10 % lo que Windows guarda para otras tareas. Efecto no demostrado.	Lowers what Windows keeps for other tasks from 20 to 10%. Unproven effect.
+Baja del 20 al 10 % lo que Windows guarda para otras tareas.	Lowers what Windows keeps for other tasks from 20 to 10%.
+Sin límite de red multimedia	No multimedia network limit
+Quita un tope de paquetes mientras suena audio. Puede subir el uso de CPU.	Removes a packet cap while audio plays. It may raise CPU use.
+Quita un tope de paquetes mientras suena audio.	Removes a packet cap while audio plays.
+Puede subir el uso de CPU.	It may raise CPU use.
+Interrupciones MSI en la gráfica	MSI interrupts on the graphics card
+La gráfica avisa a la CPU por un canal propio. Muchas ya vienen así.	The graphics card signals the CPU through its own channel. Many already come this way.
+La gráfica avisa a la CPU por un canal propio.	The graphics card signals the CPU through its own channel.
+Muchas ya vienen así.	Many already come this way.
+Núcleo de Windows siempre en memoria	Windows kernel always in memory
+Windows no manda sus propios controladores al disco. Solo con 16 GB o más.	Windows doesn't send its own drivers to disk. Only with 16 GB or more.
+Windows no manda sus propios controladores al disco.	Windows doesn't send its own drivers to disk.
+Solo con 16 GB o más.	Only with 16 GB or more.
+Sin anotar la fecha de lectura	Don't record the last read date
+Menos escrituras al abrir archivos.	Fewer writes when opening files.
+Sin nombres cortos de archivo	No short file names
+Windows deja de crear nombres de 8 letras para cada archivo nuevo.	Windows stops creating 8-letter names for each new file.
+Pantalla completa clásica	Classic fullscreen
+Los juegos en pantalla completa usan el modo exclusivo. No cambia los que van en ventana sin bordes.	Fullscreen games use exclusive mode. Borderless games don't change.
+Los juegos en pantalla completa usan el modo exclusivo.	Fullscreen games use exclusive mode.
+No cambia los que van en ventana sin bordes.	Borderless games don't change.
+Apagar MPO	Turn off MPO
+Arregla parpadeos y tirones con varias pantallas en algunas gráficas. Si no los hay, no aporta.	Fixes flicker and stutter with several screens on some graphics cards. Without them it adds nothing.
+Arregla parpadeos y tirones con varias pantallas en algunas gráficas.	Fixes flicker and stutter with several screens on some graphics cards.
+Si no los hay, no aporta.	Without them it adds nothing.
+Reinicia Edge	Restart Edge
+Reinicia Chrome	Restart Chrome
+Reinicia Brave	Restart Brave
+Apagar descarga de mapas	Turn off map downloads
+Mapas sin conexión de Windows.	Windows offline maps.
+Apagar modo tienda	Turn off store demo mode
+Solo sirve en ordenadores de exposición.	Only useful on display computers.
+Apagar servicio de informes de error	Turn off the error reporting service
+Los fallos no se preparan para enviarse.	Crashes aren't prepared for sending.
+Apagar mensajes WAP	Turn off WAP messages
+Canal de telemetría para móviles.	Telemetry channel for phones.
+Apagar servicio de teléfono	Turn off the phone service
+Solo para PC con tarjeta SIM.	Only for PCs with a SIM card.
+Apagar guardado y red de Xbox	Turn off Xbox saves and network
+Solo si no se usa Game Pass ni juegos de la Tienda.	Only if you don't use Game Pass or Store games.
+Apagar registro remoto	Turn off remote registry
+Nadie cambia el registro desde otro equipo.	Nobody changes the registry from another computer.
+Apagar base de compatibilidad	Turn off the compatibility database
+Actualiza datos de programas antiguos.	Updates data about old programs.
+Apagar mezcla de compatibilidad	Turn off compatibility merging
+Junta bases de datos de compatibilidad.	Merges compatibility databases.
+Apagar recogida de datos de disco	Turn off disk data collection
+Reúne datos del estado del disco para enviarlos.	Gathers disk health data to send.
+Apagar recogida de datos de red	Turn off network data collection
+Guarda información de red para diagnósticos.	Stores network information for diagnostics.
+Apagar tarea de bienvenida en la nube	Turn off the cloud welcome task
+Parte de la pantalla de configuración de Windows.	Part of the Windows setup screen.
+Opcional: el efecto depende del PC.	Optional: the effect depends on the PC.
+Con {0} GB conviene dejarlo.	With {0} GB it's better to leave it.
+Se aplica al abrir el juego desde Jugar, con Tweakeroo abierto.	Applied when the game is opened from Play, with Tweakeroo open.
+Al jugar	While playing
+Activar todos	Turn all on
+Quitar todos	Turn all off
+La CPU sube de frecuencia sin esperar; al cerrar vuelve el plan de antes.	The CPU raises its clock without waiting; the previous plan comes back on close.
+Navegadores y lanzadores en modo eficiencia	Browsers and launchers in efficiency mode
+Chrome, Edge, Steam, Epic, Spotify y similares ceden la CPU al juego. No se cierran.	Chrome, Edge, Steam, Epic, Spotify and similar give the CPU to the game. They aren't closed.
+Chrome, Edge, Steam, Epic, Spotify y similares ceden la CPU al juego.	Chrome, Edge, Steam, Epic, Spotify and similar give the CPU to the game.
+No se cierran.	They aren't closed.
+Windows Update en pausa	Windows Update paused
+Sin descargas ni instalaciones a mitad de partida.	No downloads or installs mid-match.
+Índice de búsqueda en pausa	Search index paused
+Sin lecturas de disco de la búsqueda de Windows.	No disk reads from Windows search.
+SysMain en pausa	SysMain paused
+Sin precarga de programas en memoria.	No preloading of programs into memory.
+Diagnóstico en pausa	Diagnostics paused
+Sin recogida de datos de Windows.	No Windows data collection.
+Ratón sin aceleración	Mouse without acceleration
+Solo mientras se juega; en el escritorio queda como esté.	Only while playing; the desktop stays as it is.
+Sin avisos de Shift	No Shift prompts
+Pulsar o mantener Shift no abre las Teclas especiales ni las de filtro.	Pressing or holding Shift doesn't open Sticky Keys or Filter Keys.
+Sin animaciones de ventanas	No window animations
+Cambiar de ventana es instantáneo.	Switching windows is instant.
+Sin animaciones de controles	No control animations
+Menús, listas y botones sin animación.	Menus, lists and buttons without animation.
+Sin transparencias	No transparency
+Barra y menús opacos: menos trabajo para la gráfica.	Opaque taskbar and menus: less work for the graphics card.
+Sin sombras de ventanas	No window shadows
+Escritorio más ligero detrás del juego.	A lighter desktop behind the game.
+Arrastrar ventanas sin contenido	Drag windows without contents
+Solo se ve el borde al moverlas.	Only the border shows while moving them.
+Driver de NVIDIA: hay una versión nueva	NVIDIA driver: a new version is available
+Instalada: {0}. Última: {1}, del {2}.	Installed: {0}. Latest: {1}, from {2}.
+Instalada: {0}.	Installed: {0}.
+Última: {1}, del {2}.	Latest: {1}, from {2}.
+Instalada: {0}. Última: {1}.	Installed: {0}. Latest: {1}.
+Última: {1}.	Latest: {1}.
+Driver de NVIDIA al día	NVIDIA driver up to date
+Versión {0}.	Version {0}.
+Abrir web	Open website
+Cierra sesión y vuelve a entrar para completar los cambios.	Sign out and back in to finish the changes.
+Reinicia el juego para completar los cambios.	Restart the game to finish the changes.
+Recomendada, {0} Hz	Recommended, {0} Hz
+Se crea al usarla, {0} Hz	Created on use, {0} Hz
+Valorant solo estira desde 1,45:1. Con {0} de alto, el mínimo de ancho es {1}.	Valorant only stretches from 1.45:1. With a height of {0}, the minimum width is {1}.
+Valorant solo estira desde 1,45:1.	Valorant only stretches from 1.45:1.
+Con {0} de alto, el mínimo de ancho es {1}.	With a height of {0}, the minimum width is {1}.
+Valorant solo estira con una relación de aspecto de 1,45:1 o más: las más cuadradas, como 4:3, no funcionan.	Valorant only stretches with an aspect ratio of 1.45:1 or more: squarer ones, like 4:3, don't work.
+La pantalla se estira al pulsar Jugar y vuelve al cerrar el juego. No hace falta crear nada en el panel de NVIDIA: se usan los Hz más altos de cada resolución.	The screen stretches when you press Play and goes back when the game closes. Nothing needs to be created in the NVIDIA panel: each resolution uses its highest Hz.
+La pantalla se estira al pulsar Jugar y vuelve al cerrar el juego.	The screen stretches when you press Play and goes back when the game closes.
+No hace falta crear nada en el panel de NVIDIA: se usan los Hz más altos de cada resolución.	Nothing needs to be created in the NVIDIA panel: each resolution uses its highest Hz.
+Abre Fortnite con la resolución elegida en Stretched Resolution. Al cerrarlo, la pantalla y la configuración se restauran.	Opens Fortnite at the resolution chosen in Stretched Resolution. When it closes, the screen and settings are restored.
+Abre Fortnite con la resolución elegida en Stretched Resolution.	Opens Fortnite at the resolution chosen in Stretched Resolution.
+Al cerrarlo, la pantalla y la configuración se restauran.	When it closes, the screen and settings are restored.
+Se ponen al abrir {0} y se quitan al cerrarlo, sin reiniciar. Cada juego guarda los suyos.	Applied when {0} opens and removed when it closes, without restarting. Each game keeps its own.
+Se ponen al abrir {0} y se quitan al cerrarlo, sin reiniciar.	Applied when {0} opens and removed when it closes, without restarting.
+Cada juego guarda los suyos.	Each game keeps its own.
+Activos ahora: {0}	Active now: {0}
+Ninguno elegido.	None chosen.
+1 elegido.	1 chosen.
+{0} elegidos.	{0} chosen.
+No se pudo aplicar: {0}	Couldn't apply: {0}
+Juegos	Games
+No encontrado	Not found
+Cambiar carpeta	Change folder
+Mostrar en el selector	Show in the game picker
+Buscar el archivo	Find the file
+Quitar del selector	Remove from the picker
+Tiene que quedar al menos un juego.	At least one game has to stay.
+{0} no está instalado o no se encontró	{0} isn't installed or wasn't found
+Si está en otra carpeta, elige su archivo {0}.	If it's in another folder, choose its {0} file.
+Ese no es el archivo de {0}. Se llama {1}.	That isn't the {0} file. It's called {1}.
+Ese no es el archivo de {0}.	That isn't the {0} file.
+Se llama {0}.	It's called {0}.
+{0} encontrado. Los tweaks del juego se actualizan al volver a abrir Tweakeroo.	{0} found. The game's tweaks update the next time Tweakeroo opens.
+{0} encontrado.	{0} found.
+Los tweaks del juego se actualizan al volver a abrir Tweakeroo.	The game's tweaks update the next time Tweakeroo opens.
+Cambia la resolución de Windows al cargar un mapa.	Changes the Windows resolution when a map loads.
+No toca la memoria del juego.	It does not touch the game memory.
+Riot no ha publicado una norma clara sobre esto: se usa bajo responsabilidad propia.	Riot has not published a clear rule about this: use it at your own risk.
+Pantalla completa en la GPU.	Full-screen, scaled on the GPU.
+En el panel de NVIDIA, Ajustar tamaño y posición: Pantalla completa, escalar en la GPU.	In the NVIDIA panel, Adjust desktop size and position: Full-screen, perform scaling on GPU.
+Anular el modo de los juegos	Override the game mode
+En el panel de NVIDIA, Ajustar tamaño y posición: marca Anular el modo de escalado de juegos y programas.	In the NVIDIA panel, Adjust desktop size and position: check Override the scaling mode set by games and programs.
+Abrir panel	Open panel
+En AMD Software, Pantalla: activa Escalado de GPU y elige Panel completo.	In AMD Software, Display: turn on GPU Scaling and choose Full Panel.
+Abrir AMD Software	Open AMD Software
+Arreglar	Fix
+La gráfica no aceptó el cambio de escala.	The graphics card did not accept the scaling change.
+Cierra Valorant antes de cambiar sus ajustes.	Close Valorant before changing its settings.
+Sonido	Sound
+Música	Music
+Cuándo suena	When it plays
+Volumen de la música	Music volume
+Efectos de sonido	Sound effects
+Volumen de los efectos	Effects volume
+Noche	Night
+Arcade	Arcade
+Lluvia	Rain
+Apagada	Off
+Solo con la app delante	Only with the app in front
+Siempre menos al jugar	Always except while playing
+Silenciada	Muted
+lo-fi tranquilo	chill lo-fi
+8 bits	8-bit
+pad y lluvia	pad and rain
+Normal: 15 s	Default: 15 s
+Volver a 15	Back to 15
+Tweaks	Tweaks
+Apagados	Off
+Activados	On
+Nada activado en esta sección.	Nothing is on in this section.
+Stretched Resolution	Stretched Resolution
+Recomendada	Recommended
+no cumple 1,45:1	doesn't meet 1.45:1
+{0} · {1} Hz	{0} · {1} Hz
+Volviendo en {0} s	Back in {0} s
+Temática: {0}	Theme: {0}
+Temática	Theme
+Simple	Simple

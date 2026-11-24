@@ -13,7 +13,7 @@ using Microsoft.Win32;
 
 namespace Tablero
 {
-    // Instala, registra en Aplicaciones de Windows y desinstala. Las rutas son sustituibles en las pruebas.
+    // Installs, registers in Windows Apps and uninstalls. Paths are replaceable in tests.
     public static class Installer
     {
         public static string Dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Tweakeroo");
@@ -21,7 +21,7 @@ namespace Tablero
         public static string Desktop = Environment.GetFolderPath(Environment.SpecialFolder.CommonDesktopDirectory);
         public static RegistryHive Hive = RegistryHive.LocalMachine;
         const string Key = @"Software\Microsoft\Windows\CurrentVersion\Uninstall\Tweakeroo";
-        public const string TermsVersion = "5";
+        public const string TermsVersion = "7";
 
         public static string Me { get { return Assembly.GetExecutingAssembly().Location; } }
         public static Version MyVersion { get { return Assembly.GetExecutingAssembly().GetName().Version; } }
@@ -34,7 +34,7 @@ namespace Tablero
             Version v;
             return File.Exists(Exe) && Version.TryParse(FileVersionInfo.GetVersionInfo(Exe).FileVersion, out v) ? v : null;
         }
-        // Abrir una descarga vieja lleva a la instalada, que es la que se actualiza sola.
+        // Opening an old download leads to the installed one, which is the one that updates itself.
         public static bool InstalledIsEnough()
         {
             Version v = InstalledVersion();
@@ -85,9 +85,9 @@ namespace Tablero
             }
         }
 
-        // Tras una actualizacion: quita la version anterior y pone al dia el numero en Aplicaciones de Windows.
+        // After an update: removes the previous version and updates the number in Windows Apps.
         [DllImport("shell32.dll")] static extern void SHChangeNotify(int what, int flags, IntPtr a, IntPtr b);
-        // Windows guarda los iconos en cache: sin este aviso la barra y los accesos directos siguen con el viejo.
+        // Windows caches icons: without this notice the taskbar and shortcuts keep the old one.
         static void RefreshIcons() { SHChangeNotify(0x08000000, 0, IntPtr.Zero, IntPtr.Zero); }
         public static void AfterUpdate()
         {
@@ -110,7 +110,7 @@ namespace Tablero
             foreach (string f in new[] { Menu, Desktop }) File.Delete(Path.Combine(f, "Tweakeroo.lnk"));
             using (RegistryKey h = RegistryKey.OpenBaseKey(Hive, RegistryView.Registry64)) h.DeleteSubKeyTree(Key, false);
         }
-        // El .exe abierto no se puede borrar a si mismo: lo hace cmd dos segundos despues. Solo esos archivos y la carpeta si queda vacia.
+        // The open .exe cannot delete itself: cmd does it two seconds later. Only those files, and the folder if left empty.
         public static void RemoveFilesAfterExit()
         {
             Process.Start(new ProcessStartInfo(Path.Combine(Environment.SystemDirectory, "cmd.exe"), "/c ping 127.0.0.1 -n 3 >nul & del /q \"" + Exe + "\" \"" + Exe + ".viejo\" & rmdir \"" + Dir + "\"") { UseShellExecute = false, CreateNoWindow = true, WorkingDirectory = Environment.SystemDirectory });
@@ -119,7 +119,7 @@ namespace Tablero
         public static void Start(string exe) { Process.Start(new ProcessStartInfo(exe, "--espera " + Process.GetCurrentProcess().Id) { UseShellExecute = true }); }
     }
 
-    // Pasos de instalacion dentro de la misma ventana.
+    // Installation steps inside the same window.
     class SetupUi
     {
         static readonly string[] Pages = { "SetupWelcome", "SetupTerms", "SetupInstall", "SetupRemove" };
@@ -168,7 +168,7 @@ namespace Tablero
             for (int i = 0; i < body.Children.Count; i++) Fx.Enter((FrameworkElement)body.Children[i], i, 24);
         }
 
-        // Instalada pero sin aceptar los terminos de esta version.
+        // Installed but without accepting this version's terms.
         public Task AskTerms()
         {
             accepted = new TaskCompletionSource<bool>();
@@ -241,11 +241,13 @@ namespace Tablero
                 {
                     try
                     {
-                        if (IniOp.GameRunning()) throw new InvalidOperationException("Cierra Fortnite y vuelve a intentarlo.");
-                        new StretchSession(data).End();
+                        if (Game.Open != null) throw new InvalidOperationException("Cierra " + Game.Open.Name + " y vuelve a intentarlo.");
+                        foreach (Game g in Game.All) g.Session(data).End();
+                        new ColorSession(data).Restore();
+                        new BoostSession(data).Use(new string[0]);
                         if (back) warn = RestoreOriginal();
                         Installer.Remove();
-                        // Los guardados no se borran si quedo algo sin restaurar.
+                        // Saved data is not deleted if something was left unrestored.
                         if (wipe && warn.Length == 0 && Directory.Exists(data)) Directory.Delete(data, true);
                     }
                     catch (Exception ex) { err = ex.Message; }

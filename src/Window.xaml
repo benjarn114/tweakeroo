@@ -6,8 +6,9 @@
         FontFamily="Bahnschrift, Segoe UI" FontSize="14" UseLayoutRounding="True">
   <Window.Resources>
     <BooleanToVisibilityConverter x:Key="Vis"/>
+    <t:Upper x:Key="Upper"/>
 
-    <!-- Iconos: trazo unico de 2 sobre una rejilla de 24 -->
+    <!-- Icons: single 2-unit stroke on a 24 grid -->
     <Geometry x:Key="IcoPc">M3,4 H21 V16 H3 Z M9,20 H15 M12,16 V20</Geometry>
     <Geometry x:Key="IcoAll">M4,4 H10 V10 H4 Z M14,4 H20 V10 H14 Z M4,14 H10 V20 H4 Z M14,14 H20 V20 H14 Z</Geometry>
     <Geometry x:Key="IcoGame">M7,7 H17 A5,5 0 0 1 22,12 V15 A3,3 0 0 1 16.5,16.5 L15,15 H9 L7.5,16.5 A3,3 0 0 1 2,15 V12 A5,5 0 0 1 7,7 Z M7,10 V13 M5.5,11.5 H8.5 M16,10.5 V10.6 M18,12.5 V12.6</Geometry>
@@ -35,6 +36,8 @@
     <Geometry x:Key="IcoPower">M12,3 V11 M6.5,6.5 A8,8 0 1 0 17.5,6.5</Geometry>
     <Geometry x:Key="IcoLaunch">M7,4 L20,12 L7,20 Z</Geometry>
     <Geometry x:Key="IcoKeys">M3,6 H21 V18 H3 Z M7,10 V10.1 M12,10 V10.1 M17,10 V10.1 M8,14.5 H16</Geometry>
+    <Geometry x:Key="IcoWide">M2,12 H22 M6,8 L2,12 L6,16 M18,8 L22,12 L18,16 M12,5 V19</Geometry>
+    <Geometry x:Key="IcoDrop">M12,3 C16,8 19,11.5 19,15 A7,7 0 0 1 5,15 C5,11.5 8,8 12,3 Z M9,15.5 A3,3 0 0 0 12,18.5</Geometry>
     <Geometry x:Key="IcoGear">M10.4,2.8 H13.6 L14.2,5.4 L16.5,6.7 L19,5.9 L20.6,8.7 L18.7,10.6 V13.4 L20.6,15.3 L19,18.1 L16.5,17.3 L14.2,18.6 L13.6,21.2 H10.4 L9.8,18.6 L7.5,17.3 L5,18.1 L3.4,15.3 L5.3,13.4 V10.6 L3.4,8.7 L5,5.9 L7.5,6.7 L9.8,5.4 Z M12,9 A3,3 0 1 1 11.99,9 Z</Geometry>
     <Geometry x:Key="IcoGauge">M4,18 A9.5,9.5 0 1 1 20,18 M12,14 L16,9</Geometry>
     <Geometry x:Key="IcoUp">M12,20 V5 M6,11 L12,5 L18,11</Geometry>
@@ -42,6 +45,11 @@
     <Geometry x:Key="IcoGlobe">M12,3 A9,9 0 1 1 11.99,3 Z M3,12 H21 M12,3 A14,14 0 0 1 12,21 M12,3 A14,14 0 0 0 12,21</Geometry>
     <Geometry x:Key="IcoRam">M3,7 H21 V17 H3 Z M7,10 V14 M12,10 V14 M17,10 V14 M6,17 V20 M12,17 V20 M18,17 V20</Geometry>
     <Geometry x:Key="IcoDisk">M5,3 H19 V21 H5 Z M12,7 A3,3 0 1 1 11.99,7 Z M8,17 H12</Geometry>
+    <!-- Music: hand-drawn, 1.6 stroke -->
+    <Geometry x:Key="IcoNight">M15.5,3.2 C11.9,3.8 9.6,7.3 10.5,10.8 C11.3,14 14.8,15.9 17.9,15 C16.5,17.7 13.3,19.1 10.3,18.2 C6.6,17.3 4.5,13.1 5.6,9.4 C6.5,6.1 10,3 15.5,3.2 Z M18.6,5.3 L19,6.4 L20.1,6.7 L19,7.1 L18.7,8.2 L18.3,7.1 L17.2,6.7 L18.3,6.4 Z</Geometry>
+    <Geometry x:Key="IcoArcade">M4.2,9.1 C4,7.5 5.1,6.4 6.6,6.3 L17.5,6.1 C19,6.1 20,7.2 19.9,8.7 L19.6,15.3 C19.5,16.7 18.4,17.7 17,17.7 L6.7,17.8 C5.3,17.8 4.3,16.8 4.2,15.5 Z M7.6,11.9 H10.7 M9.1,10.4 V13.5 M15.2,11.1 H15.3 M16.9,12.8 H17</Geometry>
+    <Geometry x:Key="IcoRain">M6.8,13.6 C4.7,13.5 3.4,12.1 3.5,10.4 C3.6,8.6 5.1,7.4 6.8,7.6 C7.3,5.2 9.4,3.6 11.8,3.8 C14.1,4 15.8,5.7 16,7.8 C17.9,7.6 19.6,8.9 19.6,10.7 C19.6,12.3 18.3,13.6 16.5,13.6 Z M8.2,16.2 L7.3,18.6 M12.3,16.4 L11.5,19 M16.2,16.1 L15.3,18.6</Geometry>
+    <Geometry x:Key="IcoMute">M4.3,9.6 L7.4,9.5 L11.8,5.8 L12,18.4 L7.5,14.8 L4.3,14.9 Z M15.4,9.4 L19.9,14.5 M19.8,9.5 L15.5,14.5</Geometry>
     <Geometry x:Key="IcoCpu">M7,7 H17 V17 H7 Z M10,3 V7 M14,3 V7 M10,17 V21 M14,17 V21 M3,10 H7 M3,14 H7 M17,10 H21 M17,14 H21</Geometry>
 
     <Style x:Key="Ico" TargetType="Path">
@@ -60,11 +68,13 @@
 
     <Style x:Key="Btn" TargetType="t:Btn">
       <Setter Property="FocusVisualStyle" Value="{StaticResource Focus}"/>
-      <Setter Property="Background" Value="{DynamicResource Btn}"/>
-      <Setter Property="BorderBrush" Value="{DynamicResource BtnHover}"/>
-      <Setter Property="Foreground" Value="{DynamicResource BtnInk}"/>
+      <!-- Secondary: outline only, so it never competes with the main button or blends with cards -->
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource Line}"/>
+      <Setter Property="BorderThickness" Value="1.5"/>
+      <Setter Property="Foreground" Value="{DynamicResource Ink}"/>
       <Setter Property="Padding" Value="16,0"/>
-      <Setter Property="Height" Value="42"/>
+      <Setter Property="Height" Value="40"/>
       <Setter Property="FontSize" Value="14.5"/>
       <Setter Property="FontWeight" Value="SemiBold"/>
       <Setter Property="Cursor" Value="Hand"/>
@@ -72,33 +82,35 @@
         <Setter.Value>
           <ControlTemplate TargetType="t:Btn">
             <Grid>
-            <Border x:Name="halo" Background="{TemplateBinding Background}" CornerRadius="16" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False" Visibility="Collapsed"/>
-            <Border x:Name="b" Background="{TemplateBinding Background}" CornerRadius="13" Padding="{TemplateBinding Padding}">
+            <Border x:Name="halo" Background="{TemplateBinding Background}" CornerRadius="13" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False" Visibility="Collapsed"/>
+            <Border x:Name="b" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="10" Padding="{TemplateBinding Padding}">
               <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <Viewbox x:Name="ic" Width="18" Height="18" Margin="0,0,9,0"><Path Data="{TemplateBinding Icon}" Stroke="{TemplateBinding Foreground}" StrokeThickness="2.4" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" Width="24" Height="24"/></Viewbox>
                 <ContentPresenter VerticalAlignment="Center" Margin="0,2,0,0"/>
               </StackPanel>
             </Border>
-            <Border x:Name="shine" CornerRadius="13" IsHitTestVisible="False" Visibility="Collapsed"/>
+            <Border x:Name="shine" CornerRadius="10" IsHitTestVisible="False" Visibility="Collapsed"/>
             </Grid>
             <ControlTemplate.Triggers>
               <Trigger Property="Icon" Value="{x:Null}"><Setter TargetName="ic" Property="Visibility" Value="Collapsed"/></Trigger>
-              <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="b" Property="Background" Value="{Binding BorderBrush, RelativeSource={RelativeSource TemplatedParent}}"/></Trigger>
               <Trigger Property="IsEnabled" Value="False"><Setter TargetName="b" Property="Opacity" Value="0.45"/></Trigger>
             </ControlTemplate.Triggers>
           </ControlTemplate>
         </Setter.Value>
       </Setter>
+      <Style.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter Property="Background" Value="{DynamicResource CardHover}"/></Trigger></Style.Triggers>
     </Style>
+    <!-- Primary: one per screen -->
     <Style x:Key="BtnCta" TargetType="t:Btn" BasedOn="{StaticResource Btn}">
       <Setter Property="Background" Value="{DynamicResource Cta}"/>
-      <Setter Property="BorderBrush" Value="{DynamicResource Cta}"/>
+      <Setter Property="BorderThickness" Value="0"/>
       <Setter Property="Foreground" Value="{DynamicResource CtaInk}"/>
-      <Setter Property="Height" Value="60"/>
+      <Setter Property="Height" Value="40"/>
       <Setter Property="Glint" Value="True"/>
-      <Setter Property="Padding" Value="28,0"/>
-      <Setter Property="FontSize" Value="19"/>
+      <Setter Property="Padding" Value="22,0"/>
+      <Setter Property="FontSize" Value="15.5"/>
       <Setter Property="FontWeight" Value="Bold"/>
+      <Style.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter Property="Background" Value="{DynamicResource Cta}"/></Trigger></Style.Triggers>
     </Style>
 
     <Style x:Key="Switch" TargetType="t:Switch">
@@ -115,7 +127,7 @@
               </Border>
             </Grid>
             <ControlTemplate.Triggers>
-              <DataTrigger Binding="{Binding State, RelativeSource={RelativeSource Self}}" Value="True"><Setter TargetName="tick" Property="Opacity" Value="1"/><Setter TargetName="tick" Property="Stroke" Value="#0B2A22"/></DataTrigger>
+              <DataTrigger Binding="{Binding State, RelativeSource={RelativeSource Self}}" Value="True"><Setter TargetName="tick" Property="Opacity" Value="1"/><Setter TargetName="tick" Property="Stroke" Value="{DynamicResource On}"/><Setter TargetName="knob" Property="Background" Value="{DynamicResource OnInk}"/></DataTrigger>
             </ControlTemplate.Triggers>
           </ControlTemplate>
         </Setter.Value>
@@ -168,7 +180,7 @@
       </Setter>
     </Style>
 
-    <!-- La plantilla de Windows pinta la lista de blanco al desactivarla. -->
+    <!-- The Windows template paints the list white when it is disabled. -->
     <ControlTemplate x:Key="PlainList" TargetType="ListBox">
       <ScrollViewer Focusable="False" Padding="{TemplateBinding Padding}" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" CanContentScroll="{TemplateBinding ScrollViewer.CanContentScroll}"><ItemsPresenter/></ScrollViewer>
     </ControlTemplate>
@@ -187,14 +199,17 @@
       <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ListBoxItem"><ContentPresenter/></ControlTemplate></Setter.Value></Setter>
     </Style>
 
-    <!-- Opcion con nombre y nota -->
+    <!-- Option with name and note -->
+    <!-- Tertiary: text and icon only -->
     <Style x:Key="LinkBtn" TargetType="t:Btn">
       <Setter Property="FocusVisualStyle" Value="{StaticResource Focus}"/>
       <Setter Property="Cursor" Value="Hand"/>
       <Setter Property="Foreground" Value="{DynamicResource Ink2}"/>
       <Setter Property="FontSize" Value="13"/>
-      <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="t:Btn"><Border Background="Transparent" Padding="2,6"><TextBlock x:Name="tx" Text="{Binding Content, RelativeSource={RelativeSource TemplatedParent}}" TextDecorations="Underline"/></Border><ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="tx" Property="Foreground" Value="{DynamicResource Ink}"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="t:Btn"><Border Background="Transparent" Padding="2,6"><StackPanel Orientation="Horizontal"><Viewbox x:Name="ic" Width="16" Height="16" Margin="0,0,7,0" VerticalAlignment="Center"><Path Data="{TemplateBinding Icon}" Stroke="{TemplateBinding Foreground}" StrokeThickness="2.4" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" Width="24" Height="24"/></Viewbox><TextBlock Text="{Binding Content, RelativeSource={RelativeSource TemplatedParent}}" VerticalAlignment="Center" Margin="0,2,0,0"/></StackPanel></Border><ControlTemplate.Triggers><Trigger Property="Icon" Value="{x:Null}"><Setter TargetName="ic" Property="Visibility" Value="Collapsed"/></Trigger><Trigger Property="IsMouseOver" Value="True"><Setter Property="Foreground" Value="{DynamicResource Ink}"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
     </Style>
+    <!-- Choice among options: the chosen one is filled with On -->
     <Style x:Key="ChipItem" TargetType="ListBoxItem">
       <Setter Property="FocusVisualStyle" Value="{StaticResource Focus}"/>
       <Setter Property="Cursor" Value="Hand"/>
@@ -203,7 +218,7 @@
       <Setter Property="Template">
         <Setter.Value>
           <ControlTemplate TargetType="ListBoxItem">
-            <Border x:Name="b" Background="{DynamicResource Card}" BorderBrush="{DynamicResource Card}" BorderThickness="3" CornerRadius="14" Padding="12,8" Margin="0,0,8,8">
+            <Border x:Name="b" Background="{DynamicResource Card}" BorderBrush="{DynamicResource Line}" BorderThickness="1.5" CornerRadius="14" Padding="13.5,9.5" Margin="0,0,8,8">
               <StackPanel>
                 <TextBlock Text="{Binding Name}" FontSize="16" FontWeight="Bold" Typography.NumeralAlignment="Tabular"/>
                 <TextBlock x:Name="nt" Text="{Binding Note}" Foreground="{DynamicResource Ink2}" FontSize="13"/>
@@ -212,9 +227,122 @@
             <ControlTemplate.Triggers>
               <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="b" Property="Background" Value="{DynamicResource CardHover}"/></Trigger>
               <DataTrigger Binding="{Binding Note}" Value="{x:Null}"><Setter TargetName="nt" Property="Visibility" Value="Collapsed"/></DataTrigger>
-              <Trigger Property="IsSelected" Value="True"><Setter TargetName="b" Property="BorderBrush" Value="{DynamicResource On}"/></Trigger>
+              <Trigger Property="IsSelected" Value="True"><Setter TargetName="b" Property="Background" Value="{DynamicResource On}"/><Setter TargetName="b" Property="BorderBrush" Value="{DynamicResource On}"/><Setter Property="Foreground" Value="{DynamicResource OnInk}"/><Setter TargetName="nt" Property="Foreground" Value="{DynamicResource OnInk}"/></Trigger>
               <Trigger Property="IsEnabled" Value="False"><Setter TargetName="b" Property="Opacity" Value="0.5"/></Trigger>
             </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+
+    <!-- Dropdown: field with a chevron that turns when the popup below opens -->
+    <Style x:Key="Drop" TargetType="t:Drop">
+      <Setter Property="FocusVisualStyle" Value="{StaticResource Focus}"/>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="Foreground" Value="{DynamicResource Ink}"/>
+      <Setter Property="FontSize" Value="15"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="Height" Value="44"/>
+      <Setter Property="MinWidth" Value="240"/>
+      <Setter Property="MaxWidth" Value="360"/>
+      <Setter Property="HorizontalAlignment" Value="Left"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="t:Drop">
+            <Grid>
+              <Border x:Name="b" Background="{DynamicResource Card}" BorderBrush="{DynamicResource Line}" BorderThickness="1.5" CornerRadius="12" Padding="14,0,12,0">
+                <DockPanel>
+                  <Viewbox x:Name="chev" DockPanel.Dock="Right" Width="18" Height="18" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5"><Path Data="{StaticResource IcoDown}" Stroke="{DynamicResource Ink2}" StrokeThickness="2.4" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" Width="24" Height="24"/></Viewbox>
+                  <ContentPresenter VerticalAlignment="Center" Margin="0,2,10,0"/>
+                </DockPanel>
+              </Border>
+              <Popup x:Name="pop" PlacementTarget="{Binding RelativeSource={RelativeSource TemplatedParent}}" Placement="Bottom" VerticalOffset="6" AllowsTransparency="True" StaysOpen="True" PopupAnimation="None" Focusable="False">
+                <Border x:Name="card" Background="{DynamicResource Card}" BorderBrush="{DynamicResource Line}" BorderThickness="1.5" CornerRadius="14" Padding="6" MinWidth="240" Width="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}" TextElement.Foreground="{DynamicResource Ink}">
+                  <ContentPresenter Content="{TemplateBinding Panel}"/>
+                </Border>
+              </Popup>
+            </Grid>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="b" Property="Background" Value="{DynamicResource CardHover}"/></Trigger>
+              <Trigger Property="IsEnabled" Value="False"><Setter TargetName="b" Property="Opacity" Value="0.45"/></Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+    <!-- Dropdown row: icon, name and a short note -->
+    <Style x:Key="DropItem" TargetType="ListBoxItem">
+      <Setter Property="FocusVisualStyle"><Setter.Value><Style><Setter Property="Control.Template"><Setter.Value><ControlTemplate><Rectangle Stroke="{DynamicResource Ink}" StrokeThickness="1.5" RadiusX="8" RadiusY="8"/></ControlTemplate></Setter.Value></Setter></Style></Setter.Value></Setter>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="Foreground" Value="{DynamicResource Ink}"/>
+      <Setter Property="AutomationProperties.Name" Value="{Binding Name}"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="ListBoxItem">
+            <Grid Height="40">
+              <Border x:Name="hov" CornerRadius="8" Background="{DynamicResource CardHover}" Visibility="Hidden"/>
+              <Border x:Name="sel" CornerRadius="8" Background="{DynamicResource Line}" Opacity="0.4" Visibility="Hidden"/>
+              <DockPanel Margin="10,0,12,0">
+                <TextBlock x:Name="nt" DockPanel.Dock="Right" Text="{Binding Note}" Foreground="{DynamicResource Ink2}" FontSize="13" FontWeight="Normal" VerticalAlignment="Center" Margin="12,2,0,0"/>
+                <ContentPresenter VerticalAlignment="Center"/>
+              </DockPanel>
+            </Grid>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="hov" Property="Visibility" Value="Visible"/></Trigger>
+              <Trigger Property="IsSelected" Value="True"><Setter TargetName="sel" Property="Visibility" Value="Visible"/></Trigger>
+              <DataTrigger Binding="{Binding Note}" Value="{x:Null}"><Setter TargetName="nt" Property="Visibility" Value="Collapsed"/></DataTrigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+    <DataTemplate x:Key="IconFace">
+      <StackPanel Orientation="Horizontal">
+        <Viewbox Width="22" Height="22" VerticalAlignment="Center"><Path x:Name="p" Data="{Binding Icon}" Stroke="{DynamicResource On}" StrokeThickness="1.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" Width="24" Height="24"/></Viewbox>
+        <TextBlock Text="{Binding Name}" VerticalAlignment="Center" Margin="10,2,0,0"/>
+      </StackPanel>
+      <DataTemplate.Triggers><DataTrigger Binding="{Binding Muted}" Value="True"><Setter TargetName="p" Property="Stroke" Value="{DynamicResource Ink2}"/></DataTrigger></DataTemplate.Triggers>
+    </DataTemplate>
+    <!-- Resolution dropdown: the closed field with ratio, Hz and the recommended tag; rows that do not apply stay faded -->
+    <DataTemplate x:Key="ResFace">
+      <StackPanel Orientation="Horizontal">
+        <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
+        <TextBlock Text="{Binding Detail}" Foreground="{DynamicResource Ink2}" FontSize="13.5" FontWeight="Normal" VerticalAlignment="Center" Margin="10,1,0,0"/>
+        <Border x:Name="tag" Background="{DynamicResource On}" CornerRadius="6" Padding="7,1,7,2" Margin="10,0,0,0" VerticalAlignment="Center" Visibility="Collapsed"><TextBlock Text="Recomendada" Foreground="{DynamicResource OnInk}" FontSize="11.5" FontWeight="SemiBold"/></Border>
+      </StackPanel>
+      <DataTemplate.Triggers><DataTrigger Binding="{Binding Best}" Value="True"><Setter TargetName="tag" Property="Visibility" Value="Visible"/></DataTrigger></DataTemplate.Triggers>
+    </DataTemplate>
+    <Style x:Key="ResItem" TargetType="ListBoxItem" BasedOn="{StaticResource DropItem}">
+      <Style.Triggers><DataTrigger Binding="{Binding Off}" Value="True"><Setter Property="IsEnabled" Value="False"/><Setter Property="Opacity" Value="0.45"/></DataTrigger></Style.Triggers>
+    </Style>
+
+    <Style x:Key="GameItem" TargetType="ListBoxItem">
+      <Setter Property="FocusVisualStyle" Value="{StaticResource Focus}"/>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="Foreground" Value="{DynamicResource Ink2}"/>
+      <Setter Property="AutomationProperties.Name" Value="{Binding Name}"/>
+      <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ListBoxItem"><Border Background="Transparent" Height="40"><ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,2,0,0"/></Border></ControlTemplate></Setter.Value></Setter>
+      <Style.Triggers><Trigger Property="IsSelected" Value="True"><Setter Property="Foreground" Value="{DynamicResource OnInk}"/></Trigger></Style.Triggers>
+    </Style>
+
+    <Style x:Key="SldSide" TargetType="RepeatButton">
+      <Setter Property="Focusable" Value="False"/>
+      <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="RepeatButton"><Border Background="Transparent"><Border Height="8" CornerRadius="4" Background="{TemplateBinding Background}"/></Border></ControlTemplate></Setter.Value></Setter>
+    </Style>
+    <Style x:Key="Sld" TargetType="Slider">
+      <Setter Property="FocusVisualStyle" Value="{StaticResource Focus}"/>
+      <Setter Property="Height" Value="36"/>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="IsMoveToPointEnabled" Value="True"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Slider">
+            <Track x:Name="PART_Track">
+              <Track.DecreaseRepeatButton><RepeatButton Style="{StaticResource SldSide}" Command="Slider.DecreaseLarge" Background="{DynamicResource On}"/></Track.DecreaseRepeatButton>
+              <Track.IncreaseRepeatButton><RepeatButton Style="{StaticResource SldSide}" Command="Slider.IncreaseLarge" Background="{DynamicResource Off}"/></Track.IncreaseRepeatButton>
+              <Track.Thumb><Thumb><Thumb.Template><ControlTemplate TargetType="Thumb"><Ellipse Width="24" Height="24" Fill="{DynamicResource Knob}" Stroke="{DynamicResource On}" StrokeThickness="5"/></ControlTemplate></Thumb.Template></Thumb></Track.Thumb>
+            </Track>
+            <ControlTemplate.Triggers><Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value="0.4"/></Trigger></ControlTemplate.Triggers>
           </ControlTemplate>
         </Setter.Value>
       </Setter>
@@ -224,15 +352,22 @@
       <Setter Property="FocusVisualStyle" Value="{StaticResource Focus}"/>
       <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
       <Setter Property="Cursor" Value="Hand"/>
-      <Setter Property="Foreground" Value="{DynamicResource Ink}"/>
+      <Setter Property="Foreground" Value="{DynamicResource Ink2}"/>
       <Setter Property="Template">
         <Setter.Value>
           <ControlTemplate TargetType="ListBoxItem">
-            <Border x:Name="b" Background="Transparent" Padding="14,0" Height="44" CornerRadius="12"><ContentPresenter VerticalAlignment="Center"/></Border>
-            <ControlTemplate.Triggers><DataTrigger Binding="{Binding Sub}" Value="True"><Setter TargetName="b" Property="Height" Value="29"/><Setter TargetName="b" Property="Padding" Value="34,0,14,0"/></DataTrigger></ControlTemplate.Triggers>
+            <Border x:Name="b" Background="Transparent" Padding="14,0" Height="44" CornerRadius="12"><Grid><ContentPresenter x:Name="cp" VerticalAlignment="Center"/><Border x:Name="rule" Height="1" Background="{DynamicResource Line}" Visibility="Collapsed"/></Grid></Border>
+            <ControlTemplate.Triggers>
+              <DataTrigger Binding="{Binding Small}" Value="True"><Setter TargetName="b" Property="Height" Value="29"/><Setter TargetName="b" Property="Padding" Value="34,0,14,0"/></DataTrigger>
+              <!-- Line between the Tweaks shortcuts and the categories: 1 px, 6 above and below -->
+              <DataTrigger Binding="{Binding Rule}" Value="True"><Setter TargetName="b" Property="Height" Value="13"/><Setter TargetName="cp" Property="Visibility" Value="Collapsed"/><Setter TargetName="rule" Property="Visibility" Value="Visible"/></DataTrigger>
+            </ControlTemplate.Triggers>
           </ControlTemplate>
         </Setter.Value>
       </Setter>
+      <!-- Active section: On text and icon over the NavMark card -->
+      <Style.Triggers><Trigger Property="IsSelected" Value="True"><Setter Property="Foreground" Value="{DynamicResource On}"/></Trigger>
+        <DataTrigger Binding="{Binding Rule}" Value="True"><Setter Property="IsEnabled" Value="False"/><Setter Property="Focusable" Value="False"/><Setter Property="Cursor" Value="Arrow"/></DataTrigger></Style.Triggers>
     </Style>
 
     <Style x:Key="Check" TargetType="CheckBox">
@@ -243,17 +378,26 @@
         <Setter.Value>
           <ControlTemplate TargetType="CheckBox">
             <StackPanel Orientation="Horizontal" Background="Transparent" Height="42">
-              <Border x:Name="box" Width="24" Height="24" Background="{DynamicResource Card}" CornerRadius="8" VerticalAlignment="Center">
+              <Border x:Name="box" Width="24" Height="24" Background="{DynamicResource Off}" BorderBrush="{DynamicResource Line}" BorderThickness="1.5" CornerRadius="8" VerticalAlignment="Center">
                 <Viewbox Width="14" Height="14"><Path x:Name="tick" Data="{StaticResource IcoCheck}" Stroke="{DynamicResource OnInk}" StrokeThickness="4" StrokeStartLineCap="Round" StrokeEndLineCap="Round" Width="24" Height="24" Visibility="Hidden"/></Viewbox>
               </Border>
               <ContentPresenter Margin="10,2,0,0" VerticalAlignment="Center"/>
             </StackPanel>
             <ControlTemplate.Triggers>
-              <Trigger Property="IsChecked" Value="True"><Setter TargetName="tick" Property="Visibility" Value="Visible"/><Setter TargetName="box" Property="Background" Value="{DynamicResource On}"/></Trigger>
+              <Trigger Property="IsChecked" Value="True"><Setter TargetName="tick" Property="Visibility" Value="Visible"/><Setter TargetName="box" Property="Background" Value="{DynamicResource On}"/><Setter TargetName="box" Property="BorderBrush" Value="{DynamicResource On}"/></Trigger>
             </ControlTemplate.Triggers>
           </ControlTemplate>
         </Setter.Value>
       </Setter>
+    </Style>
+
+    <!-- Section and card header: small uppercase label above the content -->
+    <Style x:Key="Head" TargetType="Label">
+      <Setter Property="Focusable" Value="False"/>
+      <Setter Property="Foreground" Value="{DynamicResource Ink2}"/>
+      <Setter Property="FontSize" Value="12"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Label"><ContentPresenter Content="{TemplateBinding Content, Converter={StaticResource Upper}}"/></ControlTemplate></Setter.Value></Setter>
     </Style>
 
     <Style x:Key="PartCard" TargetType="ContentControl">
@@ -278,20 +422,64 @@
   </Window.Resources>
 
   <Grid x:Name="Shell" Background="{DynamicResource Bg}">
+    <!-- Theme background: 320 × 180 pixel art, scaled up without smoothing -->
+    <Image x:Name="Scene" Stretch="UniformToFill" HorizontalAlignment="Center" VerticalAlignment="Center" RenderOptions.BitmapScalingMode="NearestNeighbor" IsHitTestVisible="False" Visibility="Collapsed"/>
     <Grid x:Name="Main">
       <Grid.ColumnDefinitions>
         <ColumnDefinition Width="280"/>
         <ColumnDefinition Width="*"/>
         <ColumnDefinition Width="292"/>
       </Grid.ColumnDefinitions>
+      <!-- BgA and RailA let the theme background through; with Simple they are solid -->
+      <Border Grid.Column="1" Background="{DynamicResource BgA}"/>
 
-      <!-- Navegacion -->
-      <DockPanel Grid.Column="0" Background="{DynamicResource Rail}">
+      <!-- Navigation -->
+      <DockPanel Grid.Column="0" Background="{DynamicResource RailA}">
         <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="22,20,16,14">
           <Viewbox Width="28" Height="42" VerticalAlignment="Center"><Canvas Width="38" Height="57"><Canvas Margin="-13,-3.5,0,0"><Canvas x:Name="LogoEars" RenderTransformOrigin="0.5,1" Width="64" Height="28"><Path Data="{StaticResource LogoEarsShape}" Fill="{DynamicResource On}"/><Path Data="{StaticResource LogoInner}" Fill="{DynamicResource Cta}"/></Canvas><Path Data="{StaticResource LogoHead}" Fill="{DynamicResource On}"/><Path Data="{StaticResource LogoFace}" Fill="{DynamicResource Rail}"/></Canvas></Canvas></Viewbox>
           <TextBlock Text="Tweakeroo" FontSize="27" FontWeight="Bold" Margin="12,3,0,0"/>
         </StackPanel>
+        <Border x:Name="GameBox" DockPanel.Dock="Top" Margin="16,0,16,14" Background="{DynamicResource Off}" CornerRadius="14" Padding="4">
+          <Grid>
+            <Border x:Name="GameMark" Background="{DynamicResource On}" CornerRadius="11" HorizontalAlignment="Left"/>
+            <ListBox x:Name="Games" Template="{StaticResource BareList}" ItemContainerStyle="{StaticResource GameItem}" Background="Transparent" BorderThickness="0" Padding="0" AutomationProperties.Name="Juego">
+              <ListBox.ItemsPanel><ItemsPanelTemplate><UniformGrid Rows="1"/></ItemsPanelTemplate></ListBox.ItemsPanel>
+              <ListBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding Name}" FontSize="16" FontWeight="Bold"/></DataTemplate></ListBox.ItemTemplate>
+            </ListBox>
+          </Grid>
+        </Border>
         <StackPanel DockPanel.Dock="Bottom" Margin="22,10,16,16">
+          <TextBlock x:Name="ThemeName" FontWeight="SemiBold" Margin="0,0,0,6"/>
+          <ListBox x:Name="Themes" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Disabled" Background="Transparent" BorderThickness="0" Padding="0" Margin="-4,0,0,0" AutomationProperties.Name="Temática">
+            <ListBox.ItemsPanel><ItemsPanelTemplate><StackPanel Orientation="Horizontal"/></ItemsPanelTemplate></ListBox.ItemsPanel>
+            <ListBox.ItemContainerStyle>
+              <Style TargetType="ListBoxItem">
+                <Setter Property="FocusVisualStyle" Value="{StaticResource Focus}"/>
+                <Setter Property="ToolTip" Value="{Binding Title}"/>
+                <Setter Property="AutomationProperties.Name" Value="{Binding Title}"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="Template">
+                  <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                      <Border x:Name="ring" CornerRadius="10" BorderThickness="2.5" BorderBrush="Transparent" Padding="2.5" Margin="0,0,2,0">
+                        <Grid Width="46" Height="26">
+                          <!-- Simple: plain colors, shown as the swatch of the palette in use -->
+                          <Border CornerRadius="6" Background="{Binding Pal.Base}" BorderBrush="{DynamicResource Line}" BorderThickness="1">
+                            <Viewbox Width="16" Height="16"><Grid Width="24" Height="24"><Ellipse Fill="{Binding Pal.Base}" Stroke="{DynamicResource Ink}" StrokeThickness="1"/><Path Data="M12,1 A11,11 0 0 1 12,23 Z" Fill="{Binding Pal.Accent}"/><Ellipse Width="10" Height="10" Fill="{Binding Pal.Live}"/></Grid></Viewbox>
+                          </Border>
+                          <Image Source="{Binding Thumb}" Stretch="UniformToFill" RenderOptions.BitmapScalingMode="HighQuality">
+                            <Image.Clip><RectangleGeometry Rect="0,0,46,26" RadiusX="6" RadiusY="6"/></Image.Clip>
+                          </Image>
+                        </Grid>
+                      </Border>
+                      <ControlTemplate.Triggers><Trigger Property="IsSelected" Value="True"><Setter TargetName="ring" Property="BorderBrush" Value="{DynamicResource Ink}"/></Trigger></ControlTemplate.Triggers>
+                    </ControlTemplate>
+                  </Setter.Value>
+                </Setter>
+              </Style>
+            </ListBox.ItemContainerStyle>
+          </ListBox>
+          <StackPanel x:Name="PaletteBox" Margin="0,10,0,0">
           <TextBlock x:Name="PaletteName" FontWeight="SemiBold" Margin="0,0,0,4"/>
           <Border x:Name="PaletteZone" Background="Transparent" Height="44">
           <ListBox x:Name="Palettes" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Disabled" Background="Transparent" BorderThickness="0" Padding="0" Margin="-4,0,0,0">
@@ -299,13 +487,12 @@
             <ListBox.ItemContainerStyle>
               <Style TargetType="ListBoxItem">
                 <Setter Property="FocusVisualStyle" Value="{StaticResource Focus}"/>
-                <Setter Property="Cursor" Value="Hand"/>
                 <Setter Property="ToolTip" Value="{Binding Name}"/>
                 <Setter Property="AutomationProperties.Name" Value="{Binding Name}"/>
                 <Setter Property="Template">
                   <Setter.Value>
                     <ControlTemplate TargetType="ListBoxItem">
-                      <Border x:Name="ring" Width="36" Height="36" CornerRadius="18" BorderThickness="2.5" BorderBrush="Transparent" Padding="3.5" Margin="0,0,2,0" VerticalAlignment="Center">
+                      <Border x:Name="ring" Width="34" Height="34" CornerRadius="17" BorderThickness="2.5" BorderBrush="Transparent" Padding="2.5" Margin="0" VerticalAlignment="Center">
                         <Grid Width="24" Height="24">
                           <Ellipse Fill="{Binding Base}" Stroke="{DynamicResource Ink}" StrokeThickness="1"/>
                           <Path Data="M12,1 A11,11 0 0 1 12,23 Z" Fill="{Binding Accent}"/>
@@ -320,11 +507,12 @@
             </ListBox.ItemContainerStyle>
           </ListBox>
           </Border>
+          </StackPanel>
           <t:Btn x:Name="OpenSettings" Style="{StaticResource Btn}" Icon="{StaticResource IcoGear}" Content="Ajustes" Height="38" HorizontalAlignment="Left" Margin="0,8,0,0"/>
         </StackPanel>
         <ScrollViewer VerticalScrollBarVisibility="Auto" Focusable="False">
           <Grid Margin="12,0">
-            <Border x:Name="NavMark" Visibility="Hidden" Height="44" CornerRadius="12" Background="{DynamicResource Card}" VerticalAlignment="Top"/>
+            <Border x:Name="NavMark" Visibility="Hidden" Height="44" CornerRadius="0,12,12,0" Background="{DynamicResource Card}" VerticalAlignment="Top"><Border Width="3" HorizontalAlignment="Left" CornerRadius="0,1.5,1.5,0" Background="{DynamicResource On}"/></Border>
             <ListBox x:Name="Circuits" Template="{StaticResource BareList}" Background="Transparent" BorderThickness="0" ItemContainerStyle="{StaticResource NavItem}">
               <ListBox.ItemTemplate>
                 <DataTemplate>
@@ -337,25 +525,31 @@
                 </DataTemplate>
               </ListBox.ItemTemplate>
             </ListBox>
-            <StackPanel x:Name="SkelNav" Visibility="Collapsed">
-              <ContentControl Style="{StaticResource Skel}" Width="150" Height="24" Margin="14,10"/>
-              <ContentControl Style="{StaticResource Skel}" Width="120" Height="24" Margin="14,10"/>
-              <ContentControl Style="{StaticResource Skel}" Width="134" Height="24" Margin="14,10"/>
-              <ContentControl Style="{StaticResource Skel}" Width="126" Height="24" Margin="14,10"/>
+            <!-- Opaque so the menu loading underneath never shows through the bars -->
+            <StackPanel x:Name="SkelNav" Visibility="Collapsed" Background="{DynamicResource Rail}">
+              <ContentControl Style="{StaticResource Skel}" Width="150" Height="24" Margin="14,10" HorizontalAlignment="Left"/>
+              <ContentControl Style="{StaticResource Skel}" Width="120" Height="24" Margin="14,10" HorizontalAlignment="Left"/>
+              <ContentControl Style="{StaticResource Skel}" Width="134" Height="24" Margin="14,10" HorizontalAlignment="Left"/>
+              <ContentControl Style="{StaticResource Skel}" Width="126" Height="24" Margin="14,10" HorizontalAlignment="Left"/>
+              <ContentControl Style="{StaticResource Skel}" Width="104" Height="24" Margin="14,10" HorizontalAlignment="Left"/>
+              <ContentControl Style="{StaticResource Skel}" Width="116" Height="24" Margin="14,10" HorizontalAlignment="Left"/>
+              <ContentControl Style="{StaticResource Skel}" Width="138" Height="24" Margin="14,10" HorizontalAlignment="Left"/>
+              <ContentControl Style="{StaticResource Skel}" Width="110" Height="24" Margin="14,10" HorizontalAlignment="Left"/>
+              <ContentControl Style="{StaticResource Skel}" Width="122" Height="24" Margin="14,10" HorizontalAlignment="Left"/>
             </StackPanel>
           </Grid>
         </ScrollViewer>
       </DockPanel>
 
-      <!-- Mi PC -->
+      <!-- My PC -->
       <ScrollViewer x:Name="PcPage" Grid.Column="1" VerticalScrollBarVisibility="Auto" Focusable="False" Visibility="Hidden">
         <StackPanel Margin="28,24,20,110">
           <TextBlock x:Name="PcTitle" Text="Prepara tu PC para jugar" FontSize="32" FontWeight="Bold" TextWrapping="Wrap"/>
           <TextBlock x:Name="PcText" Foreground="{DynamicResource Ink2}" FontSize="15" TextWrapping="Wrap" Margin="0,6,0,18" MaxWidth="560" HorizontalAlignment="Left"/>
           <WrapPanel Margin="0,0,0,24">
             <t:Btn x:Name="Scan" Style="{StaticResource BtnCta}" Icon="{StaticResource IcoScan}" Content="Escanear PC" Margin="0,0,10,10"/>
-            <t:Btn x:Name="Rescan" Style="{StaticResource Btn}" Icon="{StaticResource IcoScan}" Content="Volver a escanear" Height="60" Margin="0,0,10,10" Visibility="Collapsed"/>
-            <t:Btn x:Name="ShowRec" Style="{StaticResource Btn}" Icon="{StaticResource IcoEye}" Content="Ver lista" Height="60" Margin="0,0,10,10" Visibility="Collapsed"/>
+            <t:Btn x:Name="Rescan" Style="{StaticResource Btn}" Icon="{StaticResource IcoScan}" Content="Volver a escanear" Margin="0,0,10,10" Visibility="Collapsed"/>
+            <t:Btn x:Name="ShowRec" Style="{StaticResource Btn}" Icon="{StaticResource IcoEye}" Content="Ver lista" Margin="0,0,10,10" Visibility="Collapsed"/>
           </WrapPanel>
           <Grid x:Name="Meter" Height="16" Margin="0,0,0,8">
             <Border Background="{DynamicResource Rail}" CornerRadius="8"/>
@@ -386,95 +580,133 @@
         </StackPanel>
       </ScrollViewer>
 
-      <!-- Jugar -->
+      <!-- Play -->
       <ScrollViewer x:Name="StretchPage" Grid.Column="1" VerticalScrollBarVisibility="Auto" Focusable="False" Visibility="Collapsed">
         <StackPanel Margin="28,24,28,110">
           <TextBlock Text="Jugar" FontSize="32" FontWeight="Bold" TextWrapping="Wrap"/>
-          <TextBlock Text="Abre Fortnite con la resolución elegida. Al cerrarlo, la pantalla y la configuración se restauran." Foreground="{DynamicResource Ink2}" FontSize="15" TextWrapping="Wrap" Margin="0,6,0,18" MaxWidth="580" HorizontalAlignment="Left"/>
+          <TextBlock x:Name="PlayText" Foreground="{DynamicResource Ink2}" FontSize="15" TextWrapping="Wrap" Margin="0,6,0,18" MaxWidth="580" HorizontalAlignment="Left"/>
           <WrapPanel Margin="0,0,0,12">
-            <t:Btn x:Name="Play" Style="{StaticResource BtnCta}" Icon="{StaticResource IcoGame}" Content="Abrir Fortnite" Margin="0,0,14,10"/>
-            <t:Btn x:Name="Back" Style="{StaticResource Btn}" Icon="{StaticResource IcoUndo}" Content="Restaurar resolución" Height="60" Margin="0,0,10,10" Visibility="Collapsed"/>
+            <t:Btn x:Name="Play" Style="{StaticResource BtnCta}" Icon="{StaticResource IcoGame}" Margin="0,0,14,10"/>
+            <t:Btn x:Name="Back" Style="{StaticResource Btn}" Icon="{StaticResource IcoUndo}" Content="Restaurar resolución" Margin="0,0,10,10" Visibility="Collapsed"/>
           </WrapPanel>
           <UniformGrid Rows="1" Margin="0,0,-8,24">
-            <Border Background="{DynamicResource Rail}" CornerRadius="18" Padding="18,12" Margin="0,0,8,0"><StackPanel><TextBlock Text="FPS estimados" FontSize="13.5" Foreground="{DynamicResource Ink2}"/><TextBlock x:Name="PlayEst" Text="…" FontSize="24" FontWeight="Bold"/></StackPanel></Border>
-            <Border Background="{DynamicResource Rail}" CornerRadius="18" Padding="18,12" Margin="0,0,8,0"><StackPanel><TextBlock Text="Última partida" FontSize="13.5" Foreground="{DynamicResource Ink2}"/><TextBlock x:Name="PlayLast" Text="…" FontSize="24" FontWeight="Bold"/></StackPanel></Border>
-            <Border Background="{DynamicResource Rail}" CornerRadius="18" Padding="18,12" Margin="0,0,8,0"><StackPanel><TextBlock Text="Memoria libre" FontSize="13.5" Foreground="{DynamicResource Ink2}"/><TextBlock x:Name="PlayRam" Text="…" FontSize="24" FontWeight="Bold"/></StackPanel></Border>
+            <Border Background="{DynamicResource Card}" CornerRadius="18" Padding="18,12" Margin="0,0,8,0"><StackPanel><TextBlock x:Name="PlayEstLabel" Text="FPS estimados" Visibility="Collapsed"/><Label Style="{StaticResource Head}" Content="{Binding Text, ElementName=PlayEstLabel}"/><TextBlock x:Name="PlayEst" Text="…" FontSize="24" FontWeight="Bold"/></StackPanel></Border>
+            <Border Background="{DynamicResource Card}" CornerRadius="18" Padding="18,12" Margin="0,0,8,0"><StackPanel><Label Style="{StaticResource Head}" Content="Última partida"/><TextBlock x:Name="PlayLast" Text="…" FontSize="24" FontWeight="Bold"/></StackPanel></Border>
+            <Border Background="{DynamicResource Card}" CornerRadius="18" Padding="18,12" Margin="0,0,8,0"><StackPanel><Label Style="{StaticResource Head}" Content="Memoria libre"/><TextBlock x:Name="PlayRam" Text="…" FontSize="24" FontWeight="Bold"/></StackPanel></Border>
           </UniformGrid>
-          <TextBlock Text="Resolución" FontSize="20" FontWeight="Bold" Margin="0,0,0,10"/>
-          <DockPanel>
-            <StackPanel DockPanel.Dock="Left" Width="224" Margin="0,0,18,0">
-              <StackPanel Orientation="Horizontal">
-                <StackPanel Margin="0,0,10,0">
-                  <Border Width="106" Height="150" CornerRadius="14" RenderOptions.BitmapScalingMode="HighQuality"><Border.Background><ImageBrush x:Name="FigureNormal" Stretch="UniformToFill"/></Border.Background></Border>
-                  <TextBlock Text="Normal" FontSize="13" HorizontalAlignment="Center" Foreground="{DynamicResource Ink2}" Margin="0,6,0,0"/>
-                </StackPanel>
-                <StackPanel>
-                  <Border Width="106" Height="150" CornerRadius="14" RenderOptions.BitmapScalingMode="HighQuality"><Border.Background><ImageBrush x:Name="FigureWide" Stretch="UniformToFill"><ImageBrush.RelativeTransform><ScaleTransform x:Name="FigureScale" CenterX="0.5"/></ImageBrush.RelativeTransform></ImageBrush></Border.Background></Border>
-                  <TextBlock Text="Stretched" FontSize="13" HorizontalAlignment="Center" Foreground="{DynamicResource Ink2}" Margin="0,6,0,0"/>
-                </StackPanel>
-              </StackPanel>
-            </StackPanel>
-            <StackPanel>
-              <t:Btn x:Name="ResOpen" Style="{StaticResource Btn}" Icon="{StaticResource IcoDown}" Height="52" FontSize="16" HorizontalAlignment="Left" MinWidth="290" AutomationProperties.Name="Elegir resolución"/>
-              <TextBlock x:Name="StretchInfo" FontSize="15" TextWrapping="Wrap" Margin="2,12,0,0"/>
-            </StackPanel>
-          </DockPanel>
-          <Border x:Name="ResPanel" Background="{DynamicResource Rail}" CornerRadius="18" Padding="14,14,6,6" Margin="0,14,0,0" Visibility="Collapsed">
-            <StackPanel>
-              <ListBox x:Name="Resolutions" Template="{StaticResource BareList}" ItemContainerStyle="{StaticResource ChipItem}" Background="Transparent" BorderThickness="0" Padding="0" AutomationProperties.Name="Resolución">
-                <ListBox.ItemsPanel><ItemsPanelTemplate><UniformGrid Columns="3"/></ItemsPanelTemplate></ListBox.ItemsPanel>
-              </ListBox>
-              <StackPanel Margin="4,8,8,10">
-                <TextBlock Text="Personalizada" FontSize="16" FontWeight="Bold"/>
-                <TextBlock x:Name="CustomHint" Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,2,0,8"/>
-                <WrapPanel x:Name="CustomRow">
-                  <TextBox x:Name="CustomW" Style="{StaticResource Field}" Background="{DynamicResource Card}" Width="110" Tag="Ancho" MaxLength="4" AutomationProperties.Name="Ancho"/>
-                  <TextBlock Text="×" FontSize="18" VerticalAlignment="Center" Margin="10,0"/>
-                  <TextBox x:Name="CustomH" Style="{StaticResource Field}" Background="{DynamicResource Card}" Width="110" Tag="Alto" MaxLength="4" AutomationProperties.Name="Alto"/>
-                  <t:Btn x:Name="CustomGo" Style="{StaticResource Btn}" Content="Usar esta" Margin="10,0,0,0"/>
-                </WrapPanel>
-              </StackPanel>
-            </StackPanel>
-          </Border>
-          <TextBlock Text="Límite de FPS" FontSize="20" FontWeight="Bold" Margin="0,24,0,10"/>
+          <Label Style="{StaticResource Head}" Content="Resolución" Margin="0,0,0,10"/>
+          <t:Drop x:Name="ResOpen" Style="{StaticResource Drop}" ContentTemplate="{StaticResource ResFace}" Width="380" MaxWidth="380" AutomationProperties.Name="Elegir resolución"><t:Drop.Panel><ListBox x:Name="ResOpenList" Template="{StaticResource PlainList}" MaxHeight="360" ItemContainerStyle="{StaticResource ResItem}" DisplayMemberPath="Name" Background="Transparent" BorderThickness="0" Padding="0" AutomationProperties.Name="Elegir resolución"/></t:Drop.Panel></t:Drop>
+          <Label x:Name="LimitTitle" Style="{StaticResource Head}" Content="Límite de FPS" Margin="0,24,0,10"/>
           <ListBox x:Name="Limits" Template="{StaticResource BareList}" ItemContainerStyle="{StaticResource ChipItem}" Background="Transparent" BorderThickness="0" Padding="0" AutomationProperties.Name="Límite de FPS">
             <ListBox.ItemsPanel><ItemsPanelTemplate><UniformGrid Rows="1" Margin="0,0,-8,0"/></ItemsPanelTemplate></ListBox.ItemsPanel>
           </ListBox>
           <CheckBox x:Name="Minimize" Style="{StaticResource Check}" Content="Minimizar Tweakeroo mientras juegas" FontSize="15" Margin="0,8,0,0"/>
-          <TextBlock Text="Programas con más uso de memoria" FontSize="20" FontWeight="Bold" Margin="0,20,0,2"/>
+          <Label Style="{StaticResource Head}" Content="Programas con más uso de memoria" Margin="0,20,0,2"/>
           <TextBlock Text="Cerrar los que no se usen libera memoria antes de jugar." Foreground="{DynamicResource Ink2}" Margin="0,0,0,10"/>
           <ItemsControl x:Name="Heavy" Focusable="False">
             <ItemsControl.ItemTemplate><DataTemplate><Border Background="{DynamicResource Card}" CornerRadius="12" Padding="18,10" Margin="0,0,0,4"><DockPanel><TextBlock DockPanel.Dock="Right" Text="{Binding Value}" FontWeight="Bold" Typography.NumeralAlignment="Tabular"/><TextBlock Text="{Binding Key}"/></DockPanel></Border></DataTemplate></ItemsControl.ItemTemplate>
           </ItemsControl>
+        </StackPanel>
+      </ScrollViewer>
+
+      <!-- Stretched Resolution -->
+      <ScrollViewer x:Name="ResPage" Grid.Column="1" VerticalScrollBarVisibility="Auto" Focusable="False" Visibility="Collapsed">
+        <StackPanel Margin="28,24,28,110">
+          <TextBlock Text="Stretched Resolution" FontSize="32" FontWeight="Bold" TextWrapping="Wrap"/>
+          <TextBlock x:Name="ResHint" Foreground="{DynamicResource Ink2}" FontSize="15" TextWrapping="Wrap" Margin="0,6,0,18" MaxWidth="620" HorizontalAlignment="Left"/>
+          <Border x:Name="ValBox" Background="{DynamicResource Card}" CornerRadius="16" Padding="18,12" Margin="0,0,0,20" Visibility="Collapsed"><DockPanel><CheckBox x:Name="ValOn" DockPanel.Dock="Right" Style="{StaticResource Check}" AutomationProperties.Name="Estirar Valorant" Margin="16,0,0,0" VerticalAlignment="Center"/><StackPanel VerticalAlignment="Center"><TextBlock Text="Estirar Valorant" FontSize="16" FontWeight="Bold"/><TextBlock Text="Cambia la resolución de Windows al cargar un mapa. No toca la memoria del juego. Riot no ha publicado una norma clara sobre esto: se usa bajo responsabilidad propia." Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,2,0,0"/></StackPanel></DockPanel></Border>
+          <StackPanel x:Name="ResBox">
+          <DockPanel Margin="0,0,0,18">
+            <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" Margin="0,0,10,0">
+              <StackPanel Margin="0,0,12,0"><Border x:Name="FigureBoxA" Width="148" Height="210" CornerRadius="16" RenderOptions.BitmapScalingMode="HighQuality"><Border.Background><ImageBrush x:Name="FigureNormal" Stretch="UniformToFill"/></Border.Background></Border><TextBlock Text="Normal" FontSize="13" HorizontalAlignment="Center" Foreground="{DynamicResource Ink2}" Margin="0,6,0,0"/></StackPanel>
+              <StackPanel Margin="0,0,12,0"><Border x:Name="FigureBoxB" Width="148" Height="210" CornerRadius="16" RenderOptions.BitmapScalingMode="HighQuality"><Border.Background><ImageBrush x:Name="FigureWide" Stretch="UniformToFill"><ImageBrush.RelativeTransform><ScaleTransform x:Name="FigureScale" CenterX="0.5"/></ImageBrush.RelativeTransform></ImageBrush></Border.Background></Border><TextBlock Text="Stretched" FontSize="13" HorizontalAlignment="Center" Foreground="{DynamicResource Ink2}" Margin="0,6,0,0"/></StackPanel>
+            </StackPanel>
+            <TextBlock x:Name="StretchInfo" FontSize="17" FontWeight="SemiBold" TextWrapping="Wrap" VerticalAlignment="Center"/>
+          </DockPanel>
+          <t:Drop x:Name="ResDrop" Style="{StaticResource Drop}" ContentTemplate="{StaticResource ResFace}" Width="380" MaxWidth="380" AutomationProperties.Name="Resolución"><t:Drop.Panel><ListBox x:Name="Resolutions" Template="{StaticResource PlainList}" MaxHeight="360" ItemContainerStyle="{StaticResource ResItem}" DisplayMemberPath="Name" Background="Transparent" BorderThickness="0" Padding="0" AutomationProperties.Name="Resolución"/></t:Drop.Panel></t:Drop>
+          <Label Style="{StaticResource Head}" Content="Personalizada" Margin="0,18,0,4"/>
+          <TextBlock x:Name="CustomHint" Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,0,0,10" MaxWidth="640" HorizontalAlignment="Left"/>
+          <WrapPanel x:Name="CustomRow">
+            <TextBox x:Name="CustomW" Style="{StaticResource Field}" Background="{DynamicResource Card}" Width="110" Tag="Ancho" MaxLength="4" AutomationProperties.Name="Ancho"/>
+            <TextBlock Text="×" FontSize="18" VerticalAlignment="Center" Margin="10,0"/>
+            <TextBox x:Name="CustomH" Style="{StaticResource Field}" Background="{DynamicResource Card}" Width="110" Tag="Alto" MaxLength="4" AutomationProperties.Name="Alto"/>
+            <t:Btn x:Name="CustomGo" Style="{StaticResource Btn}" Content="Usar esta" Margin="10,0,0,0"/>
+          </WrapPanel>
+          </StackPanel>
+          <StackPanel Visibility="{Binding Visibility, ElementName=ValChecks}"><Label Style="{StaticResource Head}" Content="Antes de jugar" Margin="0,24,0,10"/></StackPanel>
+          <ItemsControl x:Name="ValChecks" Focusable="False" Visibility="Collapsed"/>
           <TextBlock x:Name="PlayNote" Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,20,0,0" MaxWidth="620" HorizontalAlignment="Left"/>
         </StackPanel>
       </ScrollViewer>
 
-      <!-- Conexion -->
+      <!-- While playing -->
+      <ScrollViewer x:Name="BoostPage" Grid.Column="1" VerticalScrollBarVisibility="Auto" Focusable="False" Visibility="Collapsed">
+        <StackPanel Margin="28,24,28,110">
+          <TextBlock Text="Al jugar" FontSize="32" FontWeight="Bold"/>
+          <TextBlock x:Name="BoostText" Foreground="{DynamicResource Ink2}" FontSize="15" TextWrapping="Wrap" Margin="0,6,0,14" MaxWidth="620" HorizontalAlignment="Left"/>
+          <TextBlock x:Name="BoostState" FontSize="15" FontWeight="SemiBold" Margin="0,0,0,12"/>
+          <WrapPanel Margin="0,0,0,12"><t:Btn x:Name="BoostAll" Style="{StaticResource BtnCta}" Icon="{StaticResource IcoBolt}" Content="Activar todos" Margin="0,0,10,10"/><t:Btn x:Name="BoostNone" Style="{StaticResource Btn}" Icon="{StaticResource IcoUndo}" Content="Quitar todos" Margin="0,0,10,10"/></WrapPanel>
+          <ItemsControl x:Name="Boosts" Focusable="False">
+            <ItemsControl.ItemTemplate><DataTemplate><Border Background="{DynamicResource Card}" CornerRadius="16" Padding="18,10" Margin="0,0,0,8"><DockPanel><CheckBox DockPanel.Dock="Right" Style="{StaticResource Check}" IsChecked="{Binding On, Mode=TwoWay}" AutomationProperties.Name="{Binding Name}" Margin="16,0,0,0" VerticalAlignment="Center"/><StackPanel VerticalAlignment="Center"><TextBlock Text="{Binding Name}" FontSize="16" FontWeight="Bold"/><TextBlock Text="{Binding Desc}" Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,2,0,0"/></StackPanel></DockPanel></Border></DataTemplate></ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </ScrollViewer>
+
+      <!-- Colors -->
+      <ScrollViewer x:Name="ColorPage" Grid.Column="1" VerticalScrollBarVisibility="Auto" Focusable="False" Visibility="Collapsed">
+        <StackPanel Margin="28,24,28,110">
+          <TextBlock Text="Colores" FontSize="32" FontWeight="Bold"/>
+          <TextBlock Text="Un perfil para cada juego. Se pone al abrirlo y se quita al cerrarlo; mientras tanto cambia toda la pantalla principal." Foreground="{DynamicResource Ink2}" FontSize="15" TextWrapping="Wrap" Margin="0,6,0,18" MaxWidth="600" HorizontalAlignment="Left"/>
+          <DockPanel Margin="0,0,0,18">
+            <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" Margin="0,0,14,0">
+              <StackPanel Margin="0,0,10,0"><Border x:Name="ColorBoxA" Width="134" Height="190" CornerRadius="14" RenderOptions.BitmapScalingMode="HighQuality"><Border.Background><ImageBrush x:Name="ColorNow" Stretch="UniformToFill"/></Border.Background></Border><TextBlock x:Name="ColorNowText" Text="Ahora" FontSize="13" HorizontalAlignment="Center" Foreground="{DynamicResource Ink2}" Margin="0,6,0,0"/></StackPanel>
+              <StackPanel Margin="0,0,10,0"><Border x:Name="ColorBoxB" Width="134" Height="190" CornerRadius="14" RenderOptions.BitmapScalingMode="HighQuality"><Border.Background><ImageBrush x:Name="ColorNew" Stretch="UniformToFill"/></Border.Background></Border><TextBlock Text="Con el perfil" FontSize="13" HorizontalAlignment="Center" Foreground="{DynamicResource Ink2}" Margin="0,6,0,0"/></StackPanel>
+            </StackPanel>
+            <StackPanel VerticalAlignment="Center">
+              <TextBlock x:Name="ColorState" FontSize="17" FontWeight="SemiBold" TextWrapping="Wrap"/>
+              <TextBlock Text="La foto es aproximada. La prueba enseña el resultado real." Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,4,0,14"/>
+              <t:Btn x:Name="ColorTry" Style="{StaticResource Btn}" Icon="{StaticResource IcoEye}" Content="Probar 10 segundos" HorizontalAlignment="Left"/>
+            </StackPanel>
+          </DockPanel>
+          <ListBox x:Name="ColorProfiles" Template="{StaticResource BareList}" ItemContainerStyle="{StaticResource ChipItem}" Background="Transparent" BorderThickness="0" Padding="0" AutomationProperties.Name="Perfil de color">
+            <ListBox.ItemsPanel><ItemsPanelTemplate><UniformGrid Columns="3" Margin="0,0,-8,0"/></ItemsPanelTemplate></ListBox.ItemsPanel>
+          </ListBox>
+          <Label Style="{StaticResource Head}" Content="Ajuste fino" Margin="0,18,0,10"/>
+          <TextBlock x:Name="ColorHint" Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,0,0,10" MaxWidth="640" HorizontalAlignment="Left"/>
+          <Border Background="{DynamicResource Card}" CornerRadius="16" Padding="18,14,18,4"><StackPanel>
+            <DockPanel Margin="0,0,0,10"><TextBlock Text="Intensidad" Width="112" FontSize="15" FontWeight="SemiBold" VerticalAlignment="Center"/><TextBlock x:Name="ColVibText" DockPanel.Dock="Right" Width="64" TextAlignment="Right" FontSize="15" FontWeight="Bold" VerticalAlignment="Center" Typography.NumeralAlignment="Tabular"/><Slider x:Name="ColVib" Style="{StaticResource Sld}" Minimum="0" Maximum="100" SmallChange="1" LargeChange="5" TickFrequency="1" IsSnapToTickEnabled="True" AutomationProperties.Name="Intensidad" VerticalAlignment="Center"/></DockPanel>
+            <DockPanel Margin="0,0,0,10"><TextBlock Text="Brillo" Width="112" FontSize="15" FontWeight="SemiBold" VerticalAlignment="Center"/><TextBlock x:Name="ColBrightText" DockPanel.Dock="Right" Width="64" TextAlignment="Right" FontSize="15" FontWeight="Bold" VerticalAlignment="Center" Typography.NumeralAlignment="Tabular"/><Slider x:Name="ColBright" Style="{StaticResource Sld}" Minimum="35" Maximum="70" SmallChange="1" LargeChange="5" TickFrequency="1" IsSnapToTickEnabled="True" AutomationProperties.Name="Brillo" VerticalAlignment="Center"/></DockPanel>
+            <DockPanel Margin="0,0,0,10"><TextBlock Text="Contraste" Width="112" FontSize="15" FontWeight="SemiBold" VerticalAlignment="Center"/><TextBlock x:Name="ColContrastText" DockPanel.Dock="Right" Width="64" TextAlignment="Right" FontSize="15" FontWeight="Bold" VerticalAlignment="Center" Typography.NumeralAlignment="Tabular"/><Slider x:Name="ColContrast" Style="{StaticResource Sld}" Minimum="35" Maximum="70" SmallChange="1" LargeChange="5" TickFrequency="1" IsSnapToTickEnabled="True" AutomationProperties.Name="Contraste" VerticalAlignment="Center"/></DockPanel>
+            <DockPanel Margin="0,0,0,10"><TextBlock Text="Gamma" Width="112" FontSize="15" FontWeight="SemiBold" VerticalAlignment="Center"/><TextBlock x:Name="ColGammaText" DockPanel.Dock="Right" Width="64" TextAlignment="Right" FontSize="15" FontWeight="Bold" VerticalAlignment="Center" Typography.NumeralAlignment="Tabular"/><Slider x:Name="ColGamma" Style="{StaticResource Sld}" Minimum="0.7" Maximum="1.6" SmallChange="0.05" LargeChange="0.1" TickFrequency="0.05" IsSnapToTickEnabled="True" AutomationProperties.Name="Gamma" VerticalAlignment="Center"/></DockPanel>
+          </StackPanel></Border>
+        </StackPanel>
+      </ScrollViewer>
+
+      <!-- Connection -->
       <ScrollViewer x:Name="NetPage" Grid.Column="1" VerticalScrollBarVisibility="Auto" Focusable="False" Visibility="Collapsed">
         <StackPanel Margin="28,24,28,110">
           <TextBlock Text="Conexión" FontSize="32" FontWeight="Bold"/>
-          <TextBlock Text="Mide el ping, los tirones y los paquetes perdidos, y dice dónde está el problema: tu red, el proveedor o la ruta hasta Epic." Foreground="{DynamicResource Ink2}" FontSize="15" TextWrapping="Wrap" Margin="0,6,0,16" MaxWidth="600" HorizontalAlignment="Left"/>
-          <WrapPanel Margin="0,0,0,12"><t:Btn x:Name="NetRun" Style="{StaticResource BtnCta}" Icon="{StaticResource IcoGauge}" Content="Medir conexión" Margin="0,0,10,10"/><t:Btn x:Name="NetTweaks" Style="{StaticResource Btn}" Icon="{StaticResource IcoBolt}" Content="Tweaks de red" Height="60" Margin="0,0,10,10"/></WrapPanel>
+          <TextBlock Text="Mide el ping, los tirones y los paquetes perdidos, y dice dónde está el problema: tu red, el proveedor o la ruta hasta el servidor." Foreground="{DynamicResource Ink2}" FontSize="15" TextWrapping="Wrap" Margin="0,6,0,16" MaxWidth="600" HorizontalAlignment="Left"/>
+          <WrapPanel Margin="0,0,0,12"><t:Btn x:Name="NetRun" Style="{StaticResource BtnCta}" Icon="{StaticResource IcoGauge}" Content="Medir conexión" Margin="0,0,10,10"/><t:Btn x:Name="NetTweaks" Style="{StaticResource Btn}" Icon="{StaticResource IcoBolt}" Content="Tweaks de red" Margin="0,0,10,10"/></WrapPanel>
           <ItemsControl x:Name="NetTiles" Focusable="False">
             <ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Rows="1" Margin="0,0,-8,0"/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
-            <ItemsControl.ItemTemplate><DataTemplate><Border Background="{DynamicResource Rail}" CornerRadius="18" Padding="18,12" Margin="0,0,8,0"><StackPanel><TextBlock Text="{Binding Label}" FontSize="13.5" Foreground="{DynamicResource Ink2}" TextTrimming="CharacterEllipsis"/><TextBlock Text="{Binding Main}" FontSize="24" FontWeight="Bold" Typography.NumeralAlignment="Tabular"/><TextBlock Text="{Binding Sub}" FontSize="13" Foreground="{DynamicResource Ink2}" TextWrapping="Wrap"/></StackPanel></Border></DataTemplate></ItemsControl.ItemTemplate>
+            <ItemsControl.ItemTemplate><DataTemplate><Border Background="{DynamicResource Card}" CornerRadius="18" Padding="18,12" Margin="0,0,8,0"><StackPanel><Label Style="{StaticResource Head}" Content="{Binding Label}"/><TextBlock Text="{Binding Main}" FontSize="24" FontWeight="Bold" Typography.NumeralAlignment="Tabular"/><TextBlock Text="{Binding Sub}" FontSize="13" Foreground="{DynamicResource Ink2}" TextWrapping="Wrap"/></StackPanel></Border></DataTemplate></ItemsControl.ItemTemplate>
           </ItemsControl>
           <TextBlock x:Name="NetVerdict" FontSize="16" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,14,0,0" MaxWidth="640" HorizontalAlignment="Left"/>
           <TextBlock x:Name="NetBefore" Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,4,0,0"/>
-          <TextBlock Text="Velocidad" FontSize="20" FontWeight="Bold" Margin="0,22,0,10"/>
+          <Label Style="{StaticResource Head}" Content="Velocidad" Margin="0,22,0,10"/>
           <ItemsControl x:Name="SpeedTiles" Focusable="False">
             <ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Rows="1" Margin="0,0,-8,0"/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
-            <ItemsControl.ItemTemplate><DataTemplate><Border Background="{DynamicResource Rail}" CornerRadius="18" Padding="18,12" Margin="0,0,8,0"><StackPanel><TextBlock Text="{Binding Label}" FontSize="13.5" Foreground="{DynamicResource Ink2}" TextTrimming="CharacterEllipsis"/><TextBlock Text="{Binding Main}" FontSize="24" FontWeight="Bold" Typography.NumeralAlignment="Tabular"/></StackPanel></Border></DataTemplate></ItemsControl.ItemTemplate>
+            <ItemsControl.ItemTemplate><DataTemplate><Border Background="{DynamicResource Card}" CornerRadius="18" Padding="18,12" Margin="0,0,8,0"><StackPanel><Label Style="{StaticResource Head}" Content="{Binding Label}"/><TextBlock Text="{Binding Main}" FontSize="24" FontWeight="Bold" Typography.NumeralAlignment="Tabular"/></StackPanel></Border></DataTemplate></ItemsControl.ItemTemplate>
           </ItemsControl>
           <TextBlock x:Name="SpeedVerdict" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,12,0,0" MaxWidth="640" HorizontalAlignment="Left"/>
           <TextBlock x:Name="SpeedBefore" Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,4,0,10"/>
           <WrapPanel><t:Btn x:Name="SpeedRun" Style="{StaticResource Btn}" Icon="{StaticResource IcoSave}" Content="Medir velocidad" Margin="0,0,14,0"/><TextBlock Text="Dura unos 15 segundos y puede usar hasta 750 MB. Usa los servidores de Cloudflare." Foreground="{DynamicResource Ink2}" VerticalAlignment="Center"/></WrapPanel>
           <StackPanel x:Name="NetWifi">
-            <TextBlock Text="Mientras se juega" FontSize="20" FontWeight="Bold" Margin="0,22,0,10"/>
-            <Border Background="{DynamicResource Rail}" CornerRadius="16" Padding="18,12"><DockPanel><CheckBox x:Name="NetSteady" DockPanel.Dock="Right" Style="{StaticResource Check}" AutomationProperties.Name="Wi-Fi estable" Margin="16,0,0,0" VerticalAlignment="Center"/><StackPanel VerticalAlignment="Center"><TextBlock Text="Wi-Fi estable" FontSize="16" FontWeight="Bold"/><TextBlock Text="Con Fortnite abierto, Windows deja de buscar otras redes, que es una causa de tirones. Al cerrarlo vuelve a lo normal. Algunas tarjetas no lo respetan." Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,2,0,0"/><TextBlock x:Name="NetState" FontSize="13" FontWeight="SemiBold" Margin="0,2,0,0"/></StackPanel></DockPanel></Border>
+            <Label Style="{StaticResource Head}" Content="Mientras se juega" Margin="0,22,0,10"/>
+            <Border Background="{DynamicResource Card}" CornerRadius="16" Padding="18,12"><DockPanel><CheckBox x:Name="NetSteady" DockPanel.Dock="Right" Style="{StaticResource Check}" AutomationProperties.Name="Wi-Fi estable" Margin="16,0,0,0" VerticalAlignment="Center"/><StackPanel VerticalAlignment="Center"><TextBlock Text="Wi-Fi estable" FontSize="16" FontWeight="Bold"/><TextBlock Text="Con un juego abierto, Windows deja de buscar otras redes, que es una causa de tirones. Al cerrarlo vuelve a lo normal. Algunas tarjetas no lo respetan." Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,2,0,0"/><TextBlock x:Name="NetState" FontSize="13" FontWeight="SemiBold" Margin="0,2,0,0"/></StackPanel></DockPanel></Border>
           </StackPanel>
-          <TextBlock Text="Estado de la red" FontSize="20" FontWeight="Bold" Margin="0,22,0,10"/>
+          <Label Style="{StaticResource Head}" Content="Estado de la red" Margin="0,22,0,10"/>
           <ItemsControl x:Name="NetChecks" Focusable="False"/>
           <TextBlock Text="Tweakeroo no pasa el tráfico por otros servidores, como hace ExitLag, así que no acorta la distancia hasta Epic. Al medir hace ping al router, a 1.1.1.1 y a los servidores de medición de Epic, y la velocidad se mide con Cloudflare." Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,14,0,0" MaxWidth="640" HorizontalAlignment="Left"/>
         </StackPanel>
@@ -485,7 +717,7 @@
         <StackPanel Margin="28,24,28,110">
           <TextBlock Text="Macros" FontSize="32" FontWeight="Bold"/>
           <TextBlock Text="Macros de edición para freebuild. Solo funcionan en Creativo, con Fortnite en primer plano y Tweakeroo abierto. En cualquier otro modo quedan apagadas." Foreground="{DynamicResource Ink2}" FontSize="15" TextWrapping="Wrap" Margin="0,6,0,16" MaxWidth="600" HorizontalAlignment="Left"/>
-          <Border Background="{DynamicResource Rail}" CornerRadius="18" Padding="18,14" Margin="0,0,0,16">
+          <Border Background="{DynamicResource Card}" CornerRadius="18" Padding="18,14" Margin="0,0,0,16">
             <StackPanel>
               <TextBlock Text="Uso bajo tu propio riesgo" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource Danger}"/>
               <TextBlock Text="Epic prohíbe las macros en torneos y usarlas, también en Creativo, puede llevar a sanciones en la cuenta. Tweakeroo no las oculta ni evita la detección." TextWrapping="Wrap" Margin="0,4,0,4"/>
@@ -497,7 +729,7 @@
             <ItemsControl x:Name="MacroRows" Focusable="False">
               <ItemsControl.ItemTemplate>
                 <DataTemplate>
-                  <Border Background="{DynamicResource Rail}" CornerRadius="16" Padding="18,12" Margin="0,0,0,8">
+                  <Border Background="{DynamicResource Card}" CornerRadius="16" Padding="18,12" Margin="0,0,0,8">
                     <DockPanel>
                       <CheckBox DockPanel.Dock="Right" Style="{StaticResource Check}" IsChecked="{Binding On, Mode=TwoWay}" AutomationProperties.Name="{Binding Name}" VerticalAlignment="Center"/>
                       <t:Btn DockPanel.Dock="Right" Style="{StaticResource Btn}" Content="{Binding KeyText}" MinWidth="150" Margin="16,0,18,0" VerticalAlignment="Center"/>
@@ -510,7 +742,7 @@
                 </DataTemplate>
               </ItemsControl.ItemTemplate>
             </ItemsControl>
-            <TextBlock Text="Teclas en Fortnite" FontSize="20" FontWeight="Bold" Margin="0,18,0,2"/>
+            <Label Style="{StaticResource Head}" Content="Teclas en Fortnite" Margin="0,18,0,2"/>
             <TextBlock Text="Se leen solas de Fortnite. Si se ponen a mano, deben ser las mismas que en el juego, también confirmar al soltar: si no coinciden, la macro puede quedarse dentro de la edición." Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,0,0,10"/>
             <WrapPanel>
               <StackPanel Margin="0,0,14,8"><TextBlock Text="Editar" Foreground="{DynamicResource Ink2}" Margin="2,0,0,4"/><t:Btn x:Name="KeyEdit" Style="{StaticResource Btn}" MinWidth="150"/></StackPanel>
@@ -519,13 +751,13 @@
             </WrapPanel>
             <CheckBox x:Name="MacroAuto" Style="{StaticResource Check}" Content="Usar las teclas que hay en Fortnite" FontSize="15"/>
             <CheckBox x:Name="MacroConfirm" Style="{StaticResource Check}" Content="Confirmar edición al soltar está activado en Fortnite" FontSize="15"/>
-            <TextBlock Text="Al pulsar la tecla de la macro" FontSize="20" FontWeight="Bold" Margin="0,14,0,2"/>
+            <Label Style="{StaticResource Head}" Content="Al pulsar la tecla de la macro" Margin="0,14,0,2"/>
             <TextBlock Text="Un toque manda toda la secuencia. Mantener deja arrastrar para elegir varias casillas y sigue al soltar." Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,0,0,10"/>
             <ListBox x:Name="MacroHold" Template="{StaticResource BareList}" ItemContainerStyle="{StaticResource ChipItem}" Background="Transparent" BorderThickness="0" Padding="0" AutomationProperties.Name="Al pulsar la tecla de la macro"><ListBox.ItemsPanel><ItemsPanelTemplate><UniformGrid Rows="1" Columns="2" Margin="0,0,-8,0"/></ItemsPanelTemplate></ListBox.ItemsPanel></ListBox>
-            <TextBlock Text="Pausa antes de la segunda acción" FontSize="20" FontWeight="Bold" Margin="0,14,0,2"/>
+            <Label Style="{StaticResource Head}" Content="Pausa antes de la segunda acción" Margin="0,14,0,2"/>
             <TextBlock Text="Si la segunda edición no sale, sube este valor. Depende del ping y de los FPS." Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,0,0,10"/>
             <ListBox x:Name="MacroGap" Template="{StaticResource BareList}" ItemContainerStyle="{StaticResource ChipItem}" Background="Transparent" BorderThickness="0" Padding="0" AutomationProperties.Name="Pausa antes de la segunda acción"><ListBox.ItemsPanel><ItemsPanelTemplate><UniformGrid Rows="1" Columns="4" Margin="0,0,-8,0"/></ItemsPanelTemplate></ListBox.ItemsPanel></ListBox>
-            <TextBlock Text="Pausa entre acciones" FontSize="20" FontWeight="Bold" Margin="0,14,0,10"/>
+            <Label Style="{StaticResource Head}" Content="Pausa entre acciones" Margin="0,14,0,10"/>
             <ListBox x:Name="MacroDelay" Template="{StaticResource BareList}" ItemContainerStyle="{StaticResource ChipItem}" Background="Transparent" BorderThickness="0" Padding="0" AutomationProperties.Name="Pausa entre acciones">
               <ListBox.ItemsPanel><ItemsPanelTemplate><UniformGrid Rows="1" Margin="0,0,-8,0"/></ItemsPanelTemplate></ListBox.ItemsPanel>
             </ListBox>
@@ -533,36 +765,44 @@
         </StackPanel>
       </ScrollViewer>
 
-      <!-- Ajustes -->
+      <!-- Settings -->
       <ScrollViewer x:Name="SettingsPage" Grid.Column="1" VerticalScrollBarVisibility="Auto" Focusable="False" Visibility="Collapsed">
         <StackPanel Margin="28,24,28,110">
           <TextBlock Text="Ajustes" FontSize="32" FontWeight="Bold" Margin="0,0,0,16"/>
-            <TextBlock Text="General" FontSize="20" FontWeight="Bold" Margin="0,0,0,10"/>
-            <Border Background="{DynamicResource Rail}" CornerRadius="16" Padding="18,12" Margin="0,0,0,8"><DockPanel><CheckBox x:Name="SetBoot" DockPanel.Dock="Right" Style="{StaticResource Check}" AutomationProperties.Name="Abrir al encender el PC" Margin="16,0,0,0" VerticalAlignment="Center"/><StackPanel VerticalAlignment="Center"><TextBlock Text="Abrir al encender el PC" FontSize="16" FontWeight="Bold"/><TextBlock Text="Solo con la app instalada. Usa una tarea de Windows, que se quita al apagar la opción." Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,2,0,0"/></StackPanel></DockPanel></Border>
-            <Border Background="{DynamicResource Rail}" CornerRadius="16" Padding="18,12" Margin="0,0,0,8"><DockPanel><CheckBox x:Name="SetMin" DockPanel.Dock="Right" Style="{StaticResource Check}" AutomationProperties.Name="Empezar minimizado" Margin="16,0,0,0" VerticalAlignment="Center"/><StackPanel VerticalAlignment="Center"><TextBlock Text="Empezar minimizado" FontSize="16" FontWeight="Bold"/><TextBlock Text="Solo cuando se abre con Windows." Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,2,0,0"/></StackPanel></DockPanel></Border>
-            <Border Background="{DynamicResource Rail}" CornerRadius="16" Padding="18,12" Margin="0,0,0,8"><DockPanel><CheckBox x:Name="SetTray" DockPanel.Dock="Right" Style="{StaticResource Check}" AutomationProperties.Name="Al cerrar, quedarse junto al reloj" Margin="16,0,0,0" VerticalAlignment="Center"/><StackPanel VerticalAlignment="Center"><TextBlock Text="Al cerrar, quedarse junto al reloj" FontSize="16" FontWeight="Bold"/><TextBlock Text="Las macros y la resolución siguen funcionando. Para salir, clic derecho en el icono." Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,2,0,0"/></StackPanel></DockPanel></Border>
-            <Border Background="{DynamicResource Rail}" CornerRadius="16" Padding="18,12" Margin="0,0,0,8"><StackPanel><TextBlock Text="Idioma" FontSize="16" FontWeight="Bold"/><TextBlock Text="La app se reinicia al cambiarlo." Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,2,0,0"/><ListBox x:Name="SetLang" Template="{StaticResource BareList}" ItemContainerStyle="{StaticResource ChipItem}" Background="Transparent" BorderThickness="0" Padding="0" Margin="0,8,0,0" AutomationProperties.Name="Idioma"><ListBox.ItemsPanel><ItemsPanelTemplate><UniformGrid Rows="1" Columns="2" Margin="0,0,-8,-8"/></ItemsPanelTemplate></ListBox.ItemsPanel></ListBox></StackPanel></Border>
-            <Border Background="{DynamicResource Rail}" CornerRadius="16" Padding="18,12" Margin="0,0,0,8"><StackPanel><TextBlock Text="Sección con la que se abre" FontSize="16" FontWeight="Bold"/><ListBox x:Name="SetPage" Template="{StaticResource BareList}" ItemContainerStyle="{StaticResource ChipItem}" Background="Transparent" BorderThickness="0" Padding="0" Margin="0,8,0,0" AutomationProperties.Name="Sección con la que se abre"><ListBox.ItemsPanel><ItemsPanelTemplate><UniformGrid Rows="1" Columns="6" Margin="0,0,-8,-8"/></ItemsPanelTemplate></ListBox.ItemsPanel></ListBox></StackPanel></Border>
-            <TextBlock Text="Apariencia" FontSize="20" FontWeight="Bold" Margin="0,18,0,10"/>
-            <Border Background="{DynamicResource Rail}" CornerRadius="16" Padding="18,12" Margin="0,0,0,8"><StackPanel><TextBlock Text="Animaciones" FontSize="16" FontWeight="Bold"/><ListBox x:Name="SetMotion" Template="{StaticResource BareList}" ItemContainerStyle="{StaticResource ChipItem}" Background="Transparent" BorderThickness="0" Padding="0" Margin="0,8,0,0" AutomationProperties.Name="Animaciones"><ListBox.ItemsPanel><ItemsPanelTemplate><UniformGrid Rows="1" Columns="3" Margin="0,0,-8,-8"/></ItemsPanelTemplate></ListBox.ItemsPanel></ListBox></StackPanel></Border>
-            <TextBlock Text="Fortnite" FontSize="20" FontWeight="Bold" Margin="0,18,0,10"/>
+            <Label Style="{StaticResource Head}" Content="Juegos" Margin="0,0,0,10"/>
+            <StackPanel x:Name="SetGames"/>
+            <Border Background="{DynamicResource Card}" CornerRadius="16" Padding="18,12" Margin="0,0,0,8"><DockPanel><CheckBox x:Name="SetAutoGame" DockPanel.Dock="Right" Style="{StaticResource Check}" AutomationProperties.Name="Cambiar de juego solo" Margin="16,0,0,0" VerticalAlignment="Center"/><StackPanel VerticalAlignment="Center"><TextBlock Text="Cambiar de juego solo" FontSize="16" FontWeight="Bold"/><TextBlock Text="Al abrir Fortnite o Valorant, Tweakeroo pasa a ese juego." Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,2,0,0"/></StackPanel></DockPanel></Border>
+            <Label Style="{StaticResource Head}" Content="General" Margin="0,18,0,10"/>
+            <Border Background="{DynamicResource Card}" CornerRadius="16" Padding="18,12" Margin="0,0,0,8"><DockPanel><CheckBox x:Name="SetBoot" DockPanel.Dock="Right" Style="{StaticResource Check}" AutomationProperties.Name="Abrir al encender el PC" Margin="16,0,0,0" VerticalAlignment="Center"/><StackPanel VerticalAlignment="Center"><TextBlock Text="Abrir al encender el PC" FontSize="16" FontWeight="Bold"/><TextBlock Text="Solo con la app instalada. Usa una tarea de Windows, que se quita al apagar la opción." Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,2,0,0"/></StackPanel></DockPanel></Border>
+            <Border Background="{DynamicResource Card}" CornerRadius="16" Padding="18,12" Margin="0,0,0,8"><DockPanel><CheckBox x:Name="SetMin" DockPanel.Dock="Right" Style="{StaticResource Check}" AutomationProperties.Name="Empezar minimizado" Margin="16,0,0,0" VerticalAlignment="Center"/><StackPanel VerticalAlignment="Center"><TextBlock Text="Empezar minimizado" FontSize="16" FontWeight="Bold"/><TextBlock Text="Solo cuando se abre con Windows." Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,2,0,0"/></StackPanel></DockPanel></Border>
+            <Border Background="{DynamicResource Card}" CornerRadius="16" Padding="18,12" Margin="0,0,0,8"><DockPanel><CheckBox x:Name="SetTray" DockPanel.Dock="Right" Style="{StaticResource Check}" AutomationProperties.Name="Al cerrar, quedarse junto al reloj" Margin="16,0,0,0" VerticalAlignment="Center"/><StackPanel VerticalAlignment="Center"><TextBlock Text="Al cerrar, quedarse junto al reloj" FontSize="16" FontWeight="Bold"/><TextBlock Text="Las macros y la resolución siguen funcionando. Para salir, clic derecho en el icono." Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,2,0,0"/></StackPanel></DockPanel></Border>
+            <Border Background="{DynamicResource Card}" CornerRadius="16" Padding="18,12" Margin="0,0,0,8"><StackPanel><TextBlock Text="Idioma" FontSize="16" FontWeight="Bold"/><TextBlock Text="La app se reinicia al cambiarlo." Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,2,0,0"/><ListBox x:Name="SetLang" Template="{StaticResource BareList}" ItemContainerStyle="{StaticResource ChipItem}" Background="Transparent" BorderThickness="0" Padding="0" Margin="0,8,0,0" AutomationProperties.Name="Idioma"><ListBox.ItemsPanel><ItemsPanelTemplate><UniformGrid Rows="1" Columns="2" Margin="0,0,-8,-8"/></ItemsPanelTemplate></ListBox.ItemsPanel></ListBox></StackPanel></Border>
+            <Label Style="{StaticResource Head}" Content="Apariencia" Margin="0,18,0,10"/>
+            <Border Background="{DynamicResource Card}" CornerRadius="16" Padding="18,12" Margin="0,0,0,8"><StackPanel><TextBlock Text="Animaciones" FontSize="16" FontWeight="Bold"/><t:Tri x:Name="SetMotion" Margin="0,10,0,4" AutomationProperties.Name="Animaciones"/></StackPanel></Border>
+            <Label Style="{StaticResource Head}" Content="Sonido" Margin="0,18,0,10"/>
+            <Border Background="{DynamicResource Card}" CornerRadius="16" Padding="18,12" Margin="0,0,0,8"><StackPanel><TextBlock Text="Música" FontSize="16" FontWeight="Bold"/><t:Drop x:Name="SetMusicDrop" Style="{StaticResource Drop}" ContentTemplate="{StaticResource IconFace}" Margin="0,10,0,4" AutomationProperties.Name="Música"><t:Drop.Panel><ListBox x:Name="SetMusic" Template="{StaticResource BareList}" ItemContainerStyle="{StaticResource DropItem}" ItemTemplate="{StaticResource IconFace}" Background="Transparent" BorderThickness="0" Padding="0" AutomationProperties.Name="Música"/></t:Drop.Panel></t:Drop></StackPanel></Border>
+            <Border Background="{DynamicResource Card}" CornerRadius="16" Padding="18,12" Margin="0,0,0,8"><StackPanel><TextBlock Text="Cuándo suena" FontSize="16" FontWeight="Bold"/><ListBox x:Name="SetMusicMode" Template="{StaticResource BareList}" ItemContainerStyle="{StaticResource ChipItem}" Background="Transparent" BorderThickness="0" Padding="0" Margin="0,8,0,0" AutomationProperties.Name="Cuándo suena"><ListBox.ItemsPanel><ItemsPanelTemplate><UniformGrid Rows="1" Columns="3" Margin="0,0,-8,-8"/></ItemsPanelTemplate></ListBox.ItemsPanel></ListBox></StackPanel></Border>
+            <Border Background="{DynamicResource Card}" CornerRadius="16" Padding="18,12" Margin="0,0,0,8"><StackPanel><TextBlock Text="Volumen de la música" FontSize="16" FontWeight="Bold"/><DockPanel Margin="0,4,0,0"><TextBlock x:Name="SetMusicVolText" DockPanel.Dock="Right" Width="64" TextAlignment="Right" FontSize="15" FontWeight="Bold" VerticalAlignment="Center" Typography.NumeralAlignment="Tabular"/><Slider x:Name="SetMusicVol" Style="{StaticResource Sld}" Minimum="0" Maximum="100" SmallChange="1" LargeChange="5" TickFrequency="1" IsSnapToTickEnabled="True" AutomationProperties.Name="Volumen de la música" VerticalAlignment="Center"/></DockPanel></StackPanel></Border>
+            <Border Background="{DynamicResource Card}" CornerRadius="16" Padding="18,12" Margin="0,0,0,8"><DockPanel><CheckBox x:Name="SetSfx" DockPanel.Dock="Right" Style="{StaticResource Check}" AutomationProperties.Name="Efectos de sonido" Margin="16,0,0,0" VerticalAlignment="Center"/><StackPanel VerticalAlignment="Center"><TextBlock Text="Efectos de sonido" FontSize="16" FontWeight="Bold"/></StackPanel></DockPanel></Border>
+            <Border Background="{DynamicResource Card}" CornerRadius="16" Padding="18,12" Margin="0,0,0,8"><StackPanel><TextBlock Text="Volumen de los efectos" FontSize="16" FontWeight="Bold"/><DockPanel Margin="0,4,0,0"><TextBlock x:Name="SetSfxVolText" DockPanel.Dock="Right" Width="64" TextAlignment="Right" FontSize="15" FontWeight="Bold" VerticalAlignment="Center" Typography.NumeralAlignment="Tabular"/><Slider x:Name="SetSfxVol" Style="{StaticResource Sld}" Minimum="0" Maximum="100" SmallChange="1" LargeChange="5" TickFrequency="1" IsSnapToTickEnabled="True" AutomationProperties.Name="Volumen de los efectos" VerticalAlignment="Center"/></DockPanel></StackPanel></Border>
+            <TextBlock x:Name="SetGameTitle" Visibility="Collapsed"/><Label Style="{StaticResource Head}" Content="{Binding Text, ElementName=SetGameTitle}" Visibility="{Binding Visibility, ElementName=SetGame}" Margin="0,18,0,10"/>
             <StackPanel x:Name="SetGame">
-            <Border Background="{DynamicResource Rail}" CornerRadius="16" Padding="18,12" Margin="0,0,0,8"><DockPanel><CheckBox x:Name="SetMinimize" DockPanel.Dock="Right" Style="{StaticResource Check}" AutomationProperties.Name="Minimizar Tweakeroo mientras juegas" Margin="16,0,0,0" VerticalAlignment="Center"/><StackPanel VerticalAlignment="Center"><TextBlock Text="Minimizar Tweakeroo mientras juegas" FontSize="16" FontWeight="Bold"/></StackPanel></DockPanel></Border>
-            <Border Background="{DynamicResource Rail}" CornerRadius="16" Padding="18,12" Margin="0,0,0,8"><StackPanel><TextBlock Text="Límite de FPS" FontSize="16" FontWeight="Bold"/><ListBox x:Name="SetLimits" Template="{StaticResource BareList}" ItemContainerStyle="{StaticResource ChipItem}" Background="Transparent" BorderThickness="0" Padding="0" Margin="0,8,0,0" AutomationProperties.Name="Límite de FPS"><ListBox.ItemsPanel><ItemsPanelTemplate><UniformGrid Rows="1" Columns="3" Margin="0,0,-8,-8"/></ItemsPanelTemplate></ListBox.ItemsPanel></ListBox></StackPanel></Border>
+            <Border Background="{DynamicResource Card}" CornerRadius="16" Padding="18,12" Margin="0,0,0,8"><DockPanel><CheckBox x:Name="SetMinimize" DockPanel.Dock="Right" Style="{StaticResource Check}" AutomationProperties.Name="Minimizar Tweakeroo mientras juegas" Margin="16,0,0,0" VerticalAlignment="Center"/><StackPanel VerticalAlignment="Center"><TextBlock Text="Minimizar Tweakeroo mientras juegas" FontSize="16" FontWeight="Bold"/></StackPanel></DockPanel></Border>
+            <Border x:Name="SetLimitBox" Background="{DynamicResource Card}" CornerRadius="16" Padding="18,12" Margin="0,0,0,8"><StackPanel><TextBlock Text="Límite de FPS" FontSize="16" FontWeight="Bold"/><ListBox x:Name="SetLimits" Template="{StaticResource BareList}" ItemContainerStyle="{StaticResource ChipItem}" Background="Transparent" BorderThickness="0" Padding="0" Margin="0,8,0,0" AutomationProperties.Name="Límite de FPS"><ListBox.ItemsPanel><ItemsPanelTemplate><UniformGrid Rows="1" Columns="3" Margin="0,0,-8,-8"/></ItemsPanelTemplate></ListBox.ItemsPanel></ListBox></StackPanel></Border>
             </StackPanel>
-            <Border Background="{DynamicResource Rail}" CornerRadius="16" Padding="18,12" Margin="0,0,0,8"><StackPanel><TextBlock Text="Tiempo para confirmar una resolución nueva" FontSize="16" FontWeight="Bold"/><ListBox x:Name="SetConfirm" Template="{StaticResource BareList}" ItemContainerStyle="{StaticResource ChipItem}" Background="Transparent" BorderThickness="0" Padding="0" Margin="0,8,0,0" AutomationProperties.Name="Tiempo para confirmar una resolución nueva"><ListBox.ItemsPanel><ItemsPanelTemplate><UniformGrid Rows="1" Columns="3" Margin="0,0,-8,-8"/></ItemsPanelTemplate></ListBox.ItemsPanel></ListBox></StackPanel></Border>
-            <TextBlock Text="Actualizaciones" FontSize="20" FontWeight="Bold" Margin="0,18,0,10"/>
-            <Border Background="{DynamicResource Rail}" CornerRadius="16" Padding="18,12" Margin="0,0,0,8"><DockPanel><CheckBox x:Name="SetAuto" DockPanel.Dock="Right" Style="{StaticResource Check}" AutomationProperties.Name="Buscar al abrir" Margin="16,0,0,0" VerticalAlignment="Center"/><StackPanel VerticalAlignment="Center"><TextBlock Text="Buscar al abrir" FontSize="16" FontWeight="Bold"/></StackPanel></DockPanel></Border>
+            <Border Background="{DynamicResource Card}" CornerRadius="16" Padding="18,12" Margin="0,0,0,8"><StackPanel><TextBlock Text="Tiempo para confirmar una resolución nueva" FontSize="16" FontWeight="Bold"/><t:Drop x:Name="SetConfirm" Style="{StaticResource Drop}" Margin="0,10,0,4" AutomationProperties.Name="Tiempo para confirmar una resolución nueva"><t:Drop.Panel><StackPanel Margin="4,6,4,2"><t:Wheel x:Name="SetConfirmWheel" AutomationProperties.Name="Tiempo para confirmar una resolución nueva"/><TextBlock Text="Normal: 15 s" Foreground="{DynamicResource Ink2}" FontSize="12.5" FontWeight="Normal" HorizontalAlignment="Center" Margin="0,10,0,0"/><t:Btn x:Name="SetConfirmReset" Style="{StaticResource LinkBtn}" Content="Volver a 15" HorizontalAlignment="Center" Margin="0,0,0,2"/></StackPanel></t:Drop.Panel></t:Drop></StackPanel></Border>
+            <Label Style="{StaticResource Head}" Content="Actualizaciones" Margin="0,18,0,10"/>
+            <Border Background="{DynamicResource Card}" CornerRadius="16" Padding="18,12" Margin="0,0,0,8"><DockPanel><CheckBox x:Name="SetAuto" DockPanel.Dock="Right" Style="{StaticResource Check}" AutomationProperties.Name="Buscar al abrir" Margin="16,0,0,0" VerticalAlignment="Center"/><StackPanel VerticalAlignment="Center"><TextBlock Text="Buscar al abrir" FontSize="16" FontWeight="Bold"/></StackPanel></DockPanel></Border>
             <WrapPanel Margin="0,4,0,0"><t:Btn x:Name="CheckNow" Style="{StaticResource Btn}" Content="Buscar ahora" Margin="0,0,10,10"/></WrapPanel>
-            <TextBlock Text="Datos" FontSize="20" FontWeight="Bold" Margin="0,18,0,10"/>
+            <Label Style="{StaticResource Head}" Content="Datos" Margin="0,18,0,10"/>
             <WrapPanel><t:Btn x:Name="OpenData" Style="{StaticResource Btn}" Content="Abrir carpeta de datos" Margin="0,0,10,10"/><t:Btn x:Name="ExportSet" Style="{StaticResource Btn}" Content="Exportar ajustes" Margin="0,0,10,10"/><t:Btn x:Name="ImportSet" Style="{StaticResource Btn}" Content="Importar ajustes" Margin="0,0,10,10"/><t:Btn x:Name="ClearFps" Style="{StaticResource Btn}" Margin="0,0,10,10"/><t:Btn x:Name="ClearScan" Style="{StaticResource Btn}" Margin="0,0,10,10"/><t:Btn x:Name="RestoreOrig" Style="{StaticResource Btn}" Margin="0,0,10,10"/></WrapPanel>
-            <TextBlock Text="Ayuda" FontSize="20" FontWeight="Bold" Margin="0,18,0,10"/>
+            <Label Style="{StaticResource Head}" Content="Ayuda" Margin="0,18,0,10"/>
             <WrapPanel><t:Btn x:Name="LinkGit" Style="{StaticResource Btn}" Content="GitHub" Margin="0,0,10,10"/><t:Btn x:Name="LinkBug" Style="{StaticResource Btn}" Content="Informar de un fallo" Margin="0,0,10,10"/><t:Btn x:Name="CopySupport" Style="{StaticResource Btn}" Content="Copiar datos para soporte" Margin="0,0,10,10"/><t:Btn x:Name="ShowTerms" Style="{StaticResource Btn}" Content="Términos y privacidad" Margin="0,0,10,10"/><t:Btn x:Name="ResetSet" Style="{StaticResource Btn}" Margin="0,0,10,10"/></WrapPanel>
             <StackPanel Orientation="Horizontal" Margin="0,22,0,0"><TextBlock x:Name="SetVersion" Foreground="{DynamicResource Ink2}" FontSize="13" VerticalAlignment="Center" Margin="0,0,14,0"/><t:Btn x:Name="ShowVersions" Style="{StaticResource LinkBtn}" Content="Ver historial de versiones"/></StackPanel>
         </StackPanel>
       </ScrollViewer>
 
-      <!-- Mis FPS -->
+      <!-- My FPS -->
       <ScrollViewer x:Name="FpsPage" Grid.Column="1" VerticalScrollBarVisibility="Auto" Focusable="False" Visibility="Collapsed">
         <StackPanel Margin="28,24,28,110">
           <TextBlock Text="FPS reales" FontSize="32" FontWeight="Bold"/>
@@ -579,15 +819,16 @@
               </StackPanel>
             </Border>
           </StackPanel>
-          <TextBlock Text="FPS estimados" FontSize="20" FontWeight="Bold" Margin="0,24,0,2"/>
+          <StackPanel x:Name="EstBox">
+          <Label Style="{StaticResource Head}" Content="FPS estimados" Margin="0,24,0,2"/>
           <TextBlock x:Name="FpsEstimate" Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" MaxWidth="640" HorizontalAlignment="Left" Margin="0,0,0,10"/>
           <ItemsControl x:Name="Estimates" Focusable="False" Margin="0,0,-8,0">
             <ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Rows="1"/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>
               <DataTemplate>
-                <Border Background="{DynamicResource Rail}" CornerRadius="18" Padding="18,14" Margin="0,0,8,0">
+                <Border Background="{DynamicResource Card}" CornerRadius="18" Padding="18,14" Margin="0,0,8,0">
                   <StackPanel>
-                    <TextBlock Text="{Binding Label}" FontWeight="SemiBold"/>
+                    <Label Style="{StaticResource Head}" Content="{Binding Label}"/>
                     <TextBlock Text="{Binding Range}" FontSize="30" FontWeight="Bold" Margin="0,4,0,0" Typography.NumeralAlignment="Tabular"/>
                     <TextBlock Text="{Binding Size}" Foreground="{DynamicResource Ink2}" FontSize="13"/>
                   </StackPanel>
@@ -595,12 +836,13 @@
               </DataTemplate>
             </ItemsControl.ItemTemplate>
           </ItemsControl>
+          </StackPanel>
           <StackPanel Visibility="{Binding Visibility, ElementName=FpsNow}">
-            <TextBlock Text="Antes y después de los tweaks" FontSize="20" FontWeight="Bold" Margin="0,24,0,4"/>
+            <Label Style="{StaticResource Head}" Content="Antes y después de los tweaks" Margin="0,24,0,4"/>
             <TextBlock x:Name="FpsCompare" FontSize="15" TextWrapping="Wrap" MaxWidth="640" HorizontalAlignment="Left"/>
           </StackPanel>
           <StackPanel Visibility="{Binding Visibility, ElementName=FpsNow}">
-            <TextBlock Text="Partidas" FontSize="20" FontWeight="Bold" Margin="0,24,0,8"/>
+            <Label Style="{StaticResource Head}" Content="Partidas" Margin="0,24,0,8"/>
             <Grid Margin="18,0,18,6">
               <Grid.ColumnDefinitions><ColumnDefinition Width="178"/><ColumnDefinition Width="*"/><ColumnDefinition Width="54"/><ColumnDefinition Width="66"/><ColumnDefinition Width="76"/></Grid.ColumnDefinitions>
               <TextBlock Text="Cuándo" Foreground="{DynamicResource Ink2}" FontSize="13"/>
@@ -630,7 +872,7 @@
         </StackPanel>
       </ScrollViewer>
 
-      <!-- Mejoras -->
+      <!-- Upgrades -->
       <ScrollViewer x:Name="UpgradePage" Grid.Column="1" VerticalScrollBarVisibility="Auto" Focusable="False" Visibility="Collapsed">
         <StackPanel Margin="28,24,28,110">
           <TextBlock x:Name="UpTitle" Text="Mejoras para este PC" FontSize="32" FontWeight="Bold" TextWrapping="Wrap"/>
@@ -645,7 +887,7 @@
                       <Border CornerRadius="15" Background="{DynamicResource On}" Visibility="{Binding Ok, Converter={StaticResource Vis}}"><Viewbox Width="15" Height="15"><Path Data="{StaticResource IcoCheck}" Stroke="{DynamicResource OnInk}" StrokeThickness="4" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" Width="24" Height="24"/></Viewbox></Border>
                       <Border CornerRadius="15" BorderBrush="{DynamicResource Ink}" BorderThickness="2.5" Visibility="{Binding Todo, Converter={StaticResource Vis}}"/>
                     </Grid>
-                    <t:Btn DockPanel.Dock="Right" Style="{StaticResource Btn}" Icon="{StaticResource IcoWindow}" Content="Abrir ajustes" Height="38" Padding="13,0" FontSize="14" VerticalAlignment="Center" Margin="12,0,0,0" Visibility="{Binding HasUrl, Converter={StaticResource Vis}}"/>
+                    <t:Btn DockPanel.Dock="Right" Style="{StaticResource Btn}" Icon="{StaticResource IcoWindow}" Content="{Binding Act}" Height="38" Padding="13,0" FontSize="14" VerticalAlignment="Center" Margin="12,0,0,0" Visibility="{Binding HasUrl, Converter={StaticResource Vis}}"/>
                     <TextBlock DockPanel.Dock="Right" Text="{Binding Tag}" FontSize="13.5" FontWeight="SemiBold" VerticalAlignment="Center" Margin="16,0,0,0"/>
                     <StackPanel VerticalAlignment="Center">
                       <TextBlock Text="{Binding Title}" FontSize="16.5" FontWeight="Bold" TextWrapping="Wrap"/>
@@ -657,12 +899,12 @@
             </ItemsControl.ItemTemplate>
           </ItemsControl>
           <StackPanel x:Name="PlanBox" Visibility="Collapsed">
-            <TextBlock Text="Próximas compras" FontSize="24" FontWeight="Bold" Margin="0,26,0,2"/>
+            <Label Style="{StaticResource Head}" Content="Próximas compras" Margin="0,26,0,2"/>
             <TextBlock Text="Ordenadas por impacto. Ninguna es urgente." Foreground="{DynamicResource Ink2}" FontSize="15" Margin="0,0,0,12"/>
             <ItemsControl x:Name="Plan" Focusable="False">
               <ItemsControl.ItemTemplate>
                 <DataTemplate>
-                  <Border Background="{DynamicResource Rail}" CornerRadius="18" Padding="18,14" Margin="0,0,0,8">
+                  <Border Background="{DynamicResource Card}" CornerRadius="18" Padding="18,14" Margin="0,0,0,8">
                     <DockPanel>
                       <TextBlock DockPanel.Dock="Left" Text="{Binding N}" FontSize="28" FontWeight="Bold" Width="46" VerticalAlignment="Center" Foreground="{DynamicResource Ink2}" Typography.NumeralAlignment="Tabular"/>
                       <StackPanel VerticalAlignment="Center">
@@ -678,7 +920,7 @@
         </StackPanel>
       </ScrollViewer>
 
-      <!-- Lista -->      <DockPanel x:Name="ListPage" Grid.Column="1" Visibility="Collapsed">
+      <!-- List -->      <DockPanel x:Name="ListPage" Grid.Column="1" Visibility="Collapsed">
         <StackPanel DockPanel.Dock="Top" Margin="28,24,28,14">
           <DockPanel>
             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
@@ -695,7 +937,9 @@
         <Grid>
           <TextBlock x:Name="Empty" Margin="28,20" Foreground="{DynamicResource Ink2}" FontSize="15" TextWrapping="Wrap" Visibility="Collapsed"/>
           <ListBox x:Name="Rows" Template="{StaticResource PlainList}" Background="Transparent" BorderThickness="0" Padding="27,0,0,20" ItemContainerStyle="{StaticResource BareItem}" Focusable="False"
-                   ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.CanContentScroll="True" VirtualizingPanel.ScrollUnit="Pixel" VirtualizingPanel.VirtualizationMode="Recycling" KeyboardNavigation.TabNavigation="Continue">
+                   ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.CanContentScroll="True" VirtualizingPanel.ScrollUnit="Pixel" VirtualizingPanel.VirtualizationMode="Recycling" VirtualizingPanel.IsVirtualizingWhenGrouping="True" KeyboardNavigation.TabNavigation="Continue">
+            <!-- Only Tweaks, Off and On group their rows by category -->
+            <ListBox.GroupStyle><GroupStyle><GroupStyle.HeaderTemplate><DataTemplate><Label Style="{StaticResource Head}" Content="{Binding Name}" Margin="2,16,0,10"/></DataTemplate></GroupStyle.HeaderTemplate></GroupStyle></ListBox.GroupStyle>
             <ListBox.ItemTemplate>
               <DataTemplate>
                 <Border x:Name="plate" Background="{DynamicResource Card}" CornerRadius="18" Margin="0,0,16,8" Padding="18,14,20,14">
@@ -734,8 +978,8 @@
         </Grid>
       </DockPanel>
 
-      <!-- Guardados -->
-      <DockPanel Grid.Column="2" Background="{DynamicResource Rail}">
+      <!-- Saved -->
+      <DockPanel Grid.Column="2" Background="{DynamicResource RailA}">
         <StackPanel DockPanel.Dock="Top" Margin="20,24,20,14">
           <TextBlock Text="Guardados" FontSize="24" FontWeight="Bold"/>
           <TextBlock Text="Copias del estado del PC. Restaurar vuelve a cualquiera de ellas." Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,4,0,14"/>
@@ -743,10 +987,9 @@
           <t:Btn x:Name="SaveNow" Style="{StaticResource Btn}" Icon="{StaticResource IcoSave}" Content="Guardar estado actual" Margin="0,8,0,0"/>
         </StackPanel>
         <Grid>
-        <StackPanel x:Name="SkelSaves" Margin="20,0" Visibility="Collapsed">
-          <ContentControl Style="{StaticResource Skel}" HorizontalAlignment="Stretch" Height="128" Margin="0,0,0,8"/>
-          <ContentControl Style="{StaticResource Skel}" HorizontalAlignment="Stretch" Height="128" Margin="0,0,0,8"/>
-          <ContentControl Style="{StaticResource Skel}" HorizontalAlignment="Stretch" Height="128"/>
+        <StackPanel x:Name="SkelSaves" Panel.ZIndex="1" Background="{DynamicResource Rail}" Margin="0" Visibility="Collapsed">          <ContentControl Style="{StaticResource Skel}" HorizontalAlignment="Stretch" Height="128" Margin="20,0,20,8"/>
+          <ContentControl Style="{StaticResource Skel}" HorizontalAlignment="Stretch" Height="128" Margin="20,0,20,8"/>
+          <ContentControl Style="{StaticResource Skel}" HorizontalAlignment="Stretch" Height="128" Margin="20,0,20,0"/>
         </StackPanel>
         <ListBox x:Name="Saves" Template="{StaticResource PlainList}" Background="Transparent" BorderThickness="0" Padding="19,0,0,16" ItemContainerStyle="{StaticResource BareItem}" Focusable="False" ScrollViewer.HorizontalScrollBarVisibility="Disabled" VirtualizingPanel.ScrollUnit="Pixel" KeyboardNavigation.TabNavigation="Continue">
           <ListBox.ItemTemplate>
@@ -767,7 +1010,7 @@
         </Grid>
       </DockPanel>
 
-      <!-- Carga -->
+      <!-- Loading -->
       <Border x:Name="SkelPage" Grid.Column="1" Background="{DynamicResource Bg}" Padding="28,30,28,0" Visibility="Collapsed">
         <StackPanel>
           <ContentControl Style="{StaticResource Skel}" Width="380" Height="34"/>
@@ -785,7 +1028,7 @@
         </StackPanel>
       </Border>
 
-      <!-- Aviso -->
+      <!-- Notice -->
       <Border x:Name="Toast" Grid.Column="1" Background="{DynamicResource Ink}" CornerRadius="18" Padding="20,14" Margin="28,0,28,22" HorizontalAlignment="Center" VerticalAlignment="Bottom" MaxWidth="620" IsHitTestVisible="False" Opacity="0">
         <StackPanel>
           <TextBlock x:Name="Status" Foreground="{DynamicResource Rail}" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite"/>
@@ -796,7 +1039,7 @@
         </StackPanel>
       </Border>
     </Grid>
-    <!-- Instalacion -->
+    <!-- Installation -->
     <Grid x:Name="Setup" Background="{DynamicResource Bg}" Visibility="Collapsed">
       <Grid.ColumnDefinitions><ColumnDefinition Width="300"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
       <DockPanel Background="{DynamicResource Rail}">
@@ -815,7 +1058,7 @@
       <ScrollViewer x:Name="SetupWelcome" Grid.Column="1" VerticalScrollBarVisibility="Auto" Focusable="False" Visibility="Collapsed">
         <StackPanel x:Name="SetupWelcomeBody" Margin="64,64,48,40" MaxWidth="720" HorizontalAlignment="Left">
           <StackPanel Orientation="Horizontal" Margin="0,0,0,26"><t:Btn x:Name="SetupEs" Style="{StaticResource Btn}" Icon="{StaticResource IcoGlobe}" Content="Español" Margin="0,0,8,0"/><t:Btn x:Name="SetupEn" Style="{StaticResource Btn}" Icon="{StaticResource IcoGlobe}" Content="English"/></StackPanel>
-          <TextBlock Text="Optimización de Windows para Fortnite" FontSize="40" FontWeight="Bold" TextWrapping="Wrap"/>
+          <TextBlock Text="Optimización de Windows para Fortnite y Valorant" FontSize="40" FontWeight="Bold" TextWrapping="Wrap"/>
           <TextBlock Text="Gratis, sin anuncios y con todos los cambios reversibles." FontSize="17" Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,8,0,34"/>
           <DockPanel Margin="0,0,0,22"><Viewbox Width="30" Height="30" DockPanel.Dock="Left" VerticalAlignment="Top" Margin="0,2,20,0"><Path Data="{StaticResource IcoScan}" Stroke="{DynamicResource On}" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" Width="24" Height="24"/></Viewbox><StackPanel><TextBlock Text="Análisis de componentes" FontSize="18" FontWeight="Bold"/><TextBlock Text="Escanea el PC y recomienda los ajustes adecuados entre más de 170." FontSize="15" Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,2,0,0"/></StackPanel></DockPanel>
           <DockPanel Margin="0,0,0,22"><Viewbox Width="30" Height="30" DockPanel.Dock="Left" VerticalAlignment="Top" Margin="0,2,20,0"><Path Data="{StaticResource IcoUndo}" Stroke="{DynamicResource On}" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" Width="24" Height="24"/></Viewbox><StackPanel><TextBlock Text="Copia del estado original" FontSize="18" FontWeight="Bold"/><TextBlock Text="Cada ajuste se desactiva con su interruptor y el estado original se puede restaurar en cualquier momento." FontSize="15" Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,2,0,0"/></StackPanel></DockPanel>
@@ -863,7 +1106,7 @@
       </Grid>
     </Grid>
 
-    <!-- Version nueva -->
+    <!-- New version -->
     <Grid x:Name="UpdateBox" Visibility="Collapsed" KeyboardNavigation.TabNavigation="Cycle" KeyboardNavigation.DirectionalNavigation="Contained">
       <Border Background="{DynamicResource Rail}" Opacity="0.8"/>
       <Border x:Name="UpdateCard" Background="{DynamicResource Card}" CornerRadius="24" Padding="36,32" Width="560" HorizontalAlignment="Center" VerticalAlignment="Center">
@@ -878,7 +1121,7 @@
           <TextBlock x:Name="UpdateNote" Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,8,0,22"/>
           <WrapPanel>
             <t:Btn x:Name="UpdateNow" Style="{StaticResource BtnCta}" Icon="{StaticResource IcoSave}" Content="Actualizar ahora" Margin="0,0,10,0"/>
-            <t:Btn x:Name="UpdateLater" Style="{StaticResource Btn}" Content="Más tarde" Height="60"/>
+            <t:Btn x:Name="UpdateLater" Style="{StaticResource Btn}" Content="Más tarde"/>
           </WrapPanel>
         </StackPanel>
       </Border>
@@ -894,7 +1137,7 @@
               <ItemsControl x:Name="InfoVersions" Focusable="False">
                 <ItemsControl.ItemTemplate>
                   <DataTemplate>
-                    <Border Background="{DynamicResource Rail}" CornerRadius="18" Padding="22,18" Margin="0,0,0,10">
+                    <Border Background="{DynamicResource Card}" CornerRadius="18" Padding="22,18" Margin="0,0,0,10">
                       <StackPanel>
                         <DockPanel Margin="0,0,0,10">
                           <TextBlock DockPanel.Dock="Right" Text="{Binding Date}" Foreground="{DynamicResource Ink2}" VerticalAlignment="Center" Typography.NumeralAlignment="Tabular"/>

@@ -2,7 +2,7 @@
 
 <h1 align="center">Tweakeroo</h1>
 
-<p align="center">A free Windows app that tunes your PC for Fortnite, opens the game in stretched resolution and lets you undo every tweak.</p>
+<p align="center">A free Windows app that tunes your PC for Fortnite and Valorant, opens the game in stretched resolution and lets you undo every tweak.</p>
 
 <p align="center"><a href="https://github.com/benjarn114/tweakeroo/releases/latest/download/Tweakeroo.exe"><b>Download Tweakeroo.exe</b></a> · <a href="https://github.com/benjarn114/tweakeroo/releases">All versions</a></p>
 
@@ -10,36 +10,62 @@
 
 ## What it is
 
-Tweakeroo is a single `.exe` with more than 170 Windows and Fortnite settings, each with its own switch. It scans your parts, tells you which settings suit your PC and why, and saves a copy of your original state before it changes anything.
+Tweakeroo is a single `.exe` with more than 200 Windows and game settings, each with its own switch. It scans your components, tells you which settings suit your PC and why, and saves a copy of your original state before it changes anything.
 
 I vibe-coded it: I had the ideas, tested it on my own PC, and built it with AI. Making it cost me little, so I'm giving it away. There are no ads, no accounts, no analytics and no locked features.
 
+Since 1.0, Tweakeroo is out of early access.
+
 ## What it does
 
+### One app, two games
+- Switch between Fortnite and Valorant and the whole app follows: colors, photos, resolution, FPS, tweaks and color profile. It can also switch by itself when a game opens.
+
+### Themes
+- Night, Rain and Arcade: an animated pixel art background with its own music and colors. Pick one at the bottom left.
+- Simple keeps the usual colors per game with no animated background, for the best performance.
+- The background stops while the app is minimized, in the background or with a game open, and stays still when animations are off.
+
 ### Play
-- Opens Fortnite at the resolution you pick. When the game closes, your screen and Fortnite's settings are restored.
-- Stretched resolutions from a list, or your own on NVIDIA cards. A new one is tested first: if you don't confirm it within 15 seconds, it goes back.
-- Before and after photos show how much wider characters get.
+- One button opens the game at the resolution you picked. When it closes, your screen and Fortnite's settings are restored.
 - FPS limit, estimated FPS, your last match and the programs using the most memory.
+
+### Stretched Resolution
+- Its own section in both games. Your monitor's resolution by default. Pick a stretched one from the dropdown, sorted from least to most stretched, or make your own on NVIDIA cards; nothing needs to be created in the NVIDIA panel. A new one is tested first: if you don't confirm it within 15 seconds, it goes back.
+- Before and after photos show how much wider characters get.
+
+### Stretched Valorant (off by default)
+- Only offers resolutions with an aspect ratio of 1.45:1 or more, the ones that work in Valorant.
+- Disables the monitors in Device Manager, waits for a map to load and changes the Windows resolution. Everything goes back when the game closes. Monitors that were already disabled are left as they are.
+- It checks your Valorant settings (Windowed Fullscreen, Fill). Only when you press Fix, and with the game closed, it changes those two in the video settings file, saving a copy first. It doesn't touch the game's memory and sends no keys.
+
+![The Play screen for Valorant](docs/valorant.png)
+
+> **Use at your own risk.** Riot hasn't published a clear rule about this.
+
+### Colors
+- A color profile per game: NVIDIA vibrance, brightness, contrast and gamma. It is applied when the game opens and removed when it closes.
+- Vibrance needs an NVIDIA card. Windows doesn't allow brightness and gamma on some screens, for example with HDR; the app says so.
+
+![Color profiles](docs/colors.png)
+
+### While playing
+- Changes that only last while the game is open, with no restart: high performance plan, browsers in efficiency mode, Windows Update, search index and diagnostics paused, no window animations or transparency, no mouse acceleration and no Shift prompts. Each game keeps its own list.
 
 ### My PC
 - Reads your GPU, CPU, memory, disk, network and screen, then recommends only what fits. For example, it skips battery-draining settings on laptops and wired settings on Wi-Fi.
 - The scan is saved and refreshed in the background each time you open the app.
 
-### My FPS
-- Real FPS for each match, read from the log files Fortnite already writes. It never touches the game's memory.
-- Compares your FPS before and after your last big change.
-
-### Upgrades
-- Free fixes you may be missing: a monitor running below its maximum Hz, memory without EXPO/XMP, an old driver.
-- What to buy next, based on your bottleneck. If nothing is worth buying, it says so.
-
 ### Tweaks
+Tweaks has its own section, with shortcuts to the ones that are Off and On.
+
 | Category | Examples |
 | --- | --- |
 | Fortnite | Performance mode, VSync off, Reflex, shadows and effects on low |
+| Valorant | NVIDIA maximum performance, VSync off from the NVIDIA profile |
 | Graphics and capture | Game Mode, Game DVR off, NVIDIA maximum performance for Fortnite |
 | Power and CPU | High performance plan, core parking off, USB sleep off |
+| Latency | NVIDIA low latency, MSI interrupts, CPU priority. Unproven ones say so |
 | Mouse and keyboard | Pointer acceleration off, Sticky Keys shortcut off |
 | Network | Card power saving off, background download limits |
 | Background, services and tasks | Less running while you play |
@@ -49,22 +75,32 @@ Each tweak shows its expected impact. Settings marked **Risk** lower a Windows d
 
 ![The list of tweaks](docs/tweaks.png)
 
+### My FPS
+- Real FPS for each match, read from the log files Fortnite and Valorant already write. It never touches the game's memory.
+- Compares your FPS before and after your last big change.
+
 ### Connection
-- A 15 second test of ping, jitter and packet loss to your router, the internet and Epic, with a verdict on where the problem is.
+- A 15 second test of ping, jitter and packet loss to your router, the internet and, with Fortnite, Epic's servers, with a verdict on where the problem is.
 - Download and upload speed, and how much your ping rises when the connection is full.
-- Steady Wi-Fi: with Fortnite open, Windows stops scanning for other networks. It goes back to normal when the game closes.
+- Steady Wi-Fi: with a game open, Windows stops scanning for other networks. It goes back to normal when the game closes.
 - Checks for the Wi-Fi band, the signal and programs that may be using the network, plus network tweaks.
 - It isn't a VPN or a routing service: it can't shorten the distance to the server.
 
-### Settings
-- Open with Windows, start minimized, or stay next to the clock when closed.
-- Language, opening section, animations, FPS limit and how long you have to confirm a resolution.
-- Update checks, export and import, clear data, go back to Original, and the full version history.
+### Upgrades
+- Free fixes you may be missing: a monitor running below its maximum Hz, memory without EXPO/XMP, a newer NVIDIA driver.
+- What to buy next, based on your bottleneck. If nothing is worth buying, it says so.
 
 ### Macros (Creative only)
 Optional edit macros for freebuilding: quick edit, double edit, edit and reset, and reset. They are off by default and only send keys when Fortnite is in front and its log says you are in Creative.
 
 > **Use at your own risk.** Epic forbids macros in tournaments, and using them, also in Creative, can lead to account penalties. Tweakeroo doesn't hide them or avoid detection.
+
+### Settings
+- Open with Windows, start minimized, or stay next to the clock when closed.
+- Language, opening section, animations, FPS limit and how long you have to confirm a resolution.
+- Sound: calm music (Night, Arcade or Rain) and soft effects, all of it can be turned off. Music pauses when you switch windows.
+- Games: choose where each game is installed and which ones show in the switch.
+- Update checks, export and import, clear data, go back to Original, and the full version history.
 
 ## Is it safe?
 
@@ -80,7 +116,7 @@ Don't take my word for it:
 
 **Why does it ask for administrator rights?** It changes the registry, services, scheduled tasks, the power plan, the network card and the NVIDIA profile.
 
-**What does it connect to?** GitHub, to look for and download updates. The connection test, only when you press it, pings your router, 1.1.1.1 and Epic's measuring servers. The speed test, only when you press it, downloads and uploads test data with speed.cloudflare.com (up to 750 MB). Every update is signed and the app checks the signature before installing it. You see what's new and decide. Your data stays in `%LOCALAPPDATA%\Tweakeroo`. Launching Fortnite uses Epic's launcher.
+**What does it connect to?** GitHub, to look for and download updates. With an NVIDIA card, NVIDIA, to ask for the latest driver version when you scan and once a day if update checks are on. The connection test, only when you press it, pings your router, 1.1.1.1 and, with Fortnite, Epic's measuring servers. The speed test, only when you press it, downloads and uploads test data with speed.cloudflare.com (up to 750 MB). Every update is signed and the app checks the signature before installing it. You see what's new and decide. Your data stays in `%LOCALAPPDATA%\Tweakeroo`. Launching Fortnite uses Epic's launcher, and Valorant uses Riot Client.
 
 ## Install
 
@@ -105,7 +141,7 @@ cd tweakeroo
 powershell -ExecutionPolicy Bypass -File build.ps1
 ```
 
-It uses `csc.exe` from .NET Framework 4.8, included in Windows 10 and 11. The code is C# and WPF, with no external packages. Comments and text keys are in Spanish; the English text is in `src/en.txt`.
+It uses `csc.exe` from .NET Framework 4.8, included in Windows 10 and 11. The code is C# and WPF, with no external packages. Comments are in English. The interface text is written in Spanish in the code and translated through `src/en.txt`; English is the default language.
 
 | File | What it does |
 | --- | --- |
@@ -113,15 +149,22 @@ It uses `csc.exe` from .NET Framework 4.8, included in Windows 10 and 11. The co
 | `Ops.cs`, `Engine.cs` | Reading, writing, checking and restoring settings |
 | `Advisor.cs`, `Review.cs` | Scan and recommendations |
 | `Stretch.cs` | Resolutions and launching the game |
+| `Game.cs`, `GameUi.cs` | Games, stretched Valorant and the game switch |
+| `Color.cs` | Color profiles |
+| `Live.cs`, `BoostUi.cs` | Changes while playing, instant apply, pending restarts and driver check |
 | `Fps.cs` | FPS from the logs |
-| `Macros.cs` | Creative macros |
-| `Update.cs`, `Setup.cs` | Signed updates, install and uninstall |
-| `SelfTest.cs`, `ClickTest.cs` | Automatic tests |
+| `Net.cs`, `NetUi.cs`, `Speed.cs` | Connection test, speed test and steady Wi-Fi |
+| `Macros.cs`, `Binds.cs` | Creative macros and reading your Fortnite keys |
+| `Ui.cs`, `Window.xaml`, `Theme.cs`, `Motion.cs`, `Picker.cs` | Interface, palettes, animations and controls |
+| `Scenes.cs`, `Sound.cs` | Animated themes, music and sound effects |
+| `Settings.cs`, `Prefs.cs`, `Lang.cs` | Settings, saved preferences and translation |
+| `App.cs`, `Update.cs`, `Setup.cs` | Start-up, signed updates, install and uninstall |
+| `SelfTest.cs`, `ClickTest.cs`, `Jank.cs` | Automatic tests |
 
 ## License
 
-The source is public so anyone can read it, check it and build it for personal use. Every version you get for free is yours to use forever. Selling it or republishing it isn't allowed. See [LICENSE](LICENSE).
+Tweakeroo is free and will stay free forever. The source is public so anyone can read it, check it and build it for personal use. Nobody may sell it, charge for it or republish it outside GitHub. See [LICENSE](LICENSE).
 
 ## Disclaimer
 
-Tweakeroo is not affiliated with or endorsed by Epic Games, Microsoft, NVIDIA, AMD or Intel. Fortnite and its images belong to Epic Games. Changing system settings can cause problems; you use the app at your own responsibility.
+Tweakeroo is not affiliated with or endorsed by Epic Games, Riot Games, Microsoft, NVIDIA, AMD or Intel. Fortnite and its images belong to Epic Games. Valorant and its images belong to Riot Games. Changing system settings can cause problems; you use the app at your own responsibility.

@@ -1,52 +1,96 @@
-## 3.7.0 2026-11-22
+## 1.0.0 2026-11-24
+- Versión 1.0: sale del acceso anticipado.	Version 1.0: out of early access.
+- Temáticas: Noche, Lluvia y Arcade, con fondo animado en pixel art, su música y sus colores. Se eligen abajo a la izquierda.	Themes: Night, Rain and Arcade, with an animated pixel art background, their own music and colors. Pick one at the bottom left.
+- Simple deja los colores de siempre por juego, sin fondo animado, para el máximo rendimiento.	Simple keeps the usual colors per game with no animated background, for the best performance.
+- El fondo se para con la app minimizada, en segundo plano o con un juego abierto, y queda quieto con las animaciones apagadas.	The background stops while the app is minimized, in the background or with a game open, and stays still when animations are off.
+- Selector de juego: Fortnite y Valorant, cada uno con sus colores, fotos, resolución, FPS y tweaks.	Game switch: Fortnite and Valorant, each with its own colors, photos, resolution, FPS and tweaks.
+- Stretched tiene su propia sección en los dos juegos y Jugar solo abre el juego.	Stretched has its own section in both games, and Play just opens the game.
+- Estirar Valorant (apagado por defecto): cambia la resolución al cargar un mapa y restaura todo al cerrar.	Stretch Valorant (off by default): changes the resolution when a map loads and restores everything on close.
+- Colores: un perfil por juego con intensidad, brillo, contraste y gamma, y prueba de 10 segundos.	Colors: a profile per game with vibrance, brightness, contrast and gamma, and a 10 second test.
+- Al jugar: 13 cambios de Windows que duran solo mientras el juego está abierto, sin reiniciar.	While playing: 13 Windows changes that only last while the game is open, without restarting.
+- Más de 35 tweaks nuevos, con una sección de retraso y tweaks propios de Valorant.	More than 35 new tweaks, with a latency section and tweaks just for Valorant.
+- El aviso de reiniciar solo sale cuando hace falta de verdad.	The restart notice only shows when it is really needed.
+- Aviso si hay un driver de NVIDIA más nuevo.	Notice when there is a newer NVIDIA driver.
+- FPS de Valorant por mapa, paleta Carmesí y cambio de juego automático.	Valorant FPS by map, Crimson palette and automatic game switching.
+- Volver al estado Original también devuelve los tweaks llegados en versiones nuevas.	Going back to Original also reverts tweaks that arrived in newer versions.
+- Antes de jugar en Valorant: botón Arreglar para la escala de NVIDIA, el modo de pantalla y la relación de aspecto.	Before playing in Valorant: a Fix button for NVIDIA scaling, display mode and aspect ratio.
+- Juegos en Ajustes: elegir dónde está instalado cada juego y cuáles salen en el selector.	Games in Settings: choose where each game is installed and which ones show in the switch.
+- Sonido: música tranquila (Noche, Arcade o Lluvia) y efectos suaves, todo desactivable en Ajustes. La música se pausa al cambiar de ventana y sigue donde iba.	Sound: calm music (Night, Arcade or Rain) and soft effects, all of it can be turned off in Settings. Music pauses when you switch windows and resumes where it was.
+- Diseño nuevo: una sola acción principal por pantalla, botones más fáciles de distinguir y secciones con más contraste.	New design: one main action per screen, buttons that are easier to tell apart and sections with more contrast.
+- Sección Tweaks propia, con accesos directos a los Apagados y los Activados.	Tweaks has its own section, with shortcuts to the ones that are Off and On.
+- Stretched Resolution: resoluciones en un desplegable, de menos a más estirada.	Stretched Resolution: resolutions in a dropdown, from least to most stretched.
+- Ajustes: interruptor de animaciones de 3 posiciones, rueda para el tiempo de confirmar (5 a 30 s) y música con iconos.	Settings: 3-position animations switch, a wheel for the confirm time (5 to 30 s) and music with icons.
+- Valorant se estira también si se abre desde Riot Client con Tweakeroo abierta.	Valorant also stretches when opened from Riot Client while Tweakeroo is open.
+- Impr Pant y Win+Shift+S vuelven a funcionar con la app delante.	PrtScn and Win+Shift+S work again with the app in front.
+- Términos actualizados.	Updated terms.
+## 0.41.0 2026-11-23
+- Temáticas: Noche, Lluvia y Arcade, con fondo animado en pixel art, su música y sus colores. Se eligen abajo a la izquierda.	Themes: Night, Rain and Arcade, with an animated pixel art background, their own music and colors. Pick one at the bottom left.
+- Simple deja los colores de siempre por juego, sin fondo animado, para el máximo rendimiento.	Simple keeps the usual colors per game with no animated background, for the best performance.
+- El fondo se para con la app minimizada, en segundo plano o con un juego abierto, y queda quieto con las animaciones apagadas.	The background stops while the app is minimized, in the background or with a game open, and stays still when animations are off.
+## 0.40.0 2026-11-22
+- Selector de juego: Fortnite y Valorant, cada uno con sus colores, fotos, resolución, FPS y tweaks.	Game switch: Fortnite and Valorant, each with its own colors, photos, resolution, FPS and tweaks.
+- Stretched tiene su propia sección en los dos juegos y Jugar solo abre el juego.	Stretched has its own section in both games, and Play just opens the game.
+- Estirar Valorant (apagado por defecto): cambia la resolución al cargar un mapa y restaura todo al cerrar.	Stretch Valorant (off by default): changes the resolution when a map loads and restores everything on close.
+- Colores: un perfil por juego con intensidad, brillo, contraste y gamma, y prueba de 10 segundos.	Colors: a profile per game with vibrance, brightness, contrast and gamma, and a 10 second test.
+- Al jugar: 13 cambios de Windows que duran solo mientras el juego está abierto, sin reiniciar.	While playing: 13 Windows changes that only last while the game is open, without restarting.
+- Más de 35 tweaks nuevos, con una sección de retraso y tweaks propios de Valorant.	More than 35 new tweaks, with a latency section and tweaks just for Valorant.
+- El aviso de reiniciar solo sale cuando hace falta de verdad.	The restart notice only shows when it is really needed.
+- Aviso si hay un driver de NVIDIA más nuevo.	Notice when there is a newer NVIDIA driver.
+- FPS de Valorant por mapa, paleta Carmesí y cambio de juego automático.	Valorant FPS by map, Crimson palette and automatic game switching.
+- Volver al estado Original también devuelve los tweaks llegados en versiones nuevas.	Going back to Original also reverts tweaks that arrived in newer versions.
+- Antes de jugar en Valorant: botón Arreglar para la escala de NVIDIA, el modo de pantalla y la relación de aspecto.	Before playing in Valorant: a Fix button for NVIDIA scaling, display mode and aspect ratio.
+- Juegos en Ajustes: elegir dónde está instalado cada juego y cuáles salen en el selector.	Games in Settings: choose where each game is installed and which ones show in the switch.
+- Sonido: música tranquila (Noche, Arcade o Lluvia) y efectos suaves, todo desactivable en Ajustes.	Sound: calm music (Night, Arcade or Rain) and soft effects, all of it can be turned off in Settings.
+- Términos actualizados.	Updated terms.
+## 0.37.0 2026-11-22
 - Macros: ya no se quedan dentro de la edición. Las teclas y confirmar al soltar se leen solas de Fortnite.	Macros: they no longer get stuck in edit. The keys and confirm on release are read from Fortnite automatically.
 - Macro nueva: salir de edición.	New macro: leave edit.
 - Conexión: velocidad de descarga y subida, y cuánto sube el ping con la conexión llena.	Connection: download and upload speed, and how much the ping rises when the connection is full.
 - Términos actualizados.	Updated terms.
-## 3.6.0 2026-11-22
+## 0.36.0 2026-11-22
 - Doble edición arreglada: un toque manda las dos, con una pausa ajustable entre ellas.	Double edit fixed: one tap sends both, with an adjustable pause between them.
 - Macros: leer las teclas de Fortnite y avisar si la tecla de una macro ya hace algo en el juego.	Macros: read the Fortnite keys and warn if a macro key already does something in the game.
 - Conexión: mide ping, variación y paquetes perdidos, y dice dónde está el problema.	Connection: measures ping, jitter and lost packets, and tells where the problem is.
 - Wi-Fi estable mientras se juega y dos tweaks de red nuevos.	Steady Wi-Fi while playing and two new network tweaks.
 - Términos actualizados.	Updated terms.
-## 3.5.0 2026-11-22
+## 0.35.0 2026-11-22
 - Ajustes: abrir con Windows, quedarse junto al reloj, idioma, sección inicial, animaciones y más.	Settings: open with Windows, stay next to the clock, language, opening section, animations and more.
 - Historial de versiones dentro de la app.	Version history inside the app.
 - Exportar e importar ajustes, y borrar el historial de FPS o el escaneo.	Export and import settings, and clear the FPS history or the scan.
 - La barra de título muestra la versión instalada.	The title bar shows the installed version.
-## 3.4.0 2026-11-22
+## 0.34.0 2026-11-22
 - Macros: el clic derecho y la rueda se pueden elegir como teclas de Fortnite.	Macros: right click and the wheel can be chosen as Fortnite keys.
 - El programa viene en inglés; el español se elige cuando quieras.	English is now the default language; Spanish is one click away.
 - El código fuente es público en GitHub.	The source code is public on GitHub.
 - Términos actualizados.	Updated terms.
-## 3.3.0 2026-11-22
+## 0.33.0 2026-11-22
 - Macros de edición configurables, solo para Creativo. Apagadas por defecto y bajo tu propio riesgo.	Configurable edit macros, Creative only. Off by default and at your own risk.
 - Foto real en Jugar: normal y estirada según la resolución.	Real photo in Play: normal and stretched to match the resolution.
 - Tweak nuevo: temporizador de 0,5 ms al jugar (Windows 11).	New tweak: 0.5 ms timer while playing (Windows 11).
 - El icono nuevo se refresca en la barra y los accesos directos.	The new icon refreshes on the taskbar and shortcuts.
-## 3.2.0 2026-11-22
+## 0.32.0 2026-11-22
 - El escaneo queda guardado: ya no hay que repetirlo al abrir la app.	The scan is saved: no need to repeat it when the app opens.
 - Jugar es la primera sección y se abre al entrar.	Play is the first section and opens on start.
 - Textos más claros en toda la app.	Clearer texts across the app.
 - Corregido el círculo deformado del selector de colores.	Fixed the distorted circle in the color picker.
-## 3.1.1 2026-11-22
+## 0.31.1 2026-11-22
 - Logo nuevo: un canguro que levanta las orejas al abrir la app.	New logo: a kangaroo that raises its ears when the app opens.
-## 3.1.0 2026-11-22
+## 0.31.0 2026-11-22
 - Español e inglés.	Spanish and English.
 - Jugar: lista de resoluciones desplegable, resoluciones personalizadas con NVIDIA y límite de FPS.	Play: drop-down resolution list, custom resolutions with NVIDIA and FPS limit.
 - Mejoras: qué comprar después y qué hace cuello de botella.	Upgrades: what to buy next and what is the bottleneck.
 - Menú de colores desplegable, brillo en el botón principal y carga sin esperas.	Drop-down color menu, a glint on the main button and faster loading.
 - El clic derecho ya no cambia de pestaña.	Right click no longer switches tabs.
-## 3.0.0 2026-11-22
+## 0.30.0 2026-11-22
 - Menú corto: las demás secciones salen de Mejoras.	Short menu: the other sections unfold from Upgrades.
 - Instalador con explicación y términos, y desinstalador.	Installer with an explanation and terms, and an uninstaller.
 - Actualizaciones firmadas que muestran las novedades antes de instalar.	Signed updates that show what's new before installing.
 - Stretched automático: abre Fortnite y lo restaura todo al cerrar.	Automatic stretched: opens Fortnite and restores everything when it closes.
 - FPS reales de cada partida, estimación de FPS y consejos de compra.	Real FPS for each match, estimated FPS and purchase advice.
-## 2.0.0 2026-11-22
+## 0.20.0 2026-11-22
 - Nombre Tweakeroo y diseño nuevo con seis paletas de color.	The Tweakeroo name and a new design with six color palettes.
 - Escáner que recomienda los tweaks adecuados para cada PC.	Scanner that recommends the right tweaks for each PC.
 - Animaciones con rebote.	Bouncy animations.
 - Más de 170 tweaks.	More than 170 tweaks.
-## 1.0.0 2026-11-22
+## 0.10.0 2026-11-22
 - Primera versión: tweaks de Windows y Fortnite que se pueden deshacer, con guardados.	First version: reversible Windows and Fortnite tweaks, with saves.
