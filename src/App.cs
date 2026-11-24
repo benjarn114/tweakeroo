@@ -13,7 +13,7 @@ using System.Windows.Media.Imaging;
 
 [assembly: AssemblyTitle("Tweakeroo")]
 [assembly: AssemblyProduct("Tweakeroo")]
-[assembly: AssemblyVersion("1.0.2.0")]
+[assembly: AssemblyVersion("1.0.3.0")]
 
 namespace Tablero
 {
@@ -95,8 +95,11 @@ namespace Tablero
                         File.AppendAllText(log, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " " + Installer.Short + "\r\n" + e.Exception + "\r\n\r\n");
                     }
                     catch (Exception) { }
-                    MessageBox.Show("Algo falló: " + e.Exception.Message, "Tweakeroo", MessageBoxButton.OK, MessageBoxImage.Error);
                     e.Handled = true;
+                    // A failed animation is only cosmetic: logged, but it must not block the app with a dialog.
+                    string st = e.Exception.StackTrace ?? "";
+                    if (e.Exception is InvalidOperationException && (st.Contains("BeginAnimation") || st.Contains("Animat"))) return;
+                    MessageBox.Show("Algo falló: " + e.Exception.Message, "Tweakeroo", MessageBoxButton.OK, MessageBoxImage.Error);
                 };
 #endif
 #if SHOT

@@ -38,6 +38,7 @@ namespace Tablero
 
         public static void To(IAnimatable t, DependencyProperty p, double to, int ms, IEasingFunction ease, int delay = 0, Action done = null)
         {
+            if (Frozen(t)) return;
             if (!On) ms = 1;
             DoubleAnimation a = new DoubleAnimation(to, TimeSpan.FromMilliseconds(ms)) { EasingFunction = ease, BeginTime = TimeSpan.FromMilliseconds(On ? delay : 0) };
             if (done != null) a.Completed += (s, e) => done();
@@ -45,13 +46,15 @@ namespace Tablero
         }
         public static void From(IAnimatable t, DependencyProperty p, double from, double to, int ms, IEasingFunction ease, int delay)
         {
-            if (!On) return;
+            if (!On || Frozen(t)) return;
             DoubleAnimationUsingKeyFrames a = new DoubleAnimationUsingKeyFrames { FillBehavior = FillBehavior.Stop };
             a.KeyFrames.Add(new DiscreteDoubleKeyFrame(from, KeyTime.FromTimeSpan(TimeSpan.Zero)));
             a.KeyFrames.Add(new DiscreteDoubleKeyFrame(from, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(delay))));
             a.KeyFrames.Add(new EasingDoubleKeyFrame(to, KeyTime.FromTimeSpan(TimeSpan.FromMilliseconds(delay + ms))) { EasingFunction = ease });
             t.BeginAnimation(p, a);
         }
+        // A frozen (shared or sealed) transform cannot be animated; motion is cosmetic, so it is skipped instead of failing.
+        public static bool Frozen(IAnimatable t) { Freezable f = t as Freezable; return f != null && f.IsFrozen; }
         // List entrance: rises and fades in, 30 ms between items.
         public static void Enter(FrameworkElement e, int index, double rise)
         {
