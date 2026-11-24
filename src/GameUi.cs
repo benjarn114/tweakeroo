@@ -20,7 +20,6 @@ namespace Tablero
     {
         [System.Web.Script.Serialization.ScriptIgnore] public string Detail { get; set; }
         [System.Web.Script.Serialization.ScriptIgnore] public bool Best { get; set; }
-        [System.Web.Script.Serialization.ScriptIgnore] public bool Off { get; set; }
     }
 
     // Picking a game, its colors and what changes when switching from one to another.
@@ -591,8 +590,8 @@ namespace Tablero
             StretchSession s;
             ValorantSession v = sessions.TryGetValue(Game.Valorant.Id, out s) ? s as ValorantSession : null;
             Res r = v == null ? null : v.Last;
-            // Off, already open from Play, a resolution never confirmed or the normal one: nothing to do.
-            try { if (r == null || !v.Stretch || v.Pending || v.Asks(r) || r.Same(Display.Saved()) || !Game.Visible.Contains(Game.Valorant)) return true; }
+            // Off, already open from Play, a resolution never confirmed, under 1.45:1 or the normal one: nothing to do.
+            try { if (r == null || !v.Stretch || v.Pending || v.Asks(r) || r.Aspect < Display.ValorantRatio - 0.0001 || r.Same(Display.Saved()) || !Game.Visible.Contains(Game.Valorant)) return true; }
             catch (InvalidOperationException) { return true; }
             if (working) return false;
             // Another game's session is open: not retried, the match may have started by then.
@@ -618,7 +617,8 @@ namespace Tablero
             Res last = stretch.Last;
             l.ItemsSource = null;
             l.ItemsSource = list;
-            l.SelectedItem = list.FirstOrDefault(r => !r.Off && r.Same(last)) ?? list[0];
+            // A saved one no longer listed (in Valorant, under 1.45:1) goes back to the recommended one; Preview saves it.
+            l.SelectedItem = list.FirstOrDefault(r => r.Same(last)) ?? (last != null ? list.FirstOrDefault(r => r.Best) : null) ?? list[0];
             swapping = false;
             ValorantSession v = Val;
             F<FrameworkElement>("ResBox").Visibility = v == null || v.Stretch ? Visibility.Visible : Visibility.Collapsed;
@@ -626,17 +626,18 @@ namespace Tablero
             F<CheckBox>("ValOn").IsChecked = v != null && v.Stretch;
             Preview();
             F<TextBlock>("ResHint").Text = val ? "Valorant solo estira con una relación de aspecto de 1,45:1 o más: las más cuadradas, como 4:3, no funcionan." : "La pantalla se estira al pulsar Jugar y vuelve al cerrar el juego. No hace falta crear nada en el panel de NVIDIA: se usan los Hz más altos de cada resolución.";
-            if (list.Count == 1) F<TextBlock>("StretchInfo").Text = "La pantalla no ofrece ninguna resolución más estrecha. Para usar stretched, crea 1720 × 1080 en el panel de la gráfica y reinicia la app.";
+            if (list.Count == 1 && val) F<TextBlock>("StretchInfo").Text = "La pantalla no ofrece resoluciones estiradas que cumplan 1,45:1. Para estirar Valorant, crea " + Display.ValorantBest(list[0]).Name + " en el panel de la gráfica y reinicia la app.";
+            else if (list.Count == 1) F<TextBlock>("StretchInfo").Text = "La pantalla no ofrece ninguna resolución más estrecha. Para usar stretched, crea 1720 × 1080 en el panel de la gráfica y reinicia la app.";
             ShowStretch();
             if (v != null && v.Stretch) { Task t = ShowValChecks(); }
         }
-        // Native first, then from least to most stretched; in Valorant the ones under 1.45:1 go last, disabled.
+        // Native first, then from least to most stretched; in Valorant only those from 1.45:1.
         List<ResRow> ResRows()
         {
             bool val = game == Game.Valorant;
             double least = val ? Display.ValorantRatio - 0.0001 : 0;
             Res native = resolutions[0], last = stretch.Last, best = Display.ValorantBest(native);
-            List<Res> list = resolutions.Skip(1).ToList();
+            List<Res> list = resolutions.Skip(1).Where(r => r.Aspect >= least).ToList();
             // Nearly equal: the most stretched one that really works is enough.
             if (val && list.Any(r => r.Same(best))) list.RemoveAll(r => r.Aspect >= least && r.H == native.H && r.W < best.W);
             bool create = Custom.Available();
@@ -646,8 +647,8 @@ namespace Tablero
             if (val && create && !list.Any(r => r.Aspect >= least && r.Aspect < 1.47)) list.Add(best);
             Func<Res, string> ratio = r => r.Aspect.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture).Replace(".", L.En ? "." : ",") + ":1";
             return new[] { new ResRow { W = native.W, H = native.H, Hz = native.Hz, Note = "Normal", Detail = ratio(native) + " · " + native.Hz + " Hz" } }
-                .Concat(list.OrderBy(r => r.Aspect < least).ThenByDescending(r => r.Aspect).ThenByDescending(r => r.W * r.H)
-                .Select(r => new ResRow { W = r.W, H = r.H, Hz = r.Hz, Note = r.Aspect < least ? "no cumple 1,45:1" : ratio(r), Detail = ratio(r) + " · " + r.Hz + " Hz", Best = val && r.Aspect >= least && r.Aspect < 1.47, Off = r.Aspect < least })).ToList();
+                .Concat(list.OrderByDescending(r => r.Aspect).ThenByDescending(r => r.W * r.H)
+                .Select(r => new ResRow { W = r.W, H = r.H, Hz = r.Hz, Note = ratio(r), Detail = ratio(r) + " · " + r.Hz + " Hz", Best = val && r.Aspect < 1.47 })).ToList();
         }
         async Task ShowValChecks()
         {

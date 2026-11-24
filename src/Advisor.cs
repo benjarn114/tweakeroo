@@ -170,6 +170,8 @@ namespace Tablero
                 case "bg-apps": return h.RamGb < 16 ? A(true, "Con " + h.RamGb + " GB conviene liberar memoria.") : A(false, "Con " + h.RamGb + " GB no es necesario.");
                 case "ui-startup": return h.Ssd ? A(true, "El disco es rápido.") : A(false, "En un disco duro haría más lento el arranque.");
                 case "ui-menu": return A(true, "Se nota en cualquier PC.");
+                // Changes how the mouse feels: only by hand.
+                case "in-accel": case "fn-mouse": return A(false, "Opcional: cambia cómo responde el ratón.");
             }
             if (t.Cat == "Interfaz") return h.Weak ? A(true, "Un escritorio ligero ayuda en este PC.") : A(false, "Innecesario en este PC.");
             if (t.Id == "lt-paging" && h.RamGb > 0 && h.RamGb < 16) return A(false, "Con " + h.RamGb + " GB conviene dejarlo.");

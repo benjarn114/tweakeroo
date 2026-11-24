@@ -431,7 +431,8 @@ namespace Tablero
             maps = new MapWatch(DateTime.UtcNow);
             data.Trial = data.Applied = false;
             data.Res = r;
-            data.Native = Display.Current();
+            // Windows' saved mode, not the current one: the desktop may still be stretched after a crash.
+            data.Native = Display.Saved();
             data.Off = new List<string>();
             data.Old = new Dictionary<string, string>();
             Save();
@@ -485,8 +486,10 @@ namespace Tablero
         void Back()
         {
             if (data.Trial) { Custom.Revert(); data.Trial = false; }
-            if (!Display.Current().Same(data.Native)) Display.Reset();
-            if (!Display.Current().Same(data.Native)) Display.Set(data.Native);
+            // Saved again here: sessions left by 1.0.0 may hold a stretched Native.
+            Res normal = Display.Saved();
+            if (!Display.Current().Same(normal)) Display.Reset();
+            if (!Display.Current().Same(normal)) Display.Set(normal);
             data.Applied = false;
             Save();
         }

@@ -100,7 +100,8 @@ Cada encendido arranca limpio, sin restos de la sesión anterior.	Every boot sta
 Apagar integridad de memoria	Turn off memory integrity
 Sube FPS en juegos limitados por CPU, pero quita una defensa de Windows. Algunos anticheat la exigen.	Raises FPS in CPU-limited games but removes a Windows defense. Some anti-cheats require it.
 Apagar aceleración del ratón	Turn off mouse acceleration
-Mejorar precisión del puntero, desactivado.	Enhance pointer precision, off.
+Desactiva Mejorar precisión del puntero de Windows. Cambia el cursor del escritorio y de los menús, no la puntería dentro del juego, que lee el ratón directamente (raw input).	Turns off Windows' Enhance pointer precision. It changes the cursor on the desktop and in menus, not in-game aim, which reads the mouse directly (raw input).
+Opcional: cambia cómo responde el ratón.	Optional: changes how the mouse responds.
 Sin Teclas especiales	No Sticky Keys
 Pulsar Shift cinco veces no te saca del juego.	Pressing Shift five times doesn't pull you out of the game.
 Sin Teclas filtro	No Filter Keys
@@ -198,7 +199,7 @@ Sin efectos de luces dentro de los juegos.	No lighting effects inside games.
 Razer Cortex no arranca solo	Razer Cortex doesn't start by itself
 Evita que Cortex aplique sus propios tweaks encima.	Keeps Cortex from applying its own tweaks on top.
 Apagar actualizador de G HUB	Turn off G HUB updater
-El ratón sigue igual; las actualizaciones, a mano.	The mouse works the same; updates are manual.
+Las actualizaciones pasan a ser a mano. Sin este servicio, G HUB puede no arrancar y entonces no aplica el DPI ni los perfiles del ratón.	Updates become manual. Without this service, G HUB may not start, and then it does not apply the mouse DPI or profiles.
 Apagar evaluador de compatibilidad	Turn off compatibility appraiser
 Analiza todo el PC y puede usar mucha CPU.	Scans the whole PC and can use a lot of CPU.
 Apagar copia de datos de compatibilidad	Turn off compatibility data backup
@@ -475,6 +476,8 @@ Sin límite	No limit
 Menos retraso, más calor	Less delay, more heat
 Sin estirar: los personajes se ven normales.	Not stretched: characters look normal.
 Personajes {0} % más anchos y {1} % menos de visión lateral.	Characters {0}% wider and {1}% less side vision.
+El estirado cambia cómo se siente la sensibilidad: los giros horizontales parecen más rápidos y el cursor de los menús se mueve distinto.	Stretching changes how sensitivity feels: horizontal turns seem faster and the menu cursor moves differently.
+Por eso conviene quedarse siempre con la misma resolución.	That is why it is best to always stay with the same resolution.
 Jugar a {0}	Play at {0}
 Jugando a {0}	Playing at {0}
 Abriendo {0}…	Opening {0}…
@@ -489,6 +492,7 @@ Pantalla restaurada. La configuración de Fortnite se restaura al cerrar el jueg
 Resolución restaurada.	Resolution restored.
 No se pudo preparar el stretched: {0}	Couldn't set up stretched: {0}
 La pantalla no ofrece ninguna resolución más estrecha. Para usar stretched, crea 1720 × 1080 en el panel de la gráfica y reinicia la app.	The screen offers no narrower resolution. To use stretched, create 1720 × 1080 in the GPU's panel and restart the app.
+La pantalla no ofrece resoluciones estiradas que cumplan 1,45:1. Para estirar Valorant, crea {0} en el panel de la gráfica y reinicia la app.	The screen offers no stretched resolutions that meet 1.45:1. To stretch Valorant, create {0} in the GPU's panel and restart the app.
 Fortnite está abierto. Ciérralo e inténtalo de nuevo.	Fortnite is open. Close it and try again.
 No se encontró la configuración de Fortnite. Abre el juego una vez e inténtalo de nuevo.	Fortnite's settings weren't found. Open the game once and try again.
 Windows no aplicó {0}.	Windows didn't apply {0}.
@@ -1135,8 +1139,6 @@ SysMain en pausa	SysMain paused
 Sin precarga de programas en memoria.	No preloading of programs into memory.
 Diagnóstico en pausa	Diagnostics paused
 Sin recogida de datos de Windows.	No Windows data collection.
-Ratón sin aceleración	Mouse without acceleration
-Solo mientras se juega; en el escritorio queda como esté.	Only while playing; the desktop stays as it is.
 Sin avisos de Shift	No Shift prompts
 Pulsar o mantener Shift no abre las Teclas especiales ni las de filtro.	Pressing or holding Shift doesn't open Sticky Keys or Filter Keys.
 Sin animaciones de ventanas	No window animations
@@ -1232,7 +1234,6 @@ Activados	On
 Nada activado en esta sección.	Nothing is on in this section.
 Stretched Resolution	Stretched Resolution
 Recomendada	Recommended
-no cumple 1,45:1	doesn't meet 1.45:1
 {0} · {1} Hz	{0} · {1} Hz
 Volviendo en {0} s	Back in {0} s
 Temática: {0}	Theme: {0}

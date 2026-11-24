@@ -157,7 +157,6 @@ namespace Tablero
             Service("indice", "Índice de búsqueda en pausa", "Sin lecturas de disco de la búsqueda de Windows.", "WSearch"),
             Service("sysmain", "SysMain en pausa", "Sin precarga de programas en memoria.", "SysMain"),
             Service("diag", "Diagnóstico en pausa", "Sin recogida de datos de Windows.", "DiagTrack", "DPS", "PcaSvc"),
-            new Boost { Id = "raton", Name = "Ratón sin aceleración", Desc = "Solo mientras se juega; en el escritorio queda como esté.", On = () => { int[] m = Live.Mouse; Live.Mouse = new[] { 0, 0, 0 }; return string.Join(",", m); }, Off = old => Live.Mouse = old.Split(',').Select(int.Parse).ToArray() },
             new Boost { Id = "teclas", Name = "Sin avisos de Shift", Desc = "Pulsar o mantener Shift no abre las Teclas especiales ni las de filtro.",
                 On = () => { int a = Live.Keys(Live.Sticky), b = Live.Keys(Live.Filter), c = Live.Keys(Live.Toggle); Live.Keys(Live.Sticky, a & ~4); Live.Keys(Live.Filter, b & ~4); Live.Keys(Live.Toggle, c & ~4); return a + "," + b + "," + c; },
                 Off = old => { int[] v = old.Split(',').Select(int.Parse).ToArray(); Live.Keys(Live.Sticky, v[0]); Live.Keys(Live.Filter, v[1]); Live.Keys(Live.Toggle, v[2]); } },
@@ -168,6 +167,10 @@ namespace Tablero
                 Off = old => { RegOp.WriteValue(Personalize, "EnableTransparency", old); Live.Tell("ImmersiveColorSet"); } },
             Flag("sombras", "Sin sombras de ventanas", "Escritorio más ligero detrás del juego.", 0x1024, 0x1025),
             new Boost { Id = "arrastre", Name = "Arrastrar ventanas sin contenido", Desc = "Solo se ve el borde al moverlas.", On = () => { string o = Live.Drag ? "1" : "0"; Live.Drag = false; return o; }, Off = old => Live.Drag = old == "1" } };
+
+        // No longer offered, but a session cut short in aljugar.json still gets undone.
+        public static List<Boost> Retired = new List<Boost> {
+            new Boost { Id = "raton", Name = "Apagar aceleración del ratón", Off = old => Live.Mouse = old.Split(',').Select(int.Parse).ToArray() } };
     }
 
     // Windows efficiency mode for background programs.
@@ -225,9 +228,9 @@ namespace Tablero
         public List<string> Use(ICollection<string> ids)
         {
             List<string> bad = new List<string>();
-            foreach (Boost b in Boost.All)
+            foreach (Boost b in Boost.All.Concat(Boost.Retired))
             {
-                bool want = ids.Contains(b.Id), has = old.ContainsKey(b.Id);
+                bool want = ids.Contains(b.Id) && Boost.All.Contains(b), has = old.ContainsKey(b.Id);
                 if (want == has) continue;
                 try
                 {

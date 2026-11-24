@@ -396,6 +396,11 @@ namespace Tablero
                 win.SizeChanged += Away;
             }
             pop.IsOpen = true;
+#if SHOT
+            // The test window is off screen, but Windows moves popups onto the nearest monitor: keep them invisible (alpha 0 also lets clicks through).
+            PresentationSource ps = PresentationSource.FromVisual(card);
+            if (ps != null) ((UIElement)ps.RootVisual).Opacity = 0;
+#endif
             ScaleTransform sc = new ScaleTransform(1, 1);
             card.RenderTransformOrigin = new Point(0.5, 0);
             card.RenderTransform = sc;
@@ -448,7 +453,10 @@ namespace Tablero
             Matrix m = ps.CompositionTarget.TransformFromDevice;
             Vector at = m.Transform((Vector)(top.PointToScreen(new Point()) - root.PointToScreen(new Point())));
             RenderTargetBitmap b = new RenderTargetBitmap((int)Math.Ceiling(fe.ActualWidth), (int)Math.Ceiling(fe.ActualHeight), 96, 96, PixelFormats.Pbgra32);
+            // Visible only for this capture; nothing reaches the screen within the same call.
+            fe.Opacity = 1;
             b.Render(top);
+            fe.Opacity = 0;
             DrawingVisual dv = new DrawingVisual();
             using (DrawingContext dc = dv.RenderOpen())
             {

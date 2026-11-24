@@ -1,3 +1,10 @@
+## 1.0.1 2026-11-24
+- Los tweaks del ratón ya no se activan con los recomendados: la aceleración del ratón de Windows y la del juego en Fortnite pasan a Avanzado y se eligen a mano.	Mouse tweaks are no longer turned on with the recommended ones: Windows mouse acceleration and Fortnite's in-game acceleration are now Advanced and chosen by hand.
+- El actualizador de G HUB pasa a Riesgo y se activa solo con confirmación: sin ese servicio, G HUB puede no arrancar y no aplicar el DPI ni los perfiles del ratón.	The G HUB updater is now Risk and only turns on with confirmation: without that service, G HUB may not start and not apply the mouse DPI or profiles.
+- Al jugar ya no cambia el ratón. Si quedó cambiado de una partida anterior, se devuelve como estaba.	While playing no longer changes the mouse. If it was left changed from an earlier session, it goes back to how it was.
+- Stretched Resolution avisa de que estirar cambia cómo se siente la sensibilidad.	Stretched Resolution now warns that stretching changes how sensitivity feels.
+- Valorant: al terminar, la pantalla vuelve a la resolución guardada en Windows aunque siguiera estirada de un cierre brusco.	Valorant: when it ends, the display goes back to the resolution saved in Windows, even if it was still stretched after a crash.
+- Valorant: la lista de resoluciones solo muestra las que funcionan (1,45:1 o más). Si había una elegida que no cumple, se cambia a la recomendada.	Valorant: the resolution list only shows the ones that work (1.45:1 or more). If the chosen one does not meet it, it switches to the recommended one.
 ## 1.0.0 2026-11-24
 - Versión 1.0: sale del acceso anticipado.	Version 1.0: out of early access.
 - Temáticas: Noche, Lluvia y Arcade, con fondo animado en pixel art, su música y sus colores. Se eligen abajo a la izquierda.	Themes: Night, Rain and Arcade, with an animated pixel art background, their own music and colors. Pick one at the bottom left.

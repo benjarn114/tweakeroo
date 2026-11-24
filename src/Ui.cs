@@ -645,7 +645,7 @@ namespace Tablero
             Res r = F<ListBox>("Resolutions").SelectedItem as Res;
             if (r == null) return;
             double native = Display.Saved().Aspect, wide = native / r.Aspect;
-            F<TextBlock>("StretchInfo").Text = wide < 1.005 ? "Sin estirar: los personajes se ven normales." : "Personajes " + Math.Round((wide - 1) * 100) + " % más anchos y " + Math.Round((1 - r.Aspect / native) * 100) + " % menos de visión lateral.";
+            F<TextBlock>("StretchInfo").Text = wide < 1.005 ? "Sin estirar: los personajes se ven normales." : "Personajes " + Math.Round((wide - 1) * 100) + " % más anchos y " + Math.Round((1 - r.Aspect / native) * 100) + " % menos de visión lateral. El estirado cambia cómo se siente la sensibilidad: los giros horizontales parecen más rápidos y el cursor de los menús se mueve distinto. Por eso conviene quedarse siempre con la misma resolución.";
             Fx.To((ScaleTransform)w.FindName("FigureScale"), ScaleTransform.ScaleXProperty, wide, 560, Fx.Spring);
             F<Drop>("ResOpen").Content = F<Drop>("ResDrop").Content = r;
             if (stretch != null) Try(() => stretch.Choose(r));

@@ -79,7 +79,7 @@ namespace Tablero
             T("fn-framegen", "Apagar generación de fotogramas", "Sube los FPS que ves, pero añade retraso.", s, "Medio", "", I("bEnableDLSSFrameGeneration", "False", "True"));
             T("fn-dynres", "Apagar resolución dinámica", "La nitidez no cambia en mitad de una pelea.", s, "Bajo", "", I("bUseDynamicResolution", "False", "True"));
             T("fn-grass", "Apagar hierba", "Menos que dibujar y mejor visibilidad.", s, "Bajo", "", I("bShowGrass", "False", "True"));
-            T("fn-mouse", "Apagar aceleración del ratón en el juego", "El mismo gesto siempre mueve lo mismo.", s, "Medio", "", I("bDisableMouseAcceleration", "True", "False"));
+            T("fn-mouse", "Apagar aceleración del ratón en el juego", "El mismo gesto siempre mueve lo mismo.", a, "Medio", "", I("bDisableMouseAcceleration", "True", "False"));
             T("fn-lobby", "Lobby a 60 FPS", "El PC descansa y llega más frío a la partida.", s, "Bajo", "", I("FrontendFrameRateLimit", "60.000000", "120.000000"));
             T("fn-mesh", "Mallas en bajo", "Modelos más simples en modo Rendimiento.", s, "Medio", "", new IniOp("PerformanceMode", "MeshQuality", "0", "1"));
             string[,] sg = {
@@ -156,7 +156,7 @@ namespace Tablero
             T("lt-mpo", "Apagar MPO", "Arregla parpadeos y tirones con varias pantallas en algunas gráficas. Si no los hay, no aporta.", a, "Bajo", "el PC", D(@"HKLM\SOFTWARE\Microsoft\Windows\Dwm", "OverlayTestMode", 5, null));
 
             cat = "Ratón y teclado";
-            T("in-accel", "Apagar aceleración del ratón", "Mejorar precisión del puntero, desactivado.", s, "Alto", "", S(@"HKCU\Control Panel\Mouse", "MouseSpeed", "0", "1"), S(@"HKCU\Control Panel\Mouse", "MouseThreshold1", "0", "6"), S(@"HKCU\Control Panel\Mouse", "MouseThreshold2", "0", "10"));
+            T("in-accel", "Apagar aceleración del ratón", "Desactiva Mejorar precisión del puntero de Windows. Cambia el cursor del escritorio y de los menús, no la puntería dentro del juego, que lee el ratón directamente (raw input).", a, "Bajo", "", S(@"HKCU\Control Panel\Mouse", "MouseSpeed", "0", "1"), S(@"HKCU\Control Panel\Mouse", "MouseThreshold1", "0", "6"), S(@"HKCU\Control Panel\Mouse", "MouseThreshold2", "0", "10"));
             T("in-sticky", "Sin Teclas especiales", "Pulsar Shift cinco veces no te saca del juego.", s, "Medio", "", new BitOp(Acc + "StickyKeys", "Flags", 4));
             T("in-filter", "Sin Teclas filtro", "Mantener Shift no activa el filtro.", s, "Medio", "", new BitOp(Acc + "Keyboard Response", "Flags", 4));
             T("in-toggle", "Sin Teclas de alternancia", "Mantener Bloq Num no abre un aviso.", s, "Bajo", "", new BitOp(Acc + "ToggleKeys", "Flags", 4));
@@ -216,7 +216,7 @@ namespace Tablero
             T("sv-dusm", "Apagar contador de datos de red", "Ajustes deja de mostrar el consumo por app.", a, "Bajo", "", new SvcOp("DusmSvc", 2));
             T("sv-chroma", "Apagar Razer Chroma SDK", "Sin efectos de luces dentro de los juegos.", a, "Bajo", "", new SvcOp("Razer Chroma SDK Server", 2), new SvcOp("Razer Chroma SDK Service", 2), new SvcOp("Razer Chroma Stream Server", 2), new SvcOp("Razer Chroma SDK Diagnostic Service", 2));
             T("sv-cortex", "Razer Cortex no arranca solo", "Evita que Cortex aplique sus propios tweaks encima.", a, "Medio", "", new SvcOp("CortexLauncherService", 2));
-            T("sv-lghub", "Apagar actualizador de G HUB", "El ratón sigue igual; las actualizaciones, a mano.", a, "Bajo", "", new SvcOp("LGHUBUpdaterService", 2));
+            T("sv-lghub", "Apagar actualizador de G HUB", "Las actualizaciones pasan a ser a mano. Sin este servicio, G HUB puede no arrancar y entonces no aplica el DPI ni los perfiles del ratón.", r, "Bajo", "", new SvcOp("LGHUBUpdaterService", 2));
 
             T("sv-maps", "Apagar descarga de mapas", "Mapas sin conexión de Windows.", s, "Bajo", "", new SvcOp("MapsBroker", 2));
             T("sv-retail", "Apagar modo tienda", "Solo sirve en ordenadores de exposición.", s, "Bajo", "", new SvcOp("RetailDemo", 3));

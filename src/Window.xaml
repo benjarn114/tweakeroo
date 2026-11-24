@@ -312,9 +312,7 @@
       </StackPanel>
       <DataTemplate.Triggers><DataTrigger Binding="{Binding Best}" Value="True"><Setter TargetName="tag" Property="Visibility" Value="Visible"/></DataTrigger></DataTemplate.Triggers>
     </DataTemplate>
-    <Style x:Key="ResItem" TargetType="ListBoxItem" BasedOn="{StaticResource DropItem}">
-      <Style.Triggers><DataTrigger Binding="{Binding Off}" Value="True"><Setter Property="IsEnabled" Value="False"/><Setter Property="Opacity" Value="0.45"/></DataTrigger></Style.Triggers>
-    </Style>
+    <Style x:Key="ResItem" TargetType="ListBoxItem" BasedOn="{StaticResource DropItem}"/>
 
     <Style x:Key="GameItem" TargetType="ListBoxItem">
       <Setter Property="FocusVisualStyle" Value="{StaticResource Focus}"/>

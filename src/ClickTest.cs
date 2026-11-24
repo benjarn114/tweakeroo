@@ -154,7 +154,7 @@ namespace Tablero
                 ListBox rl = (ListBox)w.FindName("Resolutions"), rol = (ListBox)w.FindName("ResOpenList"); Drop ro = (Drop)w.FindName("ResOpen"), rd = (Drop)w.FindName("ResDrop");
                 Func<string> names = () => string.Join(",", rl.Items.Cast<Res>().Select(x => x.Name));
                 Is(rl.Items.Count == 3 && rl.SelectedIndex == 0 && (string)play.Content == "Jugar" && ((Res)ro.Content).Name == "2560 × 1440" && ((ResRow)ro.Content).Detail == "1,78:1 · 200 Hz", "empieza en la del monitor");
-                Is(names() == "2560 × 1440,1720 × 1080,1440 × 1080" && ((Res)rl.Items[1]).Note == "1,59:1" && ((Res)rl.Items[0]).Note == "Normal" && rl.Items.Cast<ResRow>().All(x => !x.Off && !x.Best), "de menos a mas estirada: " + names());
+                Is(names() == "2560 × 1440,1720 × 1080,1440 × 1080" && ((Res)rl.Items[1]).Note == "1,59:1" && ((Res)rl.Items[0]).Note == "Normal" && rl.Items.Cast<ResRow>().All(x => !x.Best), "de menos a mas estirada: " + names());
                 Press(ro); await Task.Delay(300); Is(ro.IsOpen && rol.Items.Count == 3, "Jugar abre su desplegable");
                 rol.SelectedIndex = 1; ro.Close(); Is(rl.SelectedIndex == 1 && ((Res)ro.Content).Name == "1720 × 1080" && ro.Content == rd.Content && (string)play.Content == "Jugar", "elegida en Jugar llega a Stretched Resolution: " + ro.Content);
                 Press(play);
@@ -235,12 +235,13 @@ namespace Tablero
                 int was = opened; Press(play); Is(opened == was + 1 && screen.W == 2560 && mons.Count == 2, "abrir sin estirar no toca nada");
                 vrunning = true; await Task.Delay(3200); Is((string)play.Content == "Jugando" && !live.SwitchGame(Game.Fortnite, true) && pn.Text == "Color: Carmesí", "jugando no se cambia de juego: " + play.Content);
                 vrunning = false; await Task.Delay(3200); Is(play.IsEnabled && (string)play.Content == "Jugar", "cerrar Valorant: " + play.Content);
+                // a 4:3 saved by an older version goes back to the recommended one
+                ValorantSession vs = (ValorantSession)((Dictionary<string, StretchSession>)typeof(Ui).GetField("sessions", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(live))[Game.Valorant.Id];
+                vs.Choose(new Res { W = 1440, H = 1080, Hz = 200 });
                 CheckBox von = (CheckBox)w.FindName("ValOn"); von.IsChecked = true; von.RaiseEvent(ck); await Task.Delay(300);
-                Is(rl.SelectedIndex == 0 && names() == "2560 × 1440,1720 × 1080,1500 × 1000,2091 × 1440,1440 × 1080" && ((ItemsControl)w.FindName("ValChecks")).Items.Count >= 3, "Valorant, de menos a mas estirada: " + names());
-                ResRow v43 = (ResRow)rl.Items[4]; Is(v43.Off && v43.Note == "no cumple 1,45:1" && ((ResRow)rl.Items[3]).Best && rl.Items.Cast<ResRow>().Count(x => x.Best) == 1,"4:3 al final, recomendada la de 1,45");
-                Press(ro); await Task.Delay(400); ListBoxItem c43 = (ListBoxItem)rol.ItemContainerGenerator.ContainerFromIndex(4);
-                Is(c43 != null && !c43.IsEnabled && c43.Opacity < 0.5 && ((ListBoxItem)rol.ItemContainerGenerator.ContainerFromIndex(1)).IsEnabled, "en Valorant 1440 × 1080 no se puede elegir");
-                ro.Close();
+                Is(names() == "2560 × 1440,1720 × 1080,1500 × 1000,2091 × 1440" && ((ItemsControl)w.FindName("ValChecks")).Items.Count >= 3, "Valorant, solo las de 1,45 o mas: " + names());
+                Is(((ResRow)rl.Items[3]).Best && rl.Items.Cast<ResRow>().Count(x => x.Best) == 1 && rl.SelectedIndex == 3 && vs.Last.W == 2091, "4:3 guardada vuelve a la recomendada: " + rl.SelectedIndex + " " + vs.Last.Name);
+                Press(ro); await Task.Delay(400); Is(rol.Items.Count == 4, "el desplegable de Jugar tampoco la ofrece"); ro.Close();
                 // fix the display mode: writes the fake ini and the row turns OK
                 ItemsControl vc = (ItemsControl)w.FindName("ValChecks");
                 Go(w, "Stretched Resolution"); Button fixMode = null;

@@ -159,6 +159,10 @@ namespace Tablero
                 Is(yes("ui-transp", lap) && !yes("ui-transp", desk), "apariencia solo en PC justo");
                 Is(yes("fn-texture", lap) && !yes("fn-texture", desk), "texturas segun memoria de video");
                 foreach (Hw h in new[] { desk, cable, lap }) Is(!yes("pw-hvci", h), "el riesgo nunca se recomienda");
+                // mouse: never with the recommended ones; the G HUB updater only by hand
+                Func<string, Level> lv = id => cat.First(x => x.Id == id).Level;
+                foreach (Hw h in new[] { desk, cable, lap }) Is(!yes("in-accel", h) && !yes("fn-mouse", h) && !yes("sv-lghub", h), "el raton no se recomienda");
+                Is(lv("in-accel") == Level.Avanzado && lv("fn-mouse") == Level.Avanzado && lv("sv-lghub") == Level.Riesgo, "niveles del raton y G HUB");
 
                 // stretched: only narrower than the display and with its best refresh rate
                 Res nat = new Res { W = 1920, H = 1080, Hz = 144 };
@@ -398,6 +402,12 @@ namespace Tablero
                         try { s1.End(); } catch (InvalidOperationException) { kept = true; }
                         Is(kept && s1.Pending && File.ReadAllText(Path.Combine(vd2, "valorant-registro.txt")).Contains("no se pudo volver a la normal (pantalla 1440 × 1080): InvalidOperationException: sin reset"), "si la pantalla no vuelve, queda en el registro");
                         Display.Reset = () => cur = nat; s1.End(); Is(!s1.Pending && cur.W == 1920, "y al reintentar se cierra");
+                        // desktop still stretched by an earlier crash: the normal one is Windows' saved mode
+                        string vd3 = Path.Combine(dir, "val3"); Directory.CreateDirectory(vd3);
+                        cur = wide; on = new List<string> { "m1", "m2" }; Monitors.Set = (id, o) => { if (o) on.Add(id); else on.Remove(id); }; run = false;
+                        ValorantSession s3 = new ValorantSession(vd3); s3.Stretch = true; s3.Begin(wide); s3.Confirm(wide);
+                        Is(cur.W == 1920 && on.Count == 0, "estirada de antes: confirmar vuelve a la guardada");
+                        run = true; s3.Arrive(true); run = false; s3.End(); Is(cur.W == 1920 && on.Count == 2 && !s3.Pending, "y al cerrar tambien");
                     }
                     finally { Monitors.On = mOn; Monitors.Set = mSet; Game.Valorant.Running = vRun; Display.Current = dCur; Display.Saved = dSav; Display.Set = dSet; Display.Reset = dRes; Display.Modes = dMod; }
                 }
@@ -460,6 +470,19 @@ namespace Tablero
                 {
                     List<Boost> was = Boost.All;
                     Is(was.Select(b => b.Id).Distinct().Count() == was.Count, "ids de al jugar");
+                    List<Boost> retired = Boost.Retired;
+                    Is(!was.Any(b => b.Id == "raton") && retired.Any(b => b.Id == "raton"), "al jugar sin raton, pero se sigue deshaciendo");
+                    Is(Prefs.Parse("{\"Boosts\":{\"fortnite\":[\"raton\",\"plan\"]}}").BoostsOf(Game.Fortnite).SequenceEqual(new[] { "plan" }), "raton elegido antes se ignora");
+                    try
+                    {
+                        // a session cut short with the mouse changed: undone, never applied again
+                        string rd = Path.Combine(dir, "boost-raton"); Directory.CreateDirectory(rd); string got = null;
+                        Boost.Retired = new List<Boost> { new Boost { Id = "raton", Name = "x", Off = o => got = o } };
+                        File.WriteAllText(Path.Combine(rd, "aljugar.json"), "{\"raton\":\"1,6,10\"}");
+                        BoostSession br = new BoostSession(rd); br.Use(new[] { "raton" });
+                        Is(got == "1,6,10" && br.Count == 0 && new BoostSession(rd).Count == 0, "raton pendiente se repone");
+                    }
+                    finally { Boost.Retired = retired; }
                     try
                     {
                         string state = "a", bd = Path.Combine(dir, "boost");
@@ -684,8 +707,10 @@ namespace Tablero
                     foreach (string x in new[] { "Conexión", "Router", "Internet", "Servidores de Epic", "Midiendo…", "Medir otra vez", "Midiendo durante 15 segundos. Lo más fiable es hacerlo sin descargas y, otra vez, mientras se juega.", "Activo ahora.", "Un toque", "Mantener", "No se encontraron las teclas de Fortnite. Elígelas a mano.", "Teclas leídas de Fortnite: editar E, resetear Clic derecho.", "Entra a editar, selecciona y confirma.", "Edita, confirma y edita otra vez donde apunta la mira.", "Edita, confirma y devuelve la pieza a su forma." }) L.T(x);
                     foreach (string x in new[] { "Todas", "Sin rebote", "Ninguna", "Noche", "lo-fi tranquilo", "8 bits", "pad y lluvia", "Jugar", "Borrar historial de FPS", "Borrar escaneo", "Volver al estado Original", "Restablecer Ajustes", "Pulsa otra vez para confirmar", "Escaneo borrado. Se pedirá otra vez al volver a abrir.", "El PC ya está en el estado Original.", "Ajustes restablecidos.", "Datos copiados. No incluyen nada personal.", "Historial de FPS borrado.", "Ajustes exportados. No incluyen los tweaks.", "No se pudo importar: El archivo no es una copia de ajustes de Tweakeroo.", "Es la versión más reciente.", "No hay dónde buscar actualizaciones.", "Historial de versiones", "Términos y privacidad", "Abrir", "Salir", "La primera vez que se usa una resolución se pide confirmación. Sin respuesta en 30 segundos, se restaura la anterior. Tweakeroo debe quedar abierto durante la partida. En torneos oficiales Epic puede forzar 16:9." }) L.T(x);
                     foreach (Boost x in Boost.All) { L.T(x.Name); L.T(x.Desc); }
+                    foreach (Boost x in Boost.Retired) L.T(x.Name);
+                    L.T("Personajes 19 % más anchos y 16 % menos de visión lateral. El estirado cambia cómo se siente la sensibilidad: los giros horizontales parecen más rápidos y el cursor de los menús se mueve distinto. Por eso conviene quedarse siempre con la misma resolución.");
                     { DriverInfo kn = Drivers.Known; Drivers.Known = new DriverInfo { Version = "621.24", Date = "12/11/2026", Url = "https://www.nvidia.com/x" }; foreach (string x in new[] { "32.0.16.2114", "32.0.16.2124" }) { Check c = Drivers.Advice(new Hw { Nvidia = true, Driver = x }); L.T(c.Title); L.T(c.Text); L.T(c.Act); } Drivers.Known = kn; L.T("Abrir web"); }
-                    foreach (string x in new[] { "Al jugar", "Stretched", "Stretched Resolution", "Recomendada", "no cumple 1,45:1", "1,45:1 · 200 Hz", "Volviendo en 10 s", "Probar 10 segundos", "Sonido", "Música", "Cuándo suena", "Volumen de la música", "Efectos de sonido", "Volumen de los efectos", "Noche", "Arcade", "Lluvia", "Apagada", "Solo con la app delante", "Siempre menos al jugar", "Silenciada", "Juegos", "No encontrado", "Cambiar carpeta", "Mostrar en el selector", "Buscar el archivo", "Quitar del selector", "Tiene que quedar al menos un juego.", "Retraso", "Cierra sesión y vuelve a entrar para completar los cambios.", "Reinicia el juego para completar los cambios.", "x: activado. Reinicia Chrome para que haga efecto.", "Recomendada, 200 Hz", "Se crea al usarla, 200 Hz", "Valorant solo estira desde 1,45:1. Con 1080 de alto, el mínimo de ancho es 1566.", "Valorant solo estira con una relación de aspecto de 1,45:1 o más: las más cuadradas, como 4:3, no funcionan.", "La pantalla se estira al pulsar Jugar y vuelve al cerrar el juego. No hace falta crear nada en el panel de NVIDIA: se usan los Hz más altos de cada resolución.", "Abre Fortnite con la resolución elegida en Stretched Resolution. Al cerrarlo, la pantalla y la configuración se restauran.", "Se ponen al abrir Valorant y se quitan al cerrarlo, sin reiniciar. Cada juego guarda los suyos.", "Activos ahora: 3", "Ninguno elegido.", "1 elegido.", "4 elegidos.", "No se pudo aplicar: Índice de búsqueda en pausa", "Jugar", "Jugando", "Pantalla completa en la GPU.", "En el panel de NVIDIA, Ajustar tamaño y posición: Pantalla completa, escalar en la GPU.", "Anular el modo de los juegos", "En el panel de NVIDIA, Ajustar tamaño y posición: marca Anular el modo de escalado de juegos y programas.", "Abrir panel", "En AMD Software, Pantalla: activa Escalado de GPU y elige Panel completo.", "Abrir AMD Software", "Arreglar", "La gráfica no aceptó el cambio de escala.", "Cierra Valorant antes de cambiar sus ajustes.", "No toca la memoria del juego.", "El controlador NVIDIA devolvió el error 5.", "No se pudo cambiar: x" }) L.T(x);
+                    foreach (string x in new[] { "Al jugar", "Stretched", "Stretched Resolution", "Recomendada", "La pantalla no ofrece resoluciones estiradas que cumplan 1,45:1. Para estirar Valorant, crea 1566 × 1080 en el panel de la gráfica y reinicia la app.", "1,45:1 · 200 Hz", "Volviendo en 10 s", "Probar 10 segundos", "Sonido", "Música", "Cuándo suena", "Volumen de la música", "Efectos de sonido", "Volumen de los efectos", "Noche", "Arcade", "Lluvia", "Apagada", "Solo con la app delante", "Siempre menos al jugar", "Silenciada", "Juegos", "No encontrado", "Cambiar carpeta", "Mostrar en el selector", "Buscar el archivo", "Quitar del selector", "Tiene que quedar al menos un juego.", "Retraso", "Cierra sesión y vuelve a entrar para completar los cambios.", "Reinicia el juego para completar los cambios.", "x: activado. Reinicia Chrome para que haga efecto.", "Recomendada, 200 Hz", "Se crea al usarla, 200 Hz", "Valorant solo estira desde 1,45:1. Con 1080 de alto, el mínimo de ancho es 1566.", "Valorant solo estira con una relación de aspecto de 1,45:1 o más: las más cuadradas, como 4:3, no funcionan.", "La pantalla se estira al pulsar Jugar y vuelve al cerrar el juego. No hace falta crear nada en el panel de NVIDIA: se usan los Hz más altos de cada resolución.", "Abre Fortnite con la resolución elegida en Stretched Resolution. Al cerrarlo, la pantalla y la configuración se restauran.", "Se ponen al abrir Valorant y se quitan al cerrarlo, sin reiniciar. Cada juego guarda los suyos.", "Activos ahora: 3", "Ninguno elegido.", "1 elegido.", "4 elegidos.", "No se pudo aplicar: Índice de búsqueda en pausa", "Jugar", "Jugando", "Pantalla completa en la GPU.", "En el panel de NVIDIA, Ajustar tamaño y posición: Pantalla completa, escalar en la GPU.", "Anular el modo de los juegos", "En el panel de NVIDIA, Ajustar tamaño y posición: marca Anular el modo de escalado de juegos y programas.", "Abrir panel", "En AMD Software, Pantalla: activa Escalado de GPU y elige Panel completo.", "Abrir AMD Software", "Arreglar", "La gráfica no aceptó el cambio de escala.", "Cierra Valorant antes de cambiar sus ajustes.", "No toca la memoria del juego.", "El controlador NVIDIA devolvió el error 5.", "No se pudo cambiar: x" }) L.T(x);
                     foreach (ColorProfile x in Vivid.All) { L.T(x.Name); L.T(x.Note); }
                     foreach (Check c in Valorant.Checks(null, 2).Concat(Valorant.Checks(new Dictionary<string, string>(), 0)).Concat(Valorant.Checks(new Dictionary<string, string> { { "FullscreenMode", "1" }, { "bShouldLetterbox", "False" } }, 0))) { L.T(c.Title); L.T(c.Text); }
                     L.T(NetTest.Home(new NetResult { Router = new PingStats(), Internet = new PingStats(), Epic = new PingStats() }));
@@ -718,7 +743,8 @@ namespace Tablero
                 sb.AppendLine("Stretched aquí: " + string.Join(", ", Display.Stretched(Display.Modes(), Display.Saved()).Select(x => x.Name + "@" + x.Hz + (Display.Accepts(x) ? "" : " NO"))));
                 List<Tweak> av = all.Where(x => x.Available).ToList();
                 sb.AppendLine("OK. Catálogo " + all.Count + ", disponibles " + av.Count + ", ajustes " + keys.Count + ", prendidos " + av.Count(x => x.Read() == State.On) + ", parciales " + av.Count(x => x.Read() == State.Partial));
-                sb.AppendLine("No disponibles: " + string.Join(", ", all.Where(x => !x.Available).Select(x => x.Id)));
+                sb.AppendLine("Recomendados (Wi-Fi, cable, portátil): " + string.Join(", ", new[] { desk, cable, lap }.Select(h => av.Count(x => Advisor.For(x, h).Yes))) + ". Activar todos: " + av.Count(x => x.Level != Level.Riesgo));
+                sb.AppendLine("No disponibles: " +string.Join(", ", all.Where(x => !x.Available).Select(x => x.Id)));
                 foreach (Tweak t in av) sb.AppendLine(t.Cat + "\t" + t.Id + "\t" + t.Read() + "\t" + string.Join(" ", t.Usable.SelectMany(o => o.CurrentKeys().Select(k => k + " = " + o.Read(k)))));
                 return sb.ToString();
             }
