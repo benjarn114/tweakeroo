@@ -51,10 +51,10 @@ namespace Tablero
             else foreach (NetTile x in netTiles) x.Show(new PingStats());
         }
 
-        // Valorant servers do not answer the test: only router and internet.
+        // Valorant and CS2 servers are not measured: only router and internet.
         void ShowNetGame()
         {
-            F<ItemsControl>("NetTiles").ItemsSource = game == Game.Valorant ? netTiles.Take(2).ToList() : netTiles;
+            F<ItemsControl>("NetTiles").ItemsSource = game != Game.Fortnite ? netTiles.Take(2).ToList() : netTiles;
             ShowState();
         }
         void ShowState() { F<TextBlock>("NetState").Text = Wifi.On ? "Activo ahora." : Prefs.Now.WifiSteady ? "Se activa al abrir el juego." : ""; }
@@ -148,7 +148,7 @@ namespace Tablero
             netTiles[2].Label = "Servidores de Epic" + (r.Region == null ? "" : ": " + NetTest.Name(r.Region));
             RefreshTiles();
             netTiles[2].Show(r.Epic);
-            F<TextBlock>("NetVerdict").Text = game == Game.Valorant ? NetTest.Home(r) : NetTest.Verdict(r);
+            F<TextBlock>("NetVerdict").Text = game != Game.Fortnite ? NetTest.Home(r) : NetTest.Verdict(r);
             F<TextBlock>("NetBefore").Text = NetTest.Compare(old, r);
         }
     }

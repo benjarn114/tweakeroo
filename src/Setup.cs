@@ -21,7 +21,7 @@ namespace Tablero
         public static string Desktop = Environment.GetFolderPath(Environment.SpecialFolder.CommonDesktopDirectory);
         public static RegistryHive Hive = RegistryHive.LocalMachine;
         const string Key = @"Software\Microsoft\Windows\CurrentVersion\Uninstall\Tweakeroo";
-        public const string TermsVersion = "7";
+        public const string TermsVersion = "8";
 
         public static string Me { get { return Assembly.GetExecutingAssembly().Location; } }
         public static Version MyVersion { get { return Assembly.GetExecutingAssembly().GetName().Version; } }
@@ -243,6 +243,7 @@ namespace Tablero
                     {
                         if (Game.Open != null) throw new InvalidOperationException("Cierra " + Game.Open.Name + " y vuelve a intentarlo.");
                         foreach (Game g in Game.All) g.Session(data).End();
+                        Cs2Gsi.Remove();
                         new ColorSession(data).Restore();
                         new BoostSession(data).Use(new string[0]);
                         if (back) warn = RestoreOriginal();

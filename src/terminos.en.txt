@@ -1,9 +1,9 @@
 # Tweakeroo terms of use
-Version 7, November 23, 2026.
+Version 8, November 24, 2026.
 By installing or using Tweakeroo you accept these terms. If you don't agree, don't install it. This is a translation; if there is any difference, the Spanish version applies.
 
 # 1. What it is
-Tweakeroo is a free application made by one person, with no company behind it. It changes Windows and Fortnite settings and each game's NVIDIA profile, opens Fortnite or Valorant at the resolution you choose, changes the screen color, shows your FPS and gives advice about your PC.
+Tweakeroo is a free application made by one person, with no company behind it. It changes Windows and Fortnite settings and each game's NVIDIA profile, opens Fortnite, Valorant or Counter-Strike 2 at the resolution you choose, changes the screen color, shows your FPS and gives advice about your PC.
 
 # 2. What you can do with it
 You can install and use it for free on your computers, and share the official download link. You can't sell it, charge for installing it, publish copies, modified or not, or pass it off as yours. Tweakeroo is free and will stay free forever. The source code is published so you can read it and build it for yourself, under the repository's LICENSE file.
@@ -35,8 +35,11 @@ Color profiles are optional. They change the graphics card's color vibrance and 
 # 7.4. While playing
 What you choose in While playing is applied when the game opens and removed when it closes: power plan, paused Windows services, visual effects, mouse and efficiency mode for background programs. If the application is closed midway, it puts everything back the next time you open it.
 
+# 7.5. Counter-Strike 2
+Tweakeroo measures CS2 FPS with Event Tracing for Windows, counting the frames it hands to Windows, without touching the game. To know the map it writes a Game State Integration file (an official Valve feature) in the CS2 cfg folder, which only sends data to 127.0.0.1. When you play it writes the resolution to its cs2_video.txt with the game closed, after saving a copy, and restores it when the game closes.
+
 # 8. Trademarks
-Tweakeroo is not affiliated with Epic Games, Riot Games, Microsoft, NVIDIA, AMD or Intel, nor endorsed by them. Fortnite, Valorant and the other names are trademarks of their owners and are used only to say what the application works with.
+Tweakeroo is not affiliated with Epic Games, Riot Games, Valve, Microsoft, NVIDIA, AMD or Intel, nor endorsed by them. Fortnite, Valorant, Counter-Strike 2 and the other names are trademarks of their owners and are used only to say what the application works with.
 
 # 9. Minors
 If you are a minor where you live, ask your parent or the person responsible for the computer for permission before installing it.

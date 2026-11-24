@@ -52,12 +52,16 @@ namespace Tablero
             l.SelectionChanged += (s, e) => { Game g = l.SelectedItem as Game; if (!swapping && g != null && !SwitchGame(g, true)) Reselect(); };
             l.SizeChanged += (s, e) => GameMark(false);
             Toggle("SetAutoGame", () => !Prefs.Now.KeepGame, v => Prefs.Now.KeepGame = !v);
+            F<Btn>("AllGames").Click += (s, e) => AllGames(!allOpen);
             foreach (string n in GamePages) { Border b = MissingCard(); ((Panel)F<ScrollViewer>(n).Content).Children.Insert(1, b); missing.Add(b); }
             foreach (Game g in Game.All) GameCard(g);
             refresh.Add(ShowGames);
             ShowGames();
             LoadPhoto();
             ShowGame();
+            // CS2's FPS are counted while it runs (opened from Play or from Steam). Its ETW session outlives the app: stopped on close.
+            Cs2Fps cs2Fps = new Cs2Fps(dir);
+            w.Closed += (s, e) => cs2Fps.Dispose();
             // Listing processes takes a few ms each time: off the UI thread, which keeps drawing the background meanwhile.
             DispatcherTimer t = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
             t.Tick += async (s, e) =>
@@ -65,21 +69,44 @@ namespace Tablero
                 t.Stop();
                 Game open = null;
                 bool val = false;
-                await Task.Run(() => { open = Game.Open; val = ValOpen(open); });
+                List<Match> cs2 = null;
+                await Task.Run(() => { open = Game.Open; val = ValOpen(open); cs2 = cs2Fps.Tick(); });
                 GameTick(open, val);
+                // CS2 closed and its matches were saved.
+                if (cs2 != null) { played[Game.Cs2.Id] = cs2; if (game == Game.Cs2 && F<FrameworkElement>("FpsPage").IsVisible) ShowFps(); }
                 t.Start();
             };
             t.Start();
         }
-        void Reselect() { swapping = true; F<ListBox>("Games").SelectedItem = game; swapping = false; }
+        // A game not pinned leaves both slots unmarked.
+        void Reselect() { swapping = true; ListBox l = F<ListBox>("Games"); l.SelectedItem = l.Items.Contains(game) ? game : null; swapping = false; }
         // The box slides from one game to the other: eases in and out, overshoots a little and comes back.
         void GameMark(bool animate)
         {
             ListBox l = F<ListBox>("Games");
             Border m = F<Border>("GameMark");
-            List<Game> shown = Game.Visible;
-            m.Width = Math.Max(0, l.ActualWidth / shown.Count);
-            double x = m.Width * Math.Max(0, shown.IndexOf(game));
+            int at = l.Items.IndexOf(game);
+            m.Width = Math.Max(0, l.ActualWidth / Math.Max(1, l.Items.Count));
+            // A name that does not fit its slot ("Counter-Strike") gets a smaller font, just enough.
+            foreach (object g in l.Items)
+            {
+                FrameworkElement it = l.ItemContainerGenerator.ContainerFromItem(g) as FrameworkElement;
+                TextBlock tx = it == null ? null : Find<TextBlock>(it, "SlotText");
+                if (tx == null) continue;
+                tx.FontSize = 16;
+                tx.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+                double room = m.Width - 12;
+                if (room > 0 && tx.DesiredSize.Width > room) tx.FontSize = Math.Floor(16 * room / tx.DesiredSize.Width * 2) / 2;
+            }
+            // The game on screen is not pinned: the box fades out; when it comes back it fades in at its slot.
+            if (at < 0 || m.Opacity < 1)
+            {
+                double o = at < 0 ? 0 : 1;
+                if (animate && Fx.On) Fx.To(m, UIElement.OpacityProperty, o, 200, Fx.Out); else { m.BeginAnimation(UIElement.OpacityProperty, null); m.Opacity = o; }
+                if (at < 0) return;
+                animate = false;
+            }
+            double x = m.Width * at;
             TransformGroup t = m.RenderTransform as TransformGroup;
             if (t == null || t.IsFrozen)
             {
@@ -105,14 +132,15 @@ namespace Tablero
         const int SwitchMs = 400;
 
         // The whole app switches to the other game. false = not possible right now.
-        internal bool SwitchGame(Game g, bool byHand)
+        // from: where the change starts (a slot, or a card of All games).
+        internal bool SwitchGame(Game g, bool byHand, FrameworkElement from = null)
         {
             if (g == game) return true;
             string no = working ? "Hay un cambio en curso. Espera a que termine." : stretch != null && stretch.Pending ? "Cierra " + game.Name + " antes de cambiar de juego." : null;
             if (no != null) { if (byHand) Say(no, false); return false; }
             Sound.Effect("switch");
             ListBox l = F<ListBox>("Games");
-            FrameworkElement b = l.ItemContainerGenerator.ContainerFromItem(g) as FrameworkElement;
+            FrameworkElement b = from ?? l.ItemContainerGenerator.ContainerFromItem(g) as FrameworkElement;
             // A theme is the same for every game: only Simple changes colors with the game.
             Palette mine = Prefs.PaletteOf(dir, g), before = Applied(), after = look.Simple ? mine : before;
             Wipe(b, SwitchMs, F<FrameworkElement>("GameBox"), () =>
@@ -130,6 +158,7 @@ namespace Tablero
                 stretch = sessions[g.Id];
                 LoadPhoto();
                 ShowGame();
+                ShowCards();
                 LoadSession();
                 BuildSubs();
                 Totals();
@@ -223,18 +252,18 @@ namespace Tablero
         // Texts and parts that belong to a single game.
         void ShowGame()
         {
-            bool val = game == Game.Valorant;
-            Visibility fort = val ? Visibility.Collapsed : Visibility.Visible, valo = val ? Visibility.Visible : Visibility.Collapsed;
+            bool val = game == Game.Valorant, fn = game == Game.Fortnite;
+            Visibility fort = fn ? Visibility.Visible : Visibility.Collapsed, valo = val ? Visibility.Visible : Visibility.Collapsed;
             foreach (string n in new[] { "LimitTitle", "Limits", "SetLimitBox", "EstBox" }) F<FrameworkElement>(n).Visibility = fort;
             F<FrameworkElement>("ValBox").Visibility = valo;
-            F<TextBlock>("PlayText").Text = val ? "Abre Valorant y, si está activado, estira la pantalla al cargar un mapa. Al cerrarlo, todo se restaura." : "Abre Fortnite con la resolución elegida en Stretched Resolution. Al cerrarlo, la pantalla y la configuración se restauran.";
+            F<TextBlock>("PlayText").Text = game == Game.Cs2 ? "Abre CS2 por Steam con la resolución elegida. Al cerrarlo, la pantalla se restaura." : val ? "Abre Valorant y, si está activado, estira la pantalla al cargar un mapa. Al cerrarlo, todo se restaura." : "Abre Fortnite con la resolución elegida en Stretched Resolution. Al cerrarlo, la pantalla y la configuración se restauran.";
             F<TextBlock>("SetGameTitle").Text = game.Name;
-            F<TextBlock>("PlayEstLabel").Text = val ? "Media de 10 partidas" : "FPS estimados";
+            F<TextBlock>("PlayEstLabel").Text = fn ? "FPS estimados" : "Media de 10 partidas";
             ShowNote();
             ShowMissing();
             if (circuits != null)
             {
-                if (val) { if (F<ListBox>("Circuits").SelectedItem == macroCircuit) F<ListBox>("Circuits").SelectedItem = circuits[0]; circuits.Remove(macroCircuit); }
+                if (!fn) { if (F<ListBox>("Circuits").SelectedItem == macroCircuit) F<ListBox>("Circuits").SelectedItem = circuits[0]; circuits.Remove(macroCircuit); }
                 else if (!circuits.Contains(macroCircuit)) circuits.Insert(circuits.IndexOf(upgrades), macroCircuit);
             }
             F<ItemsControl>("ValChecks").ItemTemplate = F<ItemsControl>("Checks").ItemTemplate;
@@ -260,7 +289,7 @@ namespace Tablero
             if (shown && at != null && at.Sub) l.SelectedItem = subs.FirstOrDefault(c => c.Name == at.Name) ?? subs.FirstOrDefault(c => c.Name == game.Name) ?? subs[0];
         }
         static readonly Dictionary<string, string> Icons = new Dictionary<string, string> {
-            { "Fortnite", "Game" }, { "Valorant", "Game" }, { "Gráficos y captura", "Gpu" }, { "Energía y CPU", "Bolt" }, { "Retraso", "Gauge" }, { "Ratón y teclado", "Mouse" }, { "Red", "Net" },
+            { "Fortnite", "Game" }, { "Valorant", "Game" }, { "Counter-Strike 2", "Game" }, { "Gráficos y captura", "Gpu" }, { "Energía y CPU", "Bolt" }, { "Retraso", "Gauge" }, { "Ratón y teclado", "Mouse" }, { "Red", "Net" },
             { "Segundo plano", "Layers" }, { "Servicios", "Server" }, { "Tareas programadas", "Clock" }, { "Interrupciones", "Bell" },
             { "Publicidad", "Tag" }, { "Búsqueda", "Search" }, { "Telemetría", "Eye" }, { "Interfaz", "Window" } };
 
@@ -268,7 +297,8 @@ namespace Tablero
         {
             BitmapImage b = new BitmapImage();
             b.BeginInit();
-            b.StreamSource = Assembly.GetExecutingAssembly().GetManifestResourceStream(game.Photo);
+            // A game without its photo yet (CS2) uses Fortnite's.
+            b.StreamSource = Assembly.GetExecutingAssembly().GetManifestResourceStream(game.Photo) ?? Assembly.GetExecutingAssembly().GetManifestResourceStream(Game.Fortnite.Photo);
             b.CacheOption = BitmapCacheOption.OnLoad;
             b.EndInit();
             photo = new FormatConvertedBitmap(b, PixelFormats.Bgr32, null, 0);
@@ -371,7 +401,7 @@ namespace Tablero
             CheckBox c = new CheckBox { Style = F<CheckBox>("SetAutoGame").Style, Content = L.T("Mostrar en el selector") };
             AutomationProperties.SetName(c, g.Name + ": " + L.T("Mostrar en el selector"));
             c.Click += (s, e) => { ShowInPicker(g, c.IsChecked == true); c.IsChecked = !Prefs.Now.Hidden.Contains(g.Id); };
-            w.RegisterName("SetShow" + g.Name, c);
+            w.RegisterName("SetShow" + System.Text.RegularExpressions.Regex.Replace(g.Name, "[^A-Za-z0-9]", ""), c); // "Counter-Strike 2" is not a valid name
             StackPanel body = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
             body.Children.Add(new Tb { Text = g.Name, FontSize = 16, FontWeight = FontWeights.Bold });
             body.Children.Add(path);
@@ -387,21 +417,175 @@ namespace Tablero
         }
 
         // The selector, the Settings cards and the warning, kept in sync with the preferences.
-        void ShowGames()
+        void ShowGames() { ShowGames(false); }
+        void ShowGames(bool animate)
         {
             ListBox l = F<ListBox>("Games");
+            // A hidden pinned game gives its slot to the next visible one.
+            List<Game> slots = Game.Slots(Prefs.Now.Pinned, Game.Visible);
+            Prefs.Now.Pinned = slots.Select(g => g.Id).ToList();
             swapping = true;
-            l.ItemsSource = Game.Visible;
-            l.SelectedItem = game;
+            l.ItemsSource = slots;
+            l.SelectedItem = slots.Contains(game) ? game : null;
             swapping = false;
             l.UpdateLayout();
-            GameMark(false);
+            GameMark(animate);
             foreach (Game g in Game.All)
             {
                 pickerChecks[g].IsChecked = !Prefs.Now.Hidden.Contains(g.Id);
                 exeTexts[g].Text = g.Installed() ? g.Exe : L.T("No encontrado");
             }
+            ShowCards();
             ShowMissing();
+        }
+
+        // ---- All games, in Play ----
+
+        bool allOpen;
+        readonly List<Game> cardGames = new List<Game>();
+        readonly Dictionary<Game, FrameworkElement[]> cardParts = new Dictionary<Game, FrameworkElement[]>(); // card, Play, Pin, "not installed"
+        readonly Dictionary<Game, ImageSource> cardPhotos = new Dictionary<Game, ImageSource>();
+
+        // Opens inside the page, pushing the rest down; without animations it opens at once.
+        void AllGames(bool open)
+        {
+            if (allOpen == open) return;
+            allOpen = open;
+            Border box = F<Border>("AllGamesBox");
+            FrameworkElement chev = F<FrameworkElement>("AllGamesChev");
+            RotateTransform r = chev.RenderTransform as RotateTransform;
+            if (r == null || r.IsFrozen) { r = new RotateTransform(); chev.RenderTransform = r; }
+            Fx.To(r, RotateTransform.AngleProperty, open ? 180 : 0, open ? 480 : 180, open ? Fx.Spring : Fx.Out);
+            if (!Fx.On)
+            {
+                box.BeginAnimation(FrameworkElement.HeightProperty, null);
+                box.Height = double.NaN;
+                box.Visibility = open ? Visibility.Visible : Visibility.Collapsed;
+                return;
+            }
+            // From the current height, also when it changes direction halfway.
+            box.Height = box.Visibility == Visibility.Visible ? box.ActualHeight : 0;
+            box.Visibility = Visibility.Visible;
+            box.UpdateLayout(); // the photos take their 16:9 height once they know their width
+            FrameworkElement grid = (FrameworkElement)box.Child;
+            grid.Measure(new Size(((FrameworkElement)box.Parent).ActualWidth, double.PositiveInfinity));
+            Fx.To(box, FrameworkElement.HeightProperty, open ? grid.DesiredSize.Height : 0, open ? 420 : 220, open ? Fx.Out : Fx.In, 0, () =>
+            {
+                if (allOpen != open) return;
+                box.BeginAnimation(FrameworkElement.HeightProperty, null);
+                box.Height = double.NaN;
+                if (!open) box.Visibility = Visibility.Collapsed;
+            });
+        }
+
+        // One card per visible game; built again only when that list changes.
+        void ShowCards()
+        {
+            List<Game> shown = Game.Visible;
+            if (!shown.SequenceEqual(cardGames))
+            {
+                UniformGrid grid = F<UniformGrid>("AllGamesGrid");
+                grid.Children.Clear();
+                cardGames.Clear();
+                cardParts.Clear();
+                foreach (Game g in shown) { grid.Children.Add(GameTile(g)); cardGames.Add(g); }
+            }
+            CardState();
+        }
+        Border GameTile(Game g)
+        {
+            // Photo at 16:9 with the top corners rounded; a game without its photo yet gets the game icon.
+            Border pic = new Border { CornerRadius = new CornerRadius(16.5, 16.5, 0, 0) };
+            pic.SizeChanged += (s, e) => { if (e.WidthChanged) pic.Height = e.NewSize.Width * 9 / 16; };
+            ImageSource src = CardPhoto(g);
+            if (src != null) pic.Background = new ImageBrush(src) { Stretch = Stretch.UniformToFill, AlignmentY = AlignmentY.Top }; // faces, not legs
+            else
+            {
+                pic.SetResourceReference(Border.BackgroundProperty, "Btn");
+                System.Windows.Shapes.Path icon = new System.Windows.Shapes.Path { Data = Ico("Game"), Width = 24, Height = 24, StrokeThickness = 2, StrokeStartLineCap = PenLineCap.Round, StrokeEndLineCap = PenLineCap.Round, StrokeLineJoin = PenLineJoin.Round };
+                icon.SetResourceReference(System.Windows.Shapes.Shape.StrokeProperty, "Ink2");
+                pic.Child = new Viewbox { Width = 40, Height = 40, Child = icon };
+            }
+            Tb name = new Tb { Text = g.Name, FontSize = 16, FontWeight = FontWeights.Bold, TextWrapping = TextWrapping.Wrap };
+            Tb no = new Tb { Text = "No instalado", Margin = new Thickness(0, 2, 0, 0) };
+            no.SetResourceReference(TextBlock.ForegroundProperty, "Ink2");
+            // Two equal columns, 8 px apart: always on one row.
+            Btn play = new Btn { Style = F<Btn>("Play").Style, Content = "Jugar", Glint = false, Padding = new Thickness(8, 0, 8, 0), Margin = new Thickness(0, 0, 4, 0) };
+            Btn pin = new Btn { Style = F<Btn>("CheckNow").Style, Padding = new Thickness(8, 0, 8, 0), Margin = new Thickness(4, 0, 0, 0) };
+            AutomationProperties.SetName(play, L.T("Jugar") + " " + g.Name);
+            // Exactly what the main Play does, once this game is on screen.
+            play.Click += (s, e) => { if (SwitchGame(g, true, play)) Play(); };
+            pin.Click += (s, e) => Pin(g);
+            Grid buttons = new Grid { Margin = new Thickness(0, 10, 0, 0) };
+            buttons.ColumnDefinitions.Add(new ColumnDefinition());
+            buttons.ColumnDefinitions.Add(new ColumnDefinition());
+            Grid.SetColumn(pin, 1);
+            buttons.Children.Add(play);
+            buttons.Children.Add(pin);
+            // The buttons sit at the bottom, so a card with one line more ("No instalado") leaves no gap in the others.
+            DockPanel text = new DockPanel { Margin = new Thickness(16, 12, 16, 16), LastChildFill = false };
+            DockPanel.SetDock(buttons, Dock.Bottom);
+            DockPanel.SetDock(name, Dock.Top);
+            DockPanel.SetDock(no, Dock.Top);
+            text.Children.Add(buttons);
+            text.Children.Add(name);
+            text.Children.Add(no);
+            DockPanel body = new DockPanel();
+            DockPanel.SetDock(pic, Dock.Top);
+            body.Children.Add(pic);
+            body.Children.Add(text);
+            Border card = new Border { CornerRadius = new CornerRadius(18), BorderThickness = new Thickness(1.5), Margin = new Thickness(0, 0, 12, 12), Child = body };
+            card.SetResourceReference(Border.BackgroundProperty, "Card");
+            cardParts[g] = new FrameworkElement[] { card, play, pin, no };
+            return card;
+        }
+        ImageSource CardPhoto(Game g)
+        {
+            ImageSource p;
+            if (cardPhotos.TryGetValue(g, out p)) return p;
+            System.IO.Stream s = Assembly.GetExecutingAssembly().GetManifestResourceStream(g.Photo);
+            if (s != null)
+            {
+                BitmapImage b = new BitmapImage();
+                b.BeginInit();
+                b.StreamSource = s;
+                b.DecodePixelWidth = 480;
+                b.CacheOption = BitmapCacheOption.OnLoad;
+                b.EndInit();
+                b.Freeze();
+                p = b;
+            }
+            return cardPhotos[g] = p;
+        }
+        // Current game outlined, pinned ones say so, and Play off like the main one while a game is running.
+        void CardState()
+        {
+            bool busy = stretch == null || stretch.Pending || confirming;
+            foreach (Game g in cardGames)
+            {
+                FrameworkElement[] p = cardParts[g];
+                Border card = (Border)p[0];
+                if (g == game) card.SetResourceReference(Border.BorderBrushProperty, "On"); else card.BorderBrush = Brushes.Transparent;
+                bool inst = g.Installed(), pinned = Prefs.Now.Pinned.Contains(g.Id);
+                p[1].IsEnabled = inst && !busy;
+                p[3].Visibility = inst ? Visibility.Collapsed : Visibility.Visible;
+                Btn pin = (Btn)p[2];
+                pin.Content = pinned ? "Fijado" : "Fijar";
+                pin.IsEnabled = !pinned;
+                pin.ToolTip = L.T(pinned ? "Fijado" : "Fijar arriba") + " " + g.Name;
+                AutomationProperties.SetName(pin, (string)pin.ToolTip);
+            }
+        }
+        // Takes the slot without the game on screen; if that game is not pinned, the right one.
+        void Pin(Game g)
+        {
+            List<Game> slots = Game.Slots(Prefs.Now.Pinned, Game.Visible);
+            if (slots.Contains(g)) return;
+            List<string> p = slots.Select(x => x.Id).ToList();
+            p[slots.IndexOf(game) == 1 ? 0 : p.Count - 1] = g.Id;
+            Prefs.Now.Pinned = p;
+            SavePrefs();
+            ShowGames(true);
         }
 
         // false = it could not be done: the game stays in the selector.
@@ -622,14 +806,15 @@ namespace Tablero
             swapping = false;
             ValorantSession v = Val;
             F<FrameworkElement>("ResBox").Visibility = v == null || v.Stretch ? Visibility.Visible : Visibility.Collapsed;
-            F<FrameworkElement>("ValChecks").Visibility = v != null && v.Stretch ? Visibility.Visible : Visibility.Collapsed;
+            F<FrameworkElement>("ValChecks").Visibility = v != null && v.Stretch || game == Game.Cs2 ? Visibility.Visible : Visibility.Collapsed;
             F<CheckBox>("ValOn").IsChecked = v != null && v.Stretch;
             Preview();
-            F<TextBlock>("ResHint").Text = val ? "Valorant solo estira con una relación de aspecto de 1,45:1 o más: las más cuadradas, como 4:3, no funcionan." : "La pantalla se estira al pulsar Jugar y vuelve al cerrar el juego. No hace falta crear nada en el panel de NVIDIA: se usan los Hz más altos de cada resolución.";
+            F<TextBlock>("ResHint").Text = game == Game.Cs2 ? "La pantalla se estira al pulsar Jugar y vuelve al cerrar CS2. Jugar también pone esa resolución y su relación de aspecto en el vídeo de CS2, y las repone al cerrarlo." : val ? "Valorant solo estira con una relación de aspecto de 1,45:1 o más: las más cuadradas, como 4:3, no funcionan." : "La pantalla se estira al pulsar Jugar y vuelve al cerrar el juego. No hace falta crear nada en el panel de NVIDIA: se usan los Hz más altos de cada resolución.";
             if (list.Count == 1 && val) F<TextBlock>("StretchInfo").Text = "La pantalla no ofrece resoluciones estiradas que cumplan 1,45:1. Para estirar Valorant, crea " + Display.ValorantBest(list[0]).Name + " en el panel de la gráfica y reinicia la app.";
+            else if (list.Count == 1 && game == Game.Cs2) F<TextBlock>("StretchInfo").Text = "La pantalla no ofrece ninguna resolución más estrecha. Para estirar CS2, crea 1280 × 960 en el panel de la gráfica y reinicia la app.";
             else if (list.Count == 1) F<TextBlock>("StretchInfo").Text = "La pantalla no ofrece ninguna resolución más estrecha. Para usar stretched, crea 1720 × 1080 en el panel de la gráfica y reinicia la app.";
             ShowStretch();
-            if (v != null && v.Stretch) { Task t = ShowValChecks(); }
+            if (v != null && v.Stretch || game == Game.Cs2) { Task t = ShowChecks(); }
         }
         // Native first, then from least to most stretched; in Valorant only those from 1.45:1.
         List<ResRow> ResRows()
@@ -650,19 +835,22 @@ namespace Tablero
                 .Concat(list.OrderByDescending(r => r.Aspect).ThenByDescending(r => r.W * r.H)
                 .Select(r => new ResRow { W = r.W, H = r.H, Hz = r.Hz, Note = ratio(r), Detail = ratio(r) + " · " + r.Hz + " Hz", Best = val && r.Aspect < 1.47 })).ToList();
         }
-        async Task ShowValChecks()
+        // "Antes de jugar" of Valorant or CS2.
+        async Task ShowChecks()
         {
             List<Check> c = null;
             Hw h = hw ?? quick;
             string gpu = h == null || h.Gpu == null ? null : h.Nvidia ? "nvidia" : h.Gpu.Contains("Radeon") ? "amd" : null;
+            bool cs2 = game == Game.Cs2;
             await Task.Run(() =>
             {
                 int on = 0;
-                try { on = Monitors.On().Count; } catch (InvalidOperationException) { }
+                if (!cs2) try { on = Monitors.On().Count; } catch (InvalidOperationException) { }
                 // Without a scan, NVIDIA vibrance gives away the brand.
                 if (h == null || h.Gpu == null) try { if (Vivid.GetVib() != null) gpu = "nvidia"; } catch (Exception) { }
-                c = Valorant.Checks(Valorant.Settings(), on, gpu, dir);
+                c = cs2 ? Cs2.Checks(Cs2.Video(), Cs2.LaunchOptions(), gpu, dir) : Valorant.Checks(Valorant.Settings(), on, gpu, dir);
             });
+            if ((game == Game.Cs2) != cs2) return; // the game changed meanwhile
             F<ItemsControl>("ValChecks").ItemsSource = c;
         }
     }

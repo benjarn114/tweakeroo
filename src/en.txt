@@ -772,7 +772,7 @@ Opcional: su efecto en el retraso no está demostrado.	Optional: its effect on d
 Normal	Normal
 Stretched	Stretched
 Macros	Macros
-Macros de edición para freebuild. Solo funcionan en Creativo, con Fortnite en primer plano y Tweakeroo abierto. En cualquier otro modo quedan apagadas.	Edit macros for freebuilding. They only work in Creative, with Fortnite in the foreground and Tweakeroo open. They stay off in any other mode.
+Las macros solo funcionan en mapas de Creativo, para entrenar ediciones. En partidas públicas, torneos y competitivo están desactivadas.	Macros only work in Creative maps, to practice edits. They're off in public matches, tournaments and competitive.
 Uso bajo tu propio riesgo	Use at your own risk
 Epic prohíbe las macros en torneos y usarlas, también en Creativo, puede llevar a sanciones en la cuenta. Tweakeroo no las oculta ni evita la detección.	Epic forbids macros in tournaments and using them, also in Creative, can lead to account penalties. Tweakeroo doesn't hide them or avoid detection.
 Acepto el riesgo	I accept the risk
@@ -801,11 +801,10 @@ Clic derecho	Right click
 Clic central	Middle click
 Botón lateral 1	Side button 1
 Botón lateral 2	Side button 2
-Estado: {0}	Status: {0}
 Apagadas	Off
-Activas	Active
-En espera: Fortnite no está en primer plano	Waiting: Fortnite isn't in the foreground
-En espera: Fortnite no está en Creativo	Waiting: Fortnite isn't in Creative
+Activas (Creativo)	Active (Creative)
+En pausa: Fortnite no está en primer plano	Paused: Fortnite is not in the foreground
+En pausa: no estás en Creativo	Paused: not in Creative
 Los clics izquierdo y derecho no se pueden usar como tecla de macro.	Left and right click can't be used as a macro key.
 Esa tecla ya se usa en Fortnite para editar.	That key is already used in Fortnite to edit.
 Esa tecla ya es de otra macro.	That key already belongs to another macro.
@@ -1014,10 +1013,10 @@ Intensidad 100 %	Vibrance 100%
 Personalizado	Custom
 Con los controles de abajo	With the controls below
 Cambiar de juego solo	Switch games automatically
-Al abrir Fortnite o Valorant, Tweakeroo pasa a ese juego.	When Fortnite or Valorant opens, Tweakeroo switches to that game.
+Al abrir un juego, Tweakeroo pasa a ese juego.	When a game opens, Tweakeroo switches to that game.
 Con un juego abierto, Windows deja de buscar otras redes, que es una causa de tirones. Al cerrarlo vuelve a lo normal. Algunas tarjetas no lo respetan.	With a game open, Windows stops looking for other networks, which is a cause of stutters. It goes back to normal when the game closes. Some cards ignore it.
 Mide el ping, los tirones y los paquetes perdidos, y dice dónde está el problema: tu red, el proveedor o la ruta hasta el servidor.	Measures ping, stutters and lost packets, and says where the problem is: your network, your provider or the route to the server.
-Optimización de Windows para Fortnite y Valorant	Windows optimization for Fortnite and Valorant
+Optimización de Windows para Fortnite, Valorant y CS2	Windows optimization for Fortnite, Valorant and CS2
 Para jugar sobra velocidad; lo que importa es el ping.	This speed is more than enough for gaming; what matters is ping.
 Campo de tiro	Practice range
 Ajustes de Valorant sin leer	Valorant settings not read
@@ -1239,3 +1238,36 @@ Volviendo en {0} s	Back in {0} s
 Temática: {0}	Theme: {0}
 Temática	Theme
 Simple	Simple
+CS2 usa la gráfica potente	CS2 uses the powerful GPU
+NVIDIA a máximo rendimiento en CS2	NVIDIA at maximum performance in CS2
+Filtrado de texturas rápido en CS2	Fast texture filtering in CS2
+Menos trabajo de textura, solo en CS2.	Less texture work, only in CS2.
+VSync apagado en CS2	VSync off in CS2
+Cierra CS2 antes de pulsar Jugar.	Close CS2 before pressing Play.
+No se encontró Steam. Instálalo o abre CS2 una vez.	Steam was not found. Install it or open CS2 once.
+Partida	Match
+Los FPS de CS2 necesitan permisos de administrador.	CS2 FPS need administrator rights.
+No se pudieron medir los FPS de CS2 (código {0}).	Couldn't measure CS2 FPS (code {0}).
+CS2	CS2
+Abre CS2 por Steam con la resolución elegida. Al cerrarlo, la pantalla se restaura.	Opens CS2 through Steam at the chosen resolution. The screen is restored when it closes.
+Abriendo CS2 por Steam. La resolución se restaura al cerrarlo; Tweakeroo debe quedar abierto.	Opening CS2 through Steam. The resolution is restored when it closes; Tweakeroo must stay open.
+Ajustes de CS2 sin leer	CS2 settings not read
+Abre el juego una vez.	Open the game once.
+Monitor	Monitor
+CS2 está en otro monitor: solo se estira la pantalla principal.	CS2 is on another monitor: only the main display is stretched.
+Opciones de lanzamiento	Launch options
+Con -vulkan no se miden los FPS y el 4:3 puede no estirarse.	With -vulkan FPS are not measured and 4:3 may not stretch.
+Con -allow_third_party_software CS2 juega sin el Modo de confianza. Conviene quitarlo.	With -allow_third_party_software CS2 runs without Trusted Mode. Better to remove it.
+Se miden mientras Tweakeroo está abierto, contando los fotogramas que el juego entrega a Windows, sin tocar el juego.	Measured while Tweakeroo is open, by counting the frames the game hands to Windows, without touching the game.
+No hay partidas de más de un minuto medidas en CS2.	No CS2 matches longer than a minute have been measured.
+La pantalla se estira al pulsar Jugar y vuelve al cerrar CS2. Jugar también pone esa resolución y su relación de aspecto en el vídeo de CS2, y las repone al cerrarlo.	The screen is stretched when Play is pressed and goes back when CS2 closes. Play also sets that resolution and its aspect ratio in CS2's video settings, and restores them when it closes.
+La pantalla no ofrece ninguna resolución más estrecha. Para estirar CS2, crea 1280 × 960 en el panel de la gráfica y reinicia la app.	The screen offers no narrower resolution. To stretch CS2, create 1280 × 960 in the GPU's panel and restart the app.
+La primera vez que se usa una resolución se pide confirmación. Sin respuesta en {0} segundos, se restaura la anterior. Tweakeroo debe quedar abierto durante la partida. En CS2 valen Pantalla completa y Ventana a pantalla completa; se recomienda Pantalla completa.	The first time a resolution is used, confirmation is required. With no response in {0} seconds, the previous one is restored. Tweakeroo must stay open during the match. In CS2 both Fullscreen and Fullscreen Windowed work; Fullscreen is recommended.
+Pantalla restaurada. La configuración de {0} se restaura al cerrar el juego.	Screen restored. {0}'s settings are restored when the game closes.
+Counter-Strike 2	Counter-Strike 2
+Counter-Strike	Counter-Strike
+Todos los juegos	All games
+Fijar arriba	Pin to top
+Fijado	Pinned
+No instalado	Not installed
+Fijar	Pin

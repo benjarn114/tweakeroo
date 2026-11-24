@@ -13,7 +13,7 @@ using System.Windows.Media.Imaging;
 
 [assembly: AssemblyTitle("Tweakeroo")]
 [assembly: AssemblyProduct("Tweakeroo")]
-[assembly: AssemblyVersion("1.0.4.0")]
+[assembly: AssemblyVersion("1.1.0.0")]
 
 namespace Tablero
 {
@@ -136,6 +136,8 @@ namespace Tablero
                 if (Array.IndexOf(args, "scan") >= 0) Scanner.Delete(dir);
                 if (Array.IndexOf(args, "fortnite") >= 0) Prefs.Now.Game = "fortnite";
                 if (Array.IndexOf(args, "valorant") >= 0 && Array.IndexOf(args, "medio") < 0) Prefs.Now.Game = "valorant";
+                if (Array.IndexOf(args, "cs2") >= 0) Prefs.Now.Game = "cs2";
+                if (Array.IndexOf(args, "fijar") >= 0) Prefs.Now.Pinned = new System.Collections.Generic.List<string> { "fortnite", "cs2" };
                 if (Array.IndexOf(args, "noinst") >= 0) Game.Valorant.Installed = () => false;
                 // "tema noche|lluvia|arcade|simple"; without it, what the test folder has saved.
                 int theme = Array.IndexOf(args, "tema");
@@ -199,6 +201,7 @@ namespace Tablero
                         while (!scan.IsEnabled) await Task.Delay(100);
                     }
                     if (!still) ui.Open(args[3]);
+                    if (Array.IndexOf(args, "juegos") >= 0) ((Btn)w.FindName("AllGames")).RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
                     if (Array.IndexOf(args, "abierto") >= 0) { ((ScrollViewer)w.FindName("UpgradePage")).ScrollToEnd(); }
                     if (Array.IndexOf(args, "versiones") >= 0) ((Btn)w.FindName("ShowVersions")).RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
                     if (Array.IndexOf(args, "fin") >= 0) foreach (string n in new[] { "SettingsPage", "MacroPage", "NetPage", "ResPage", "BoostPage" }) ((ScrollViewer)w.FindName(n)).ScrollToEnd();

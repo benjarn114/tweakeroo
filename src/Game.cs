@@ -19,12 +19,23 @@ namespace Tablero
         public Func<bool> Installed; // replaceable in tests
         public string ExeName;
         Func<string> found;
+        string slot;
+        // Name in the top selector: a long one goes on two lines.
+        public string SlotName { get { return slot ?? Name; } }
 
         public static readonly Game Fortnite = new Game { Id = "fortnite", Name = "Fortnite", Photo = "personaje.jpg", Palette = "Glaciar", PaletteFile = "paleta.txt", Running = () => IniOp.GameRunning(), ExeName = "FortniteClient-Win64-Shipping.exe", found = FortniteExe, Installed = () => File.Exists(Fortnite.Exe) };
         public static readonly Game Valorant = new Game { Id = "valorant", Name = "Valorant", Photo = "valorant.jpg", Palette = "Carmesí", PaletteFile = "paleta-valorant.txt", Running = () => Process.GetProcessesByName("VALORANT-Win64-Shipping").Length > 0, ExeName = "VALORANT-Win64-Shipping.exe", found = Tablero.Valorant.Exe, Installed = () => File.Exists(Valorant.Exe) };
-        public static readonly List<Game> All = new List<Game> { Fortnite, Valorant };
+        public static readonly Game Cs2 = new Game { Id = "cs2", Name = "Counter-Strike 2", slot = "Counter-Strike\n2", Photo = "cs2.jpg", Palette = "CS2", PaletteFile = "paleta-cs2.txt", Running = () => Process.GetProcessesByName("cs2").Length > 0, ExeName = "cs2.exe", found = Tablero.Cs2.Exe, Installed = () => File.Exists(Cs2.Exe) };
+        public static readonly List<Game> All = new List<Game> { Fortnite, Valorant, Cs2 };
         // The ones shown in the selector.
         public static List<Game> Visible { get { return All.Where(g => !Prefs.Now.Hidden.Contains(g.Id)).ToList(); } }
+        // The 2 slots at the top: the pinned ones that are visible, in their order, filled up with the rest in the order of All.
+        public static List<Game> Slots(List<string> pinned, List<Game> visible)
+        {
+            List<Game> s = (pinned ?? new List<string>()).Select(id => visible.FirstOrDefault(g => g.Id == id)).Where(g => g != null).Distinct().Take(2).ToList();
+            foreach (Game g in visible) if (s.Count < 2 && !s.Contains(g)) s.Add(g);
+            return s;
+        }
         // The one picked by hand wins over the one found automatically.
         public string Exe { get { string p; return Prefs.Now.Paths.TryGetValue(Id, out p) ? p : found(); } }
         public bool IsExe(string path) { return path != null && path.EndsWith("\\" + ExeName, StringComparison.OrdinalIgnoreCase); }
@@ -43,12 +54,13 @@ namespace Tablero
         }
         public static Game Of(string id) { return All.FirstOrDefault(g => g.Id == id) ?? Fortnite; }
         public static Game Open { get { return All.FirstOrDefault(g => g.Running()); } }
-        public StretchSession Session(string dir) { return this == Valorant ? new ValorantSession(dir) : new StretchSession(dir); }
+        public StretchSession Session(string dir) { return this == Valorant ? new ValorantSession(dir) : this == Cs2 ? new Cs2Session(dir) : new StretchSession(dir); }
 
         // null = for all games.
         public static string OfTweak(string id)
         {
             if (id.StartsWith("val-")) return "valorant";
+            if (id.StartsWith("cs2-")) return "cs2";
             return id.StartsWith("fn-") || id == "nv-power" || id == "nv-filter" || id == "net-qos" ? "fortnite" : null;
         }
     }
@@ -320,6 +332,13 @@ namespace Tablero
                 r.Add(new Check { Title = "Relación de aspecto", Text = fill ? "Rellenar." : "En Valorant, Vídeo, General: elige Rellenar en vez de Bandas negras.", Kind = fill ? Kind.Bien : Kind.Gratis, Fix = fill ? null : fix });
             }
             r.Add(new Check { Title = "Monitores", Text = monitors == 0 ? "Ya están desactivados en el Administrador de dispositivos; se dejan como están." : "Se desactivan en el Administrador de dispositivos al pulsar Jugar y se reactivan al cerrar el juego.", Kind = Kind.Bien });
+            Scale(r, gpu, dir);
+            return r;
+        }
+
+        // How the GPU scales: the same for every game that stretches.
+        public static void Scale(List<Check> r, string gpu, string dir)
+        {
             if (gpu == "nvidia")
             {
                 int s = -1;
@@ -332,7 +351,6 @@ namespace Tablero
             else if (gpu == "amd")
                 r.Add(new Check { Title = "Escala de la gráfica", Text = "En AMD Software, Pantalla: activa Escalado de GPU y elige Panel completo.", Kind = Kind.Gratis, Url = AmdApp() ? @"shell:AppsFolder\AdvancedMicroDevicesInc-RSXCM_fhmx3h6dzfmvj!App" : "https://www.amd.com/en/support/download/drivers.html", Button = "Abrir AMD Software" });
             else r.Add(new Check { Title = "Escala de la gráfica", Text = "En el panel de NVIDIA, Ajustar tamaño y posición: Pantalla completa, escalar en la GPU y anular el modo del juego.", Kind = Kind.Gratis });
-            return r;
         }
     }
 

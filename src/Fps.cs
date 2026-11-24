@@ -24,8 +24,8 @@ namespace Tablero
     public static class FpsLog
     {
         public static string Folder = Environment.ExpandEnvironmentVariables(@"%LOCALAPPDATA%\FortniteGame\Saved\Logs");
-        static string FileOf(string dir, Game g) { return Path.Combine(dir, g == Game.Valorant ? "fps-valorant.json" : "fps.json"); }
-        const int Skip = 20, MinSeconds = 60;
+        static string FileOf(string dir, Game g) { return Path.Combine(dir, g == Game.Fortnite ? "fps.json" : "fps-" + g.Id + ".json"); }
+        internal const int Skip = 20, MinSeconds = 60;
 
         static int Num(string s, int at, int len)
         {
@@ -101,7 +101,7 @@ namespace Tablero
             return res;
         }
 
-        static Match Sum(string map, DateTime start, List<double> w)
+        internal static Match Sum(string map, DateTime start, List<double> w)
         {
             w.Sort();
             double p95 = w[w.Count * 95 / 100];
@@ -127,22 +127,28 @@ namespace Tablero
             Engine.WriteFile(FileOf(dir, g), new JavaScriptSerializer().Serialize(st));
         }
 
-        // The game deletes old logs: what was already read is kept in the app folder.
-        public static List<Match> Update(string dir, Game g)
+        // An unreadable history is rebuilt from the logs.
+        static Store Load(string file, JavaScriptSerializer json)
         {
-            bool val = g == Game.Valorant;
-            string file = FileOf(dir, g), logsIn = val ? Valorant.Logs : Folder;
-            JavaScriptSerializer json = new JavaScriptSerializer { MaxJsonLength = int.MaxValue };
             Store st = null;
             if (File.Exists(file))
             {
-                // An unreadable history is rebuilt from the logs.
                 try { st = json.Deserialize<Store>(File.ReadAllText(file)); }
                 catch (ArgumentException) { }
                 catch (InvalidOperationException) { }
             }
-            if (st == null || st.Files == null || st.Matches == null) st = new Store { Files = new Dictionary<string, string>(), Matches = new List<Match>() };
-            if (Directory.Exists(logsIn))
+            return st == null || st.Files == null || st.Matches == null ? new Store { Files = new Dictionary<string, string>(), Matches = new List<Match>() } : st;
+        }
+
+        // The game deletes old logs: what was already read is kept in the app folder.
+        // CS2 leaves no FPS in any log: only its history is loaded (FpsRecorder adds to it with Add).
+        public static List<Match> Update(string dir, Game g)
+        {
+            bool val = g == Game.Valorant;
+            string file = FileOf(dir, g), logsIn = val ? Valorant.Logs : g == Game.Fortnite ? Folder : null;
+            JavaScriptSerializer json = new JavaScriptSerializer { MaxJsonLength = int.MaxValue };
+            Store st = Load(file, json);
+            if (logsIn != null && Directory.Exists(logsIn))
             {
                 FileInfo[] logs = new DirectoryInfo(logsIn).GetFiles(val ? "ShooterGame*.log" : "FortniteGame*.log");
                 bool changed = false;
@@ -164,6 +170,19 @@ namespace Tablero
                 st.Matches = st.Matches.OrderByDescending(m => m.Start, StringComparer.Ordinal).Take(300).ToList();
                 if (changed) Engine.WriteFile(file, json.Serialize(st));
             }
+            return st.Matches;
+        }
+
+        // A match measured while playing (CS2), kept with the rest, newest first. Returns the whole history.
+        public static List<Match> Add(string dir, Game g, Match m)
+        {
+            string file = FileOf(dir, g);
+            JavaScriptSerializer json = new JavaScriptSerializer { MaxJsonLength = int.MaxValue };
+            Store st = Load(file, json);
+            // Started before the history was cleared: it stays cleared.
+            if (string.CompareOrdinal(m.Start, st.Since ?? "") >= 0) { st.Matches.RemoveAll(x => x.Start == m.Start); st.Matches.Add(m); }
+            st.Matches = st.Matches.OrderByDescending(x => x.Start, StringComparer.Ordinal).Take(300).ToList();
+            Engine.WriteFile(file, json.Serialize(st));
             return st.Matches;
         }
 

@@ -87,7 +87,17 @@ namespace Tablero
             Binds.Folder = Path.Combine(dir, "sin-teclas");
             NetTest.Ping = (h, ms) => Task.FromResult(h.Contains("-br.") ? 41 : h == "1.1.1.1" ? 20 : h == "10.0.0.1" ? 2 : -1); NetTest.Router = () => "10.0.0.1"; Ui.NetTries = 10; Ui.NetPause = 5;
             Wifi.Steady = on => { steady = on; return true; };
+            // CS2: a fake Steam with the player's video file (other monitor) and -vulkan.
+            string steam = Path.Combine(dir, "steam"), cfg = Path.Combine(steam, @"userdata\1\730\local\cfg");
+            Cs2.Steam = () => steam; Directory.CreateDirectory(cfg); Directory.CreateDirectory(Path.Combine(steam, @"userdata\1\config"));
+            File.WriteAllText(Path.Combine(steam, "steam.exe"), "");
+            cvid = Path.Combine(cfg, "cs2_video.txt"); File.WriteAllText(cvid, cvid0);
+            File.WriteAllText(Path.Combine(steam, @"userdata\1\config\localconfig.vdf"), "\"UserLocalConfigStore\" { \"Software\" { \"Valve\" { \"Steam\" { \"apps\" { \"730\" { \"LaunchOptions\" \"-vulkan\" } } } } } }");
+            Game.Cs2.Running = () => crunning; Game.Cs2.Installed = () => cinst;
         }
+        static bool crunning, cinst = true;
+        static string cvid;
+        const string cvid0 = "\"video.cfg\"\r\n{\r\n\t\"setting.defaultres\"\t\t\"2560\"\r\n\t\"setting.defaultresheight\"\t\t\"1440\"\r\n\t\"setting.aspectratiomode\"\t\t\"1\"\r\n\t\"setting.fullscreen\"\t\t\"1\"\r\n\t\"setting.monitor_index\"\t\t\"1\"\r\n}\r\n";
         static string Map(DateTime utc, string name, bool inMap)
         {
             string b = inMap ? "TRUE" : "FALSE";
@@ -189,7 +199,11 @@ namespace Tablero
                 Is(((ItemsControl)w.FindName("Plan")).Items.Count >= 2, "lista de compras futuras");
                 Go(w, "Mejoras"); Is(((ItemsControl)w.FindName("Checks")).Items.Count > 3, "la revision lista consejos"); Is(!Drivers.Known.Url.Contains("malo") && ((ItemsControl)w.FindName("Checks")).Items.Cast<Check>().Any(c => c.Title == "Driver de NVIDIA: hay una versión nueva" && c.Act == "Abrir web"), "avisa del driver");
                 // macros: nothing without accepting, without a key or with a repeated key
-                Go(w, "Macros"); await Task.Delay(100);
+                Go(w, "Macros"); await Task.Delay(700);
+                TextBlock mst = (TextBlock)w.FindName("MacroState"); Panel mtop = (Panel)mst.Parent; int mIdx = mtop.Children.IndexOf(mst);
+                TextBlock mfix = mIdx > 0 ? mtop.Children[mIdx - 1] as TextBlock : null;
+                Is(mfix != null && mfix.IsVisible && mfix.Text == L.T("Las macros solo funcionan en mapas de Creativo, para entrenar ediciones. En partidas públicas, torneos y competitivo están desactivadas."), "macros: texto fijo de solo Creativo arriba");
+                Is(mst.IsVisible && mst.Text == L.T("Apagadas") && mst.Foreground == w.TryFindResource("Ink2"), "macros: indicador apagadas justo debajo: " + mst.Text);
                 FrameworkElement body = (FrameworkElement)w.FindName("MacroBody");
                 CheckBox au = (CheckBox)w.FindName("MacroAuto"); Is(au.IsChecked == true && !((FrameworkElement)w.FindName("KeyEdit")).IsEnabled, "por defecto usa las teclas de Fortnite");
                 au.IsChecked = false; au.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
@@ -284,22 +298,96 @@ namespace Tablero
                 // opening Fortnite brings its part of the app
                 running = true; await Task.Delay(4200); Is(pn.Text == fortPal && nav.Items.Cast<Circuit>().Any(c => c.Name == "Macros") && ((ItemsControl)w.FindName("NetTiles")).Items.Count == 3, "cambia solo al abrir Fortnite: " + pn.Text); running = false; await Task.Delay(1500);
 
+                // CS2: like Valorant but without Macros or Limit, and Play writes its video file and stretches
+                {
+                    string cd2 = Path.Combine(Path.GetTempPath(), "tablero-clics");
+                    ListBox g2 = (ListBox)w.FindName("Games");
+                    FrameworkElement miss2 = (FrameworkElement)((Panel)((ScrollViewer)w.FindName("StretchPage")).Content).Children[1];
+                    // the selector: 2 pinned slots; All games in Play: a card per game; pinning CS2 keeps the game on screen
+                    Go(w, "Jugar");
+                    Is(string.Join(",", g2.Items.Cast<Game>().Select(g => g.Id)) == "fortnite,valorant" && g2.SelectedItem == Game.Fortnite, "arriba 2 huecos: " + string.Join(",", g2.Items.Cast<Game>().Select(g => g.Id)));
+                    Border agb = (Border)w.FindName("AllGamesBox"); System.Windows.Controls.Primitives.UniformGrid agg = (System.Windows.Controls.Primitives.UniformGrid)w.FindName("AllGamesGrid");
+                    Func<string, Button> card = n => Buttons(agg).First(b => System.Windows.Automation.AutomationProperties.GetName(b) == n);
+                    Press((Button)w.FindName("AllGames")); await Task.Delay(700);
+                    Is(agb.IsVisible && double.IsNaN(agb.Height) && agb.ActualHeight > 200 && agg.Children.Count == 3, "abrir Todos los juegos da 3 tarjetas: " + agg.Children.Count + " " + agb.ActualHeight);
+                    Is((string)card("Fijado Fortnite").Content == "Fijado" && !card("Fijado Fortnite").IsEnabled && card("Jugar Counter-Strike 2").IsEnabled, "Fortnite fijado, CS2 se puede jugar");
+                    Press(card("Fijar arriba Counter-Strike 2")); await Task.Delay(300);
+                    Is(string.Join(",", g2.Items.Cast<Game>().Select(g => g.Id)) == "fortnite,cs2" && g2.SelectedItem == Game.Fortnite && Prefs.Now.Game == "fortnite" && string.Join(",", Prefs.Parse(File.ReadAllText(Path.Combine(cd2, "ajustes.json"))).Pinned) == "fortnite,cs2" && card("Fijado Counter-Strike 2") != null, "fijar CS2 ocupa el hueco del otro y conserva el actual");
+                    cinst = false; Go(w, "Jugar"); g2.SelectedItem = Game.Cs2; await Task.Delay(1400);
+                    Is(Prefs.Now.Game == "cs2" && miss2.IsVisible && !play.IsEnabled, "CS2 sin instalar: aviso y Jugar apagado");
+                    cinst = true; Go(w, "Stretched Resolution"); Go(w, "Jugar");
+                    Is(!miss2.IsVisible && play.IsEnabled && pn.Text == "Color: CS2", "CS2 instalado, con su paleta: " + pn.Text);
+                    Is(!nav.Items.Cast<Circuit>().Any(c => c.Name == "Macros") && ((UIElement)w.FindName("Limits")).Visibility != Visibility.Visible && ((TextBlock)w.FindName("PlayText")).Text.StartsWith("Abre CS2 por Steam"), "CS2 sin Macros ni Límite");
+                    List<Check> c2 = null;
+                    for (int i = 0; i < 30 && (c2 == null || c2.Count == 0); i++) { await Task.Delay(100); c2 = ((ItemsControl)w.FindName("ValChecks")).Items.Cast<Check>().ToList(); }
+                    Is(c2.Any(c => c.Text.StartsWith("CS2 está en otro monitor")) && c2.Any(c => c.Text.StartsWith("Con -vulkan")) && !c2.Any(c => c.Title == "Modo de pantalla" || c.Title == "Relación de aspecto"), "avisos de CS2: " + string.Join(", ", c2.Select(c => c.Title)));
+                    // Play with the fake display: 4:3 written in its video file and the screen stretched
+                    rl.SelectedItem = rl.Items.Cast<Res>().First(r => r.W == 1440 && r.H == 1080);
+                    // Play on CS2's card from another game: switches to CS2 and does what the main Play does
+                    g2.SelectedItem = Game.Fortnite; await Task.Delay(1400); Is(Prefs.Now.Game == "fortnite", "a Fortnite antes de jugar desde la tarjeta");
+                    int was2 = opened; Press(card("Jugar Counter-Strike 2")); if (((string)play.Content).StartsWith("Conservar")) Press(play);
+                    string vNow = File.ReadAllText(cvid);
+                    Is(Prefs.Now.Game == "cs2" && g2.SelectedItem == Game.Cs2, "Jugar en la tarjeta cambia a CS2");
+                    Is(opened == was2 + 1 && screen.W == 1440 && vNow.Contains("\"setting.defaultres\"\t\t\"1440\"") && vNow.Contains("\"setting.aspectratiomode\"\t\t\"0\"") && vNow.Contains("\"setting.monitor_index\"\t\t\"1\""), "Jugar en CS2 estira y escribe resolución y relación");
+                    crunning = true; await Task.Delay(3200); Is((string)play.Content == "Jugando" && !live.SwitchGame(Game.Fortnite, true) && Prefs.Now.Game == "cs2" && !card("Jugar Fortnite").IsEnabled && !card("Jugar Counter-Strike 2").IsEnabled, "CS2 jugando, sin Jugar en las tarjetas: " + play.Content);
+                    crunning = false; await Task.Delay(3200);
+                    Is(screen.W == 2560 && File.ReadAllText(cvid) == cvid0 && play.IsEnabled && card("Jugar Counter-Strike 2").IsEnabled && ((TextBlock)w.FindName("Status")).Text.EndsWith("resolución restaurada."), "al cerrar CS2, pantalla y archivo restaurados: " + ((TextBlock)w.FindName("Status")).Text);
+                    // Mis FPS from a fake history: CS2's text, the ETW status and no estimates
+                    FpsLog.Add(cd2, Game.Cs2, new Match { Start = DateTime.Now.AddHours(-1).ToString("yyyy-MM-dd HH:mm:ss"), Map = "Partida", Seconds = 300, Median = 280, Low = 190, Max = 400, Cap = 400 });
+                    typeof(FpsRecorder).GetProperty("Status").SetValue(null, FpsRecorder.Admin, null);
+                    Go(w, "Mis FPS"); await Task.Delay(1500);
+                    string ft = ((TextBlock)w.FindName("FpsText")).Text;
+                    Is(ft.StartsWith("Se miden mientras Tweakeroo está abierto") && ft.EndsWith(FpsRecorder.Admin) && ((UIElement)w.FindName("EstBox")).Visibility != Visibility.Visible && ((UIElement)w.FindName("FpsNow")).Visibility == Visibility.Visible, "Mis FPS de CS2: " + ft);
+                    typeof(FpsRecorder).GetProperty("Status").SetValue(null, null, null);
+                    Go(w, "Jugar"); await Task.Delay(800);
+                    Is(((TextBlock)w.FindName("PlayEst")).Text == "280 FPS", "media de 10 partidas en CS2: " + ((TextBlock)w.FindName("PlayEst")).Text);
+                    Go(w, "Conexión"); await Task.Delay(300); Is(((ItemsControl)w.FindName("NetTiles")).Items.Count == 2, "Conexión de CS2: 2 casillas");
+                    // the themes keep their own colors with CS2; Simple brings back CS2's
+                    ListBox th2 = (ListBox)w.FindName("Themes");
+                    foreach (string lk in new[] { "noche", "lluvia", "arcade" })
+                    {
+                        th2.SelectedItem = Theme.LookOf(lk); await Task.Delay(700);
+                        Is(((SolidColorBrush)w.Resources["Card"]).Color == Theme.Parse(Theme.LookOf(lk).Pal.C["Card"]) && Prefs.Now.Game == "cs2", "temática " + lk + " con CS2");
+                    }
+                    th2.SelectedItem = Theme.LookOf("simple"); await Task.Delay(700);
+                    Is(((SolidColorBrush)w.Resources["Card"]).Color == Theme.Parse(Theme.Named("CS2").C["Card"]), "Simple vuelve a la paleta CS2");
+                    ((ListBox)w.FindName("SetMusic")).SelectedIndex = 0;
+                    g2.SelectedItem = Game.Fortnite; await Task.Delay(1400); Is(Prefs.Now.Game == "fortnite", "de CS2 a Fortnite");
+                }
+
                 // game not found: warning, Play disabled and removing it from the selector
                 ListBox gl = (ListBox)w.FindName("Games");
                 FrameworkElement miss = (FrameworkElement)((Panel)((ScrollViewer)w.FindName("StretchPage")).Content).Children[1];
                 Is(miss.Visibility == Visibility.Collapsed && gl.Items.Count == 2, "Fortnite instalado, sin aviso");
                 Game.Valorant.Installed = () => false;
-                Go(w, "Jugar"); gl.SelectedItem = Game.Valorant; await Task.Delay(1400);
+                // Valorant is no longer pinned: no slot marked, and its card says it is not installed
+                Go(w, "Jugar"); live.SwitchGame(Game.Valorant, true); await Task.Delay(1400);
                 Is(Prefs.Now.Game == "valorant" && miss.IsVisible && !play.IsEnabled, "Valorant sin instalar: aviso y Jugar apagado");
+                Is(gl.SelectedItem == null && ((UIElement)w.FindName("GameMark")).Opacity == 0 && string.Join(",", gl.Items.Cast<Game>().Select(g => g.Id)) == "fortnite,cs2", "sin fijar: ningún hueco marcado");
+                {
+                    System.Windows.Controls.Primitives.UniformGrid agg = (System.Windows.Controls.Primitives.UniformGrid)w.FindName("AllGamesGrid");
+                    Button vp = Buttons(agg).First(b => System.Windows.Automation.AutomationProperties.GetName(b) == "Jugar Valorant");
+                    Is(!vp.IsEnabled && ((Panel)((Panel)vp.Parent).Parent).Children.OfType<TextBlock>().Any(t => t.Text == "No instalado" && t.Visibility == Visibility.Visible), "tarjeta de Valorant: No instalado y sin Jugar");
+                }
                 Game.Valorant.Installed = () => true; Go(w, "Stretched Resolution"); Go(w, "Jugar");
                 Is(!miss.IsVisible && play.IsEnabled, "encontrado: el aviso se va");
                 Press((Button)w.FindName("OpenSettings")); await Task.Delay(300);
-                CheckBox sf = (CheckBox)w.FindName("SetShowFortnite"), sv = (CheckBox)w.FindName("SetShowValorant");
+                CheckBox sf = (CheckBox)w.FindName("SetShowFortnite"), sv = (CheckBox)w.FindName("SetShowValorant"), sc2 = (CheckBox)w.FindName("SetShowCounterStrike2");
                 sv.IsChecked = false; sv.RaiseEvent(ck); await Task.Delay(1400);
-                Is(Prefs.Now.Game == "fortnite" && pn.Text == fortPal && gl.Items.Count == 1 && sv.IsChecked == false && Prefs.Parse(File.ReadAllText(Path.Combine(Path.GetTempPath(), "tablero-clics", "ajustes.json"))).Hidden.Single() == "valorant", "ocultar el juego a la vista vuelve a Fortnite");
+                Is(Prefs.Now.Game == "fortnite" && pn.Text == fortPal && gl.Items.Count == 2 && sv.IsChecked == false && Prefs.Parse(File.ReadAllText(Path.Combine(Path.GetTempPath(), "tablero-clics", "ajustes.json"))).Hidden.Single() == "valorant", "ocultar el juego a la vista vuelve a Fortnite");
+                sc2.IsChecked = false; sc2.RaiseEvent(ck); await Task.Delay(300); // only Fortnite left
                 sf.IsChecked = false; sf.RaiseEvent(ck);
                 Is(sf.IsChecked == true && gl.Items.Count == 1 && ((TextBlock)w.FindName("Status")).Text == "Tiene que quedar al menos un juego.", "no se ocultan todos");
-                sv.IsChecked = true; sv.RaiseEvent(ck); Is(gl.Items.Count == 2 && Prefs.Now.Hidden.Count == 0 && gl.SelectedItem == Game.Fortnite, "vuelve al selector");
+                sv.IsChecked = true; sv.RaiseEvent(ck); sc2.IsChecked = true; sc2.RaiseEvent(ck); Is(gl.Items.Count == 2 && Prefs.Now.Hidden.Count == 0 && gl.SelectedItem == Game.Fortnite, "vuelve al selector");
+                {
+                    // hiding a pinned CS2 leaves 2 cards and gives its slot to Valorant
+                    System.Windows.Controls.Primitives.UniformGrid agg = (System.Windows.Controls.Primitives.UniformGrid)w.FindName("AllGamesGrid");
+                    Press(Buttons(agg).First(b => System.Windows.Automation.AutomationProperties.GetName(b) == "Fijar arriba Counter-Strike 2"));
+                    Is(string.Join(",", gl.Items.Cast<Game>().Select(g => g.Id)) == "fortnite,cs2", "CS2 fijado otra vez");
+                    sc2.IsChecked = false; sc2.RaiseEvent(ck); await Task.Delay(300);
+                    Is(agg.Children.Count == 2 && string.Join(",", gl.Items.Cast<Game>().Select(g => g.Id)) == "fortnite,valorant", "ocultar CS2 deja 2 tarjetas: " + agg.Children.Count);
+                    sc2.IsChecked = true; sc2.RaiseEvent(ck); Is(agg.Children.Count == 3 && Prefs.Now.Hidden.Count == 0, "CS2 vuelve a la cuadrícula");
+                }
 
                 // sound: only through the replaceable points, which here just note what is asked
                 List<string> sndFx = new List<string>(), sndMusic = new List<string>();
@@ -379,6 +467,12 @@ namespace Tablero
                 Press(mud); Is(!mud.IsOpen, "el campo cierra el desplegable"); mus.SelectedIndex = 0;
                 Prefs sp = Prefs.Parse(File.ReadAllText(Path.Combine(cd, "ajustes.json")));
                 Is(sp.Confirm == 30 && sp.Motion == 2 && sp.Music == "noche" && !Fx.On && ((TextBlock)w.FindName("PlayNote")).Text.Contains("30 segundos"), "ajustes guardados y aplicados");
+                {
+                    // without animations All games closes and opens at once
+                    Border agb = (Border)w.FindName("AllGamesBox"); Button agBtn = (Button)w.FindName("AllGames");
+                    Press(agBtn); Is(agb.Visibility == Visibility.Collapsed, "sin animaciones cierra de golpe");
+                    Press(agBtn); Is(agb.Visibility == Visibility.Visible && double.IsNaN(agb.Height), "sin animaciones abre de golpe: " + agb.Visibility + " " + agb.Height);
+                }
                 Is(!((CheckBox)w.FindName("SetBoot")).IsEnabled, "sin instalar no se abre con Windows");
                 CheckBox mi = (CheckBox)w.FindName("SetMinimize"), mp = (CheckBox)w.FindName("Minimize"); mi.IsChecked = !(mp.IsChecked == true); mi.RaiseEvent(clk); Is(mp.IsChecked == mi.IsChecked, "minimizar al dia en Jugar");
                 ListBox l2 = (ListBox)w.FindName("SetLimits"), l1 = (ListBox)w.FindName("Limits"); l2.SelectedIndex = 1; Is(l1.SelectedIndex == 1, "limite al dia en Jugar"); l1.SelectedIndex = 0; Is(l2.SelectedIndex == 0, "y al reves");

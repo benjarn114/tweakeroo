@@ -1,9 +1,9 @@
 # Términos de uso de Tweakeroo
-Versión 7, 23 de noviembre de 2026.
+Versión 8, 24 de noviembre de 2026.
 Al instalar o usar Tweakeroo aceptas estos términos. Si no estás de acuerdo, no la instales.
 
 # 1. Qué es
-Tweakeroo es una aplicación gratuita hecha por una persona, sin empresa detrás. Cambia ajustes de Windows, de Fortnite y del perfil de NVIDIA de cada juego, abre Fortnite o Valorant con la resolución que elijas, cambia el color de la pantalla, muestra tus FPS y da consejos sobre tu PC.
+Tweakeroo es una aplicación gratuita hecha por una persona, sin empresa detrás. Cambia ajustes de Windows, de Fortnite y del perfil de NVIDIA de cada juego, abre Fortnite, Valorant o Counter-Strike 2 con la resolución que elijas, cambia el color de la pantalla, muestra tus FPS y da consejos sobre tu PC.
 
 # 2. Qué puedes hacer con ella
 Puedes instalarla y usarla gratis en tus equipos, y compartir el enlace oficial de descarga. No puedes venderla, cobrar por instalarla, publicar copias, modificadas o no, ni hacerla pasar por tuya. Tweakeroo es gratis y lo seguirá siendo para siempre. El código fuente está publicado para leerlo y compilarlo para ti, según el archivo LICENSE del repositorio.
@@ -35,8 +35,11 @@ Los perfiles de color son opcionales. Cambian la intensidad de color de la gráf
 # 7.4. Al jugar
 Lo que elijas en Al jugar se aplica al abrir el juego y se quita al cerrarlo: plan de energía, servicios de Windows en pausa, efectos visuales, ratón y modo eficiencia de programas de fondo. Si la aplicación se cierra a medias, lo repone al volver a abrirla.
 
+# 7.5. Counter-Strike 2
+Tweakeroo mide los FPS de CS2 con el rastreo de eventos de Windows, contando los fotogramas que entrega a Windows, sin tocar el juego. Para saber el mapa escribe un archivo de Game State Integration (una función oficial de Valve) en la carpeta cfg de CS2, que solo envía datos a 127.0.0.1. Al jugar escribe la resolución en su cs2_video.txt con el juego cerrado, tras guardar una copia, y lo restaura al cerrarlo.
+
 # 8. Marcas
-Tweakeroo no está afiliada a Epic Games, Riot Games, Microsoft, NVIDIA, AMD ni Intel, ni cuenta con su respaldo. Fortnite, Valorant y los demás nombres son marcas de sus dueños y se usan solo para decir con qué funciona la aplicación.
+Tweakeroo no está afiliada a Epic Games, Riot Games, Valve, Microsoft, NVIDIA, AMD ni Intel, ni cuenta con su respaldo. Fortnite, Valorant, Counter-Strike 2 y los demás nombres son marcas de sus dueños y se usan solo para decir con qué funciona la aplicación.
 
 # 9. Menores de edad
 Si eres menor de edad donde vives, pide permiso a tu madre, tu padre o la persona responsable del equipo antes de instalarla.

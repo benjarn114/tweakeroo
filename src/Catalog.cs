@@ -52,14 +52,15 @@ namespace Tablero
         }
 
         // The same for every game, in its own profile: they do not touch its files.
-        static void Own(string p, string game, string exe, string path)
+        static void Own(string p, string game, string exe, string path, string profile = null)
         {
+            if (profile == null) profile = game;
             const Level s = Level.Seguro, a = Level.Avanzado;
             const string ifeo = @"HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\";
-            T(p + "-low", "Baja latencia de NVIDIA en " + game, "Un solo fotograma en espera. Con Reflex encendido en el juego apenas cambia.", s, "Medio", "el juego", new NvOp(game, 0x007BA09E, 1));
-            T(p + "-aniso", "Texturas con muestreo rápido en " + game, "Optimización de muestreo anisótropo de NVIDIA.", s, "Bajo", "el juego", new NvOp(game, 0x00E73211, 1));
-            T(p + "-ansel", "Ansel apagado en " + game, "El capturador de NVIDIA no se carga con el juego.", s, "Bajo", "el juego", new NvOp(game, 0x1075D972, 0));
-            T(p + "-hz", "Máxima frecuencia de pantalla en " + game, "El juego usa los Hz más altos del monitor.", s, "Bajo", "el juego", new NvOp(game, 0x0064B541, 1));
+            T(p + "-low", "Baja latencia de NVIDIA en " + game, "Un solo fotograma en espera. Con Reflex encendido en el juego apenas cambia.", s, "Medio", "el juego", new NvOp(profile, 0x007BA09E, 1));
+            T(p + "-aniso", "Texturas con muestreo rápido en " + game, "Optimización de muestreo anisótropo de NVIDIA.", s, "Bajo", "el juego", new NvOp(profile, 0x00E73211, 1));
+            T(p + "-ansel", "Ansel apagado en " + game, "El capturador de NVIDIA no se carga con el juego.", s, "Bajo", "el juego", new NvOp(profile, 0x1075D972, 0));
+            T(p + "-hz", "Máxima frecuencia de pantalla en " + game, "El juego usa los Hz más altos del monitor.", s, "Bajo", "el juego", new NvOp(profile, 0x0064B541, 1));
             T(p + "-prio", "Prioridad alta de CPU para " + game, "Windows abre el juego con prioridad alta de CPU y disco. Es un ajuste de Windows.", a, "Medio", "el juego", IfFile(D(ifeo + exe + @"\PerfOptions", "CpuPriorityClass", 3, null), path), IfFile(D(ifeo + exe + @"\PerfOptions", "IoPriority", 3, null), path));
             T(p + "-fso", "Sin optimización de pantalla completa en " + game, "Ayuda en algunos PC y en otros empeora: conviene comparar.", a, "Bajo", "el juego", IfFile(S(@"HKCU\Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers", path, "~ DISABLEDXMAXIMIZEDWINDOWEDMODE", null), path));
         }
@@ -102,6 +103,15 @@ namespace Tablero
             T("val-vsync", "VSync apagado en Valorant", "Quita la espera al monitor desde el perfil de NVIDIA, sin tocar el juego.", s, "Medio", "el juego", new NvOp("Valorant", 0x00A879CF, 0x08416747));
 
             Own("val", "Valorant", "VALORANT-Win64-Shipping.exe", Tablero.Game.Valorant.Exe);
+
+            cat = "Counter-Strike 2"; // = Game.Name: switching games keeps this section open
+            const string cs2 = "Counter-strike 2"; // exact NVIDIA profile name, lowercase s
+            T("cs2-gpu", "CS2 usa la gráfica potente", "Con dos gráficas, Windows usa siempre la potente.", s, "Bajo", "", new TokenOp(@"HKCU\Software\Microsoft\DirectX\UserGpuPreferences", Tablero.Game.Cs2.Exe, "GpuPreference", "s:2", Op.None));
+            T("cs2-power", "NVIDIA a máximo rendimiento en CS2", "La gráfica no baja de frecuencia durante la partida.", s, "Medio", "el juego", new NvOp(cs2, 0x1057EB71, 1));
+            T("cs2-filter", "Filtrado de texturas rápido en CS2", "Menos trabajo de textura, solo en CS2.", s, "Bajo", "el juego", new NvOp(cs2, 0x00CE2691, 20));
+            T("cs2-vsync", "VSync apagado en CS2", "Quita la espera al monitor desde el perfil de NVIDIA, sin tocar el juego.", s, "Medio", "el juego", new NvOp(cs2, 0x00A879CF, 0x08416747));
+
+            Own("cs2", "CS2", "cs2.exe", Tablero.Game.Cs2.Exe, cs2);
 
             cat = "Gráficos y captura";
             T("gfx-gamemode", "Modo Juego", "Windows aparta tareas y actualizaciones mientras juegas.", s, "Medio", "", D(@"HKCU\Software\Microsoft\GameBar", "AutoGameModeEnabled", 1, 0), D(@"HKCU\Software\Microsoft\GameBar", "AllowAutoGameMode", 1, null));

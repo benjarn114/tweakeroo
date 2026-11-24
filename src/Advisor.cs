@@ -177,7 +177,7 @@ namespace Tablero
             if (t.Id == "lt-paging" && h.RamGb > 0 && h.RamGb < 16) return A(false, "Con " + h.RamGb + " GB conviene dejarlo.");
             if (t.Level == Level.Avanzado && (t.Cat == "Retraso" || t.Game != null)) return A(false, "Opcional: el efecto depende del PC.");
             if (t.Level == Level.Avanzado) return A(false, "Opcional: quita una función de Windows.");
-            return A(true, t.Cat == "Fortnite" || t.Cat == "Valorant" ? "Mejor respuesta en partida." : t.Cat.StartsWith("Gráficos") ? "Adecuado para esta gráfica." : "Seguro en cualquier PC.");
+            return A(true, t.Cat == "Fortnite" || t.Cat == "Valorant" || t.Cat == "Counter-Strike 2" ? "Mejor respuesta en partida." : t.Cat.StartsWith("Gráficos") ? "Adecuado para esta gráfica." : "Seguro en cualquier PC.");
         }
 
         // Sentences with what the scan decided.

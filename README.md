@@ -2,7 +2,7 @@
 
 <h1 align="center">Tweakeroo</h1>
 
-<p align="center">A free Windows app that tunes your PC for Fortnite and Valorant, opens the game in stretched resolution and lets you undo every tweak.</p>
+<p align="center">A free Windows app that tunes your PC for Fortnite, Valorant and Counter-Strike 2, opens the game in stretched resolution and lets you undo every tweak.</p>
 
 <p align="center"><a href="https://github.com/benjarn114/tweakeroo/releases/latest/download/Tweakeroo.exe"><b>Download Tweakeroo.exe</b></a> · <a href="https://github.com/benjarn114/tweakeroo/releases">All versions</a></p>
 
@@ -18,8 +18,8 @@ Since 1.0, Tweakeroo is out of early access.
 
 ## What it does
 
-### One app, two games
-- Switch between Fortnite and Valorant and the whole app follows: colors, photos, resolution, FPS, tweaks and color profile. It can also switch by itself when a game opens.
+### One app, three games
+- Switch between Fortnite, Valorant and Counter-Strike 2 and the whole app follows: colors, photos, resolution, FPS, tweaks and color profile. It can also switch by itself when a game opens.
 
 ### Themes
 - Night, Rain and Arcade: an animated pixel art background with its own music and colors. Pick one at the bottom left.
@@ -31,7 +31,7 @@ Since 1.0, Tweakeroo is out of early access.
 - FPS limit, estimated FPS, your last match and the programs using the most memory.
 
 ### Stretched Resolution
-- Its own section in both games. Your monitor's resolution by default. Pick a stretched one from the dropdown, sorted from least to most stretched, or make your own on NVIDIA cards; nothing needs to be created in the NVIDIA panel. A new one is tested first: if you don't confirm it within 15 seconds, it goes back.
+- Its own section in every game. Your monitor's resolution by default. Pick a stretched one from the dropdown, sorted from least to most stretched, or make your own on NVIDIA cards; nothing needs to be created in the NVIDIA panel. A new one is tested first: if you don't confirm it within 15 seconds, it goes back.
 - Before and after photos show how much wider characters get.
 
 ### Stretched Valorant (off by default)
@@ -42,6 +42,10 @@ Since 1.0, Tweakeroo is out of early access.
 ![The Play screen for Valorant](docs/valorant.png)
 
 > **Use at your own risk.** Riot hasn't published a clear rule about this.
+
+### Stretched Counter-Strike 2
+- Play stretches the desktop and, with CS2 closed, writes the resolution and aspect ratio to its cs2_video.txt, saving a copy first. Everything goes back when the game closes.
+- CS2 opens through Steam. Tweakeroo never touches the game's memory.
 
 ### Colors
 - A color profile per game: NVIDIA vibrance, brightness, contrast and gamma. It is applied when the game opens and removed when it closes.
@@ -63,6 +67,7 @@ Tweaks has its own section, with shortcuts to the ones that are Off and On.
 | --- | --- |
 | Fortnite | Performance mode, VSync off, Reflex, shadows and effects on low |
 | Valorant | NVIDIA maximum performance, VSync off from the NVIDIA profile |
+| Counter-Strike 2 | NVIDIA maximum performance, VSync off and fast texture filtering in its NVIDIA profile, dedicated GPU |
 | Graphics and capture | Game Mode, Game DVR off, NVIDIA maximum performance for Fortnite |
 | Power and CPU | High performance plan, core parking off, USB sleep off |
 | Latency | NVIDIA low latency, MSI interrupts, CPU priority. Unproven ones say so |
@@ -77,6 +82,7 @@ Each tweak shows its expected impact. Settings marked **Risk** lower a Windows d
 
 ### My FPS
 - Real FPS for each match, read from the log files Fortnite and Valorant already write. It never touches the game's memory.
+- Counter-Strike 2 is measured with Event Tracing for Windows, counting the frames it hands to Windows, per map through Game State Integration. It never touches the game.
 - Compares your FPS before and after your last big change.
 
 ### Connection
@@ -91,6 +97,8 @@ Each tweak shows its expected impact. Settings marked **Risk** lower a Windows d
 - What to buy next, based on your bottleneck. If nothing is worth buying, it says so.
 
 ### Macros (Creative only)
+Macros only work in Creative maps, to practice edits. They're off in public matches, tournaments and competitive.
+
 Optional edit macros for freebuilding: quick edit, double edit, edit and reset, and reset. They are off by default and only send keys when Fortnite is in front and its log says you are in Creative.
 
 > **Use at your own risk.** Epic forbids macros in tournaments, and using them, also in Creative, can lead to account penalties. Tweakeroo doesn't hide them or avoid detection.
@@ -116,7 +124,7 @@ Don't take my word for it:
 
 **Why does it ask for administrator rights?** It changes the registry, services, scheduled tasks, the power plan, the network card and the NVIDIA profile.
 
-**What does it connect to?** GitHub, to look for and download updates. With an NVIDIA card, NVIDIA, to ask for the latest driver version when you scan and once a day if update checks are on. The connection test, only when you press it, pings your router, 1.1.1.1 and, with Fortnite, Epic's measuring servers. The speed test, only when you press it, downloads and uploads test data with speed.cloudflare.com (up to 750 MB). Every update is signed and the app checks the signature before installing it. You see what's new and decide. Your data stays in `%LOCALAPPDATA%\Tweakeroo`. Launching Fortnite uses Epic's launcher, and Valorant uses Riot Client.
+**What does it connect to?** GitHub, to look for and download updates. With an NVIDIA card, NVIDIA, to ask for the latest driver version when you scan and once a day if update checks are on. The connection test, only when you press it, pings your router, 1.1.1.1 and, with Fortnite, Epic's measuring servers. The speed test, only when you press it, downloads and uploads test data with speed.cloudflare.com (up to 750 MB). Every update is signed and the app checks the signature before installing it. You see what's new and decide. Your data stays in `%LOCALAPPDATA%\Tweakeroo`. Launching Fortnite uses Epic's launcher, Valorant uses Riot Client and Counter-Strike 2 opens through Steam. Game State Integration for CS2 only listens on 127.0.0.1.
 
 ## Install
 
@@ -152,7 +160,8 @@ It uses `csc.exe` from .NET Framework 4.8, included in Windows 10 and 11. The co
 | `Game.cs`, `GameUi.cs` | Games, stretched Valorant and the game switch |
 | `Color.cs` | Color profiles |
 | `Live.cs`, `BoostUi.cs` | Changes while playing, instant apply, pending restarts and driver check |
-| `Fps.cs` | FPS from the logs |
+| `Fps.cs`, `Frames.cs` | FPS from the logs, and CS2 FPS from Windows event tracing |
+| `Cs2.cs`, `Cs2Gsi.cs` | CS2 settings, stretched launch and Game State Integration |
 | `Net.cs`, `NetUi.cs`, `Speed.cs` | Connection test, speed test and steady Wi-Fi |
 | `Macros.cs`, `Binds.cs` | Creative macros and reading your Fortnite keys |
 | `Ui.cs`, `Window.xaml`, `Theme.cs`, `Motion.cs`, `Picker.cs` | Interface, palettes, animations and controls |
@@ -167,4 +176,4 @@ Tweakeroo is free and will stay free forever. The source is public so anyone can
 
 ## Disclaimer
 
-Tweakeroo is not affiliated with or endorsed by Epic Games, Riot Games, Microsoft, NVIDIA, AMD or Intel. Fortnite and its images belong to Epic Games. Valorant and its images belong to Riot Games. Changing system settings can cause problems; you use the app at your own responsibility.
+Tweakeroo is not affiliated with or endorsed by Epic Games, Riot Games, Valve, Microsoft, NVIDIA, AMD or Intel. Fortnite and its images belong to Epic Games. Valorant and its images belong to Riot Games. Counter-Strike 2 belongs to Valve. Changing system settings can cause problems; you use the app at your own responsibility.

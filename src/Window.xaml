@@ -319,7 +319,7 @@
       <Setter Property="Cursor" Value="Hand"/>
       <Setter Property="Foreground" Value="{DynamicResource Ink2}"/>
       <Setter Property="AutomationProperties.Name" Value="{Binding Name}"/>
-      <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ListBoxItem"><Border Background="Transparent" Height="40"><ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,2,0,0"/></Border></ControlTemplate></Setter.Value></Setter>
+      <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ListBoxItem"><Border Background="Transparent" MinHeight="40"><ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,2,0,0"/></Border></ControlTemplate></Setter.Value></Setter>
       <Style.Triggers><Trigger Property="IsSelected" Value="True"><Setter Property="Foreground" Value="{DynamicResource OnInk}"/></Trigger></Style.Triggers>
     </Style>
 
@@ -442,7 +442,7 @@
             <Border x:Name="GameMark" Background="{DynamicResource On}" CornerRadius="11" HorizontalAlignment="Left"/>
             <ListBox x:Name="Games" Template="{StaticResource BareList}" ItemContainerStyle="{StaticResource GameItem}" Background="Transparent" BorderThickness="0" Padding="0" AutomationProperties.Name="Juego">
               <ListBox.ItemsPanel><ItemsPanelTemplate><UniformGrid Rows="1"/></ItemsPanelTemplate></ListBox.ItemsPanel>
-              <ListBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding Name}" FontSize="16" FontWeight="Bold"/></DataTemplate></ListBox.ItemTemplate>
+              <ListBox.ItemTemplate><DataTemplate><TextBlock x:Name="SlotText" Text="{Binding SlotName}" FontSize="16" FontWeight="Bold" TextAlignment="Center"/></DataTemplate></ListBox.ItemTemplate>
             </ListBox>
           </Grid>
         </Border>
@@ -586,7 +586,12 @@
           <WrapPanel Margin="0,0,0,12">
             <t:Btn x:Name="Play" Style="{StaticResource BtnCta}" Icon="{StaticResource IcoGame}" Margin="0,0,14,10"/>
             <t:Btn x:Name="Back" Style="{StaticResource Btn}" Icon="{StaticResource IcoUndo}" Content="Restaurar resolución" Margin="0,0,10,10" Visibility="Collapsed"/>
+            <t:Btn x:Name="AllGames" Style="{StaticResource Btn}" Margin="0,0,10,10" AutomationProperties.Name="Todos los juegos"><StackPanel Orientation="Horizontal"><TextBlock Text="Todos los juegos"/><Viewbox Width="14" Height="14" Margin="9,0,0,0"><Path x:Name="AllGamesChev" Data="M5,9 L12,16 L19,9" Style="{StaticResource Ico}" StrokeThickness="3" RenderTransformOrigin="0.5,0.5"/></Viewbox></StackPanel></t:Btn>
           </WrapPanel>
+          <!-- Every game: opens inside the page and pushes the rest down -->
+          <Border x:Name="AllGamesBox" ClipToBounds="True" Visibility="Collapsed">
+            <UniformGrid x:Name="AllGamesGrid" Columns="3" VerticalAlignment="Top" Margin="0,0,-12,24"/>
+          </Border>
           <UniformGrid Rows="1" Margin="0,0,-8,24">
             <Border Background="{DynamicResource Card}" CornerRadius="18" Padding="18,12" Margin="0,0,8,0"><StackPanel><TextBlock x:Name="PlayEstLabel" Text="FPS estimados" Visibility="Collapsed"/><Label Style="{StaticResource Head}" Content="{Binding Text, ElementName=PlayEstLabel}"/><TextBlock x:Name="PlayEst" Text="…" FontSize="24" FontWeight="Bold"/></StackPanel></Border>
             <Border Background="{DynamicResource Card}" CornerRadius="18" Padding="18,12" Margin="0,0,8,0"><StackPanel><Label Style="{StaticResource Head}" Content="Última partida"/><TextBlock x:Name="PlayLast" Text="…" FontSize="24" FontWeight="Bold"/></StackPanel></Border>
@@ -714,7 +719,8 @@
       <ScrollViewer x:Name="MacroPage" Grid.Column="1" VerticalScrollBarVisibility="Auto" Focusable="False" Visibility="Collapsed">
         <StackPanel Margin="28,24,28,110">
           <TextBlock Text="Macros" FontSize="32" FontWeight="Bold"/>
-          <TextBlock Text="Macros de edición para freebuild. Solo funcionan en Creativo, con Fortnite en primer plano y Tweakeroo abierto. En cualquier otro modo quedan apagadas." Foreground="{DynamicResource Ink2}" FontSize="15" TextWrapping="Wrap" Margin="0,6,0,16" MaxWidth="600" HorizontalAlignment="Left"/>
+          <TextBlock Text="Las macros solo funcionan en mapas de Creativo, para entrenar ediciones. En partidas públicas, torneos y competitivo están desactivadas." Foreground="{DynamicResource Ink2}" FontSize="15" TextWrapping="Wrap" Margin="0,6,0,8" MaxWidth="600" HorizontalAlignment="Left"/>
+          <TextBlock x:Name="MacroState" FontSize="15" FontWeight="SemiBold" Margin="0,0,0,16"/>
           <Border Background="{DynamicResource Card}" CornerRadius="18" Padding="18,14" Margin="0,0,0,16">
             <StackPanel>
               <TextBlock Text="Uso bajo tu propio riesgo" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource Danger}"/>
@@ -723,7 +729,6 @@
             </StackPanel>
           </Border>
           <StackPanel x:Name="MacroBody">
-            <TextBlock x:Name="MacroState" FontSize="15" FontWeight="SemiBold" Margin="0,0,0,10"/>
             <ItemsControl x:Name="MacroRows" Focusable="False">
               <ItemsControl.ItemTemplate>
                 <DataTemplate>
@@ -769,7 +774,7 @@
           <TextBlock Text="Ajustes" FontSize="32" FontWeight="Bold" Margin="0,0,0,16"/>
             <Label Style="{StaticResource Head}" Content="Juegos" Margin="0,0,0,10"/>
             <StackPanel x:Name="SetGames"/>
-            <Border Background="{DynamicResource Card}" CornerRadius="16" Padding="18,12" Margin="0,0,0,8"><DockPanel><CheckBox x:Name="SetAutoGame" DockPanel.Dock="Right" Style="{StaticResource Check}" AutomationProperties.Name="Cambiar de juego solo" Margin="16,0,0,0" VerticalAlignment="Center"/><StackPanel VerticalAlignment="Center"><TextBlock Text="Cambiar de juego solo" FontSize="16" FontWeight="Bold"/><TextBlock Text="Al abrir Fortnite o Valorant, Tweakeroo pasa a ese juego." Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,2,0,0"/></StackPanel></DockPanel></Border>
+            <Border Background="{DynamicResource Card}" CornerRadius="16" Padding="18,12" Margin="0,0,0,8"><DockPanel><CheckBox x:Name="SetAutoGame" DockPanel.Dock="Right" Style="{StaticResource Check}" AutomationProperties.Name="Cambiar de juego solo" Margin="16,0,0,0" VerticalAlignment="Center"/><StackPanel VerticalAlignment="Center"><TextBlock Text="Cambiar de juego solo" FontSize="16" FontWeight="Bold"/><TextBlock Text="Al abrir un juego, Tweakeroo pasa a ese juego." Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,2,0,0"/></StackPanel></DockPanel></Border>
             <Label Style="{StaticResource Head}" Content="General" Margin="0,18,0,10"/>
             <Border Background="{DynamicResource Card}" CornerRadius="16" Padding="18,12" Margin="0,0,0,8"><DockPanel><CheckBox x:Name="SetBoot" DockPanel.Dock="Right" Style="{StaticResource Check}" AutomationProperties.Name="Abrir al encender el PC" Margin="16,0,0,0" VerticalAlignment="Center"/><StackPanel VerticalAlignment="Center"><TextBlock Text="Abrir al encender el PC" FontSize="16" FontWeight="Bold"/><TextBlock Text="Solo con la app instalada. Usa una tarea de Windows, que se quita al apagar la opción." Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,2,0,0"/></StackPanel></DockPanel></Border>
             <Border Background="{DynamicResource Card}" CornerRadius="16" Padding="18,12" Margin="0,0,0,8"><DockPanel><CheckBox x:Name="SetMin" DockPanel.Dock="Right" Style="{StaticResource Check}" AutomationProperties.Name="Empezar minimizado" Margin="16,0,0,0" VerticalAlignment="Center"/><StackPanel VerticalAlignment="Center"><TextBlock Text="Empezar minimizado" FontSize="16" FontWeight="Bold"/><TextBlock Text="Solo cuando se abre con Windows." Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,2,0,0"/></StackPanel></DockPanel></Border>
@@ -1056,7 +1061,7 @@
       <ScrollViewer x:Name="SetupWelcome" Grid.Column="1" VerticalScrollBarVisibility="Auto" Focusable="False" Visibility="Collapsed">
         <StackPanel x:Name="SetupWelcomeBody" Margin="64,64,48,40" MaxWidth="720" HorizontalAlignment="Left">
           <StackPanel Orientation="Horizontal" Margin="0,0,0,26"><t:Btn x:Name="SetupEs" Style="{StaticResource Btn}" Icon="{StaticResource IcoGlobe}" Content="Español" Margin="0,0,8,0"/><t:Btn x:Name="SetupEn" Style="{StaticResource Btn}" Icon="{StaticResource IcoGlobe}" Content="English"/></StackPanel>
-          <TextBlock Text="Optimización de Windows para Fortnite y Valorant" FontSize="40" FontWeight="Bold" TextWrapping="Wrap"/>
+          <TextBlock Text="Optimización de Windows para Fortnite, Valorant y CS2" FontSize="40" FontWeight="Bold" TextWrapping="Wrap"/>
           <TextBlock Text="Gratis, sin anuncios y con todos los cambios reversibles." FontSize="17" Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,8,0,34"/>
           <DockPanel Margin="0,0,0,22"><Viewbox Width="30" Height="30" DockPanel.Dock="Left" VerticalAlignment="Top" Margin="0,2,20,0"><Path Data="{StaticResource IcoScan}" Stroke="{DynamicResource On}" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" Width="24" Height="24"/></Viewbox><StackPanel><TextBlock Text="Análisis de componentes" FontSize="18" FontWeight="Bold"/><TextBlock Text="Escanea el PC y recomienda los ajustes adecuados entre más de 170." FontSize="15" Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,2,0,0"/></StackPanel></DockPanel>
           <DockPanel Margin="0,0,0,22"><Viewbox Width="30" Height="30" DockPanel.Dock="Left" VerticalAlignment="Top" Margin="0,2,20,0"><Path Data="{StaticResource IcoUndo}" Stroke="{DynamicResource On}" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" Width="24" Height="24"/></Viewbox><StackPanel><TextBlock Text="Copia del estado original" FontSize="18" FontWeight="Bold"/><TextBlock Text="Cada ajuste se desactiva con su interruptor y el estado original se puede restaurar en cualquier momento." FontSize="15" Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,2,0,0"/></StackPanel></DockPanel>

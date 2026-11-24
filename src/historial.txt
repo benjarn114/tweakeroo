@@ -1,3 +1,11 @@
+## 1.1.0 2026-11-24
+- Counter-Strike 2 como tercer juego.	Counter-Strike 2 as a third game.
+- Jugar estira el escritorio y, con CS2 cerrado, escribe la resolución y la relación en cs2_video.txt. Al cerrarlo, todo vuelve.	Play stretches the desktop and, with CS2 closed, writes the resolution and aspect ratio to cs2_video.txt. Everything goes back when it closes.
+- FPS reales de CS2 contando los fotogramas que entrega a Windows, por mapa con Game State Integration.	Real CS2 FPS counted from the frames it hands to Windows, per map with Game State Integration.
+- 10 tweaks para CS2, la mayoría en su perfil NVIDIA.	10 tweaks for CS2, most of them in its NVIDIA profile.
+- Paleta CS2.	CS2 palette.
+- Selector: dos juegos fijados arriba y "Todos los juegos" en Jugar, para jugar o fijar cualquiera.	Game switch: two pinned games at the top and "All games" in Play, to play or pin any of them.
+- Macros: solo funcionan en mapas de Creativo, para entrenar ediciones; en partidas públicas, torneos y competitivo están desactivadas. Un indicador muestra su estado en vivo.	Macros: they only work in Creative maps, to practice edits; they are off in public matches, tournaments and competitive. An indicator shows their live state.
 ## 1.0.4 2026-11-24
 - Arreglado de raíz el aviso al abrir en algunos PC ("No se puede establecer una propiedad en LinearGradientBrush…" o "No se puede animar la propiedad X…"): venía del brillo de la pantalla de carga.	Fixed at the root the startup message on some PCs ("Cannot set a property on LinearGradientBrush…" or "Cannot animate the X property…"): it came from the loading screen shine.
 ## 1.0.3 2026-11-24

@@ -22,6 +22,7 @@ namespace Tablero
         public Dictionary<string, List<string>> Boosts { get; set; } // what is applied while playing, per game
         public Dictionary<string, string> Paths { get; set; } // .exe picked by hand, per game
         public List<string> Hidden { get; set; }              // games hidden from the selector
+        public List<string> Pinned { get; set; }              // the 2 games at the top of the selector, in order
         public string Music { get; set; }     // "noche", "arcade", "lluvia" or "" (off)
         public int MusicMode { get; set; }    // 0 only with the app in front, 1 always except while playing, 2 muted
         public int MusicVolume { get; set; }  // 0-100
@@ -32,7 +33,7 @@ namespace Tablero
 
         public static Prefs Now = Default();
 
-        public static Prefs Default() { return new Prefs { Confirm = 15, AutoCheck = true, Game = Tablero.Game.Fortnite.Id, Colors = new Dictionary<string, ColorPick>(), Boosts = new Dictionary<string, List<string>>(), Paths = new Dictionary<string, string>(), Hidden = new List<string>(), Music = Sound.Themes[0], MusicVolume = 30, Sfx = true, SfxVolume = 60, SoundSaved = true, Theme = "noche" }; }
+        public static Prefs Default() { return new Prefs { Confirm = 15, AutoCheck = true, Game = Tablero.Game.Fortnite.Id, Colors = new Dictionary<string, ColorPick>(), Boosts = new Dictionary<string, List<string>>(), Paths = new Dictionary<string, string>(), Hidden = new List<string>(), Pinned = new List<string> { Tablero.Game.Fortnite.Id, Tablero.Game.Valorant.Id }, Music = Sound.Themes[0], MusicVolume = 30, Sfx = true, SfxVolume = 60, SoundSaved = true, Theme = "noche" }; }
         static string FileOf(string dir) { return Path.Combine(dir, "ajustes.json"); }
         // Anything not understood goes back to its default value.
         public static Prefs Parse(string json)
@@ -65,6 +66,8 @@ namespace Tablero
             p.Hidden = (p.Hidden ?? d.Hidden).Where(x => Tablero.Game.All.Any(g => g.Id == x)).Distinct().ToList();
             if (p.Hidden.Count >= Tablero.Game.All.Count) p.Hidden = d.Hidden;
             if (p.Hidden.Contains(p.Game)) p.Game = Tablero.Game.All.First(g => !p.Hidden.Contains(g.Id)).Id;
+            // Settings from before pinning keep Fortnite and Valorant at the top.
+            p.Pinned = Tablero.Game.Slots(p.Pinned ?? d.Pinned, Tablero.Game.All.Where(g => !p.Hidden.Contains(g.Id)).ToList()).Select(g => g.Id).ToList();
             return p;
         }
         public List<string> BoostsOf(Game g) { List<string> l; return Boosts.TryGetValue(g.Id, out l) ? l : new List<string>(); }

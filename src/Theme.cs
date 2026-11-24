@@ -37,6 +37,8 @@ namespace Tablero
             P("Marfil",     "F1F4F7", "E3E9EF", "FFFFFF", "F8FAFC", "14212E", "4C5D6E", "BF4E08", "FFFFFF", "0B7A94", "FFFFFF", "B4C2CF", "FFFFFF", "22384D", "2E4A64", "FFFFFF", "A81E15", "798692"),
             P("Ciruela",    "26141F", "1B0D16", "38202E", "422737", "FBF4F7", "CDB4C0", "8FD694", "0B2410", "E79AB8", "35101F", "130810", "FFFFFF", "553246", "643C53", "FBF4F7", "FFB9AC", "826A77"),
             P("Carmesí",    "2A1519", "1B0D10", "3E2127", "4A2930", "FFF6F3", "E3C6C2", "FF6B6B", "330608", "FFD3B0", "3A1B08", "140709", "FFFFFF", "5F333B", "703E47", "FFF6F3", "FFC2B4", "907474"),
+            // Counter-Strike: bluish graphite, CS amber for Cta and muted CT blue for On.
+            P("CS2",        "11151C", "0B0E13", "1A2029", "212834", "F4F6F8", "AEB8C6", "E8A23A", "241500", "5D7FB0", "050B16", "07090D", "FFFFFF", "2B3A50", "34465F", "F4F6F8", "FFB4A8", "5F6B7C"),
         };
 
         // Themes: animated background, its music and a palette that goes with it. Simple keeps the colors per game, without a background.

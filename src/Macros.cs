@@ -280,7 +280,7 @@ namespace Tablero
                         bool cre = InCreative(), front = Front(), was = active;
                         active = cre && front;
                         if (active && !was) Sync(c); // in case they were changed in the game
-                        state = active ? "Activas" : cre ? "En espera: Fortnite no está en primer plano" : "En espera: Fortnite no está en Creativo";
+                        state = active ? "Activas (Creativo)" : cre ? "En pausa: Fortnite no está en primer plano" : "En pausa: no estás en Creativo";
                     }
                     if (!active)
                     {

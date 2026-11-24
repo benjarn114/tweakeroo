@@ -711,7 +711,7 @@ namespace Tablero
             await Task.Run(() =>
             {
                 int session = Process.GetCurrentProcess().SessionId;
-                string[] skip = { "Tweakeroo", "explorer", "dwm", "Memory Compression", "FortniteClient-Win64-Shipping", "VALORANT-Win64-Shipping", "SearchHost", "StartMenuExperienceHost", "ShellExperienceHost", "svchost" };
+                string[] skip = { "Tweakeroo", "explorer", "dwm", "Memory Compression", "FortniteClient-Win64-Shipping", "VALORANT-Win64-Shipping", "cs2", "SearchHost", "StartMenuExperienceHost", "ShellExperienceHost", "svchost" };
                 try { heavy = Process.GetProcesses().Where(p => p.SessionId == session && !skip.Contains(p.ProcessName)).GroupBy(p => p.ProcessName).Select(g => new { g.Key, Mb = g.Sum(p => p.WorkingSet64) / (1 << 20) }).Where(x => x.Mb >= 300).OrderByDescending(x => x.Mb).Take(5).ToDictionary(x => x.Key, x => x.Mb >= 1024 ? (x.Mb / 1024.0).ToString("0.0") + " GB" : x.Mb + " MB"); }
                 catch (InvalidOperationException) { heavy = new Dictionary<string, string>(); }
                 catch (Win32Exception) { heavy = new Dictionary<string, string>(); }
@@ -725,7 +725,7 @@ namespace Tablero
             Hw h = hw ?? quick;
             Estimate e = r == null || h == null ? null : Estimator.For(h, r.W, r.H);
             List<Match> ten = matches.Take(10).ToList();
-            F<TextBlock>("PlayEst").Text = game == Game.Valorant ? (ten.Count == 0 ? "…" : (int)Math.Round(ten.Average(m => (double)m.Median)) + " FPS") : e == null ? "…" : e.Low + "–" + e.High;
+            F<TextBlock>("PlayEst").Text = game != Game.Fortnite ? (ten.Count == 0 ? "…" : (int)Math.Round(ten.Average(m => (double)m.Median)) + " FPS") : e == null ? "…" : e.Low + "–" + e.High;
             F<TextBlock>("PlayLast").Text = matches.Count == 0 ? "…" : matches[0].Median + " FPS";
             F<TextBlock>("PlayRam").Text = Display.FreeRamGb().ToString("0.0") + " GB";
         }
@@ -739,6 +739,7 @@ namespace Tablero
             play.Content = confirming ? play.Content : hand ? "Estirar ahora" : on ? (open ? "Jugando" : "Abriendo " + game.Name + "…") : "Jugar";
             F<Btn>("Back").Visibility = on && !(v != null && open && !v.Applied) ? Visibility.Visible : Visibility.Collapsed;
             F<Drop>("ResDrop").IsEnabled = F<Drop>("ResOpen").IsEnabled = F<Btn>("CustomGo").IsEnabled = F<ListBox>("Limits").IsEnabled = F<CheckBox>("ValOn").IsEnabled = !on;
+            CardState();
         }
 
         void Play()
@@ -776,7 +777,7 @@ namespace Tablero
             watch.Start();
             ShowStretch();
             ValorantSession v = Val;
-            Say(v != null && v.Warning != null ? "Algún monitor no se pudo desactivar: " + v.Warning : v == null ? "Abriendo Fortnite. La resolución se restaura al cerrarlo; Tweakeroo debe quedar abierto." : v.CanApply ? "Abriendo Riot Client: pulsa Jugar allí. La pantalla se estira al cargar un mapa; Tweakeroo debe quedar abierto." : "Abriendo Riot Client: pulsa Jugar allí.", false);
+            Say(v != null && v.Warning != null ? "Algún monitor no se pudo desactivar: " + v.Warning : game == Game.Cs2 ? "Abriendo CS2 por Steam. La resolución se restaura al cerrarlo; Tweakeroo debe quedar abierto." : v == null ? "Abriendo Fortnite. La resolución se restaura al cerrarlo; Tweakeroo debe quedar abierto." : v.CanApply ? "Abriendo Riot Client: pulsa Jugar allí. La pantalla se estira al cargar un mapa; Tweakeroo debe quedar abierto." : "Abriendo Riot Client: pulsa Jugar allí.", false);
         }
 
         // Valorant: when a map loads, or with the button.
@@ -815,7 +816,7 @@ namespace Tablero
             string err = null;
             try { stretch.End(); } catch (Exception ex) { err = ex.Message; }
             // With the game open its file still needs restoring: keep watching.
-            if (stretch.Pending && game.Running()) { gameSeen = true; watch.Start(); if (err == null) msg = Val != null ? "Pantalla restaurada." : "Pantalla restaurada. La configuración de Fortnite se restaura al cerrar el juego."; }
+            if (stretch.Pending && game.Running()) { gameSeen = true; watch.Start(); if (err == null) msg = Val != null ? "Pantalla restaurada." : "Pantalla restaurada. La configuración de " + game.Name + " se restaura al cerrar el juego."; }
             else { watch.Stop(); Precise.Set(false); }
             ShowStretch();
             if (err != null || msg != null) Say(err ?? msg, err != null);
@@ -875,7 +876,7 @@ namespace Tablero
             };
             w.Deactivated += (s, e) => { if (capture != null) Captured(0); };
             DispatcherTimer t = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
-            t.Tick += (s, e) => { if (F<FrameworkElement>("MacroPage").IsVisible) F<TextBlock>("MacroState").Text = "Estado: " + Macros.Status; };
+            t.Tick += (s, e) => { if (F<FrameworkElement>("MacroPage").IsVisible) ShowMacroState(); };
             t.Start();
             Macros.Sync(macros);
             ShowMacros();
@@ -952,7 +953,16 @@ namespace Tablero
             foreach (string n in new[] { "KeyEdit", "KeySelect", "KeyReset", "MacroConfirm" }) F<FrameworkElement>(n).IsEnabled = macros.Manual;
             F<FrameworkElement>("MacroBody").IsEnabled = macros.Accepted;
             F<FrameworkElement>("MacroBody").Opacity = macros.Accepted ? 1 : 0.45;
-            F<TextBlock>("MacroState").Text = "Estado: " + Macros.Status;
+            ShowMacroState();
+        }
+        void ShowMacroState()
+        {
+            string s = Macros.Status;
+            bool on = s.StartsWith("Activas");
+            TextBlock t = F<TextBlock>("MacroState");
+            t.Text = s; // "Apagadas" while the loop isn't running: nothing has been measured
+
+            t.SetResourceReference(TextBlock.ForegroundProperty, on ? "On" : "Ink2");
         }
 
         // ---- My FPS ----
@@ -1009,7 +1019,8 @@ namespace Tablero
         {
             bool any = matches.Count > 0;
             F<FrameworkElement>("FpsNow").Visibility = any ? Visibility.Visible : Visibility.Collapsed;
-            F<TextBlock>("FpsText").Text = any ? "Se leen de los registros de " + game.Name + ", segundo a segundo, sin modificar el juego." : "No hay partidas de más de un minuto en los registros de " + game.Name + ".";
+            F<TextBlock>("FpsText").Text = game == Game.Cs2 ? (any ? "Se miden mientras Tweakeroo está abierto, contando los fotogramas que el juego entrega a Windows, sin tocar el juego." : "No hay partidas de más de un minuto medidas en CS2.") + (FpsRecorder.Status == null ? "" : " " + FpsRecorder.Status)
+                : any ? "Se leen de los registros de " + game.Name + ", segundo a segundo, sin modificar el juego." : "No hay partidas de más de un minuto en los registros de " + game.Name + ".";
             if (any)
             {
                 Match a = matches[0];
@@ -1073,7 +1084,7 @@ namespace Tablero
             if (c.Fix != null)
             {
                 try { c.Fix(); } catch (Exception ex) { Say(ex is InvalidOperationException ? ex.Message : "No se pudo cambiar: " + ex.Message, false); }
-                Task t = ShowValChecks();
+                Task t = ShowChecks();
                 return;
             }
             try { StretchSession.Open(c.Url); } catch (Exception ex) { Say("No se pudo abrir: " + ex.Message, false); }

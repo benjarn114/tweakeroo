@@ -220,6 +220,7 @@ namespace Tablero
         void ShowNote()
         {
             if (game == Game.Valorant) { F<TextBlock>("PlayNote").Text = "Tweakeroo debe quedar abierto durante la partida. Si la pantalla no se estira sola, el botón Estirar ahora lo hace a mano."; return; }
+            if (game == Game.Cs2) { F<TextBlock>("PlayNote").Text = "La primera vez que se usa una resolución se pide confirmación. Sin respuesta en " + Prefs.Now.Confirm + " segundos, se restaura la anterior. Tweakeroo debe quedar abierto durante la partida. En CS2 valen Pantalla completa y Ventana a pantalla completa; se recomienda Pantalla completa."; return; }
             F<TextBlock>("PlayNote").Text = "La primera vez que se usa una resolución se pide confirmación. Sin respuesta en " + Prefs.Now.Confirm + " segundos, se restaura la anterior. Tweakeroo debe quedar abierto durante la partida. En torneos oficiales Epic puede forzar 16:9.";
         }
 

@@ -436,11 +436,134 @@ namespace Tablero
                 }
                 Prefs pc = Prefs.Parse("{\"Game\":\"otro\",\"Colors\":{\"valorant\":{\"Profile\":\"propio\",\"Vib\":200,\"Bright\":50,\"Contrast\":50,\"Gamma\":1},\"x\":{}}}");
                 Is(pc.Game == "fortnite" && pc.Colors.Count == 1 && pc.ColorOf(Game.Valorant).Vib == 100 && pc.ColorOf(Game.Fortnite).Profile == Vivid.None && Prefs.Parse("{}").Colors != null, "ajustes por juego");
-                Prefs ph = Prefs.Parse("{\"Game\":\"valorant\",\"Paths\":{\"fortnite\":\"D:\\\\Juegos\\\\otro.exe\",\"valorant\":\"D:\\\\Riot\\\\VALORANT-Win64-Shipping.exe\",\"x\":\"D:\\\\x.exe\"},\"Hidden\":[\"fortnite\",\"valorant\",\"x\"]}");
+                Prefs ph = Prefs.Parse("{\"Game\":\"valorant\",\"Paths\":{\"fortnite\":\"D:\\\\Juegos\\\\otro.exe\",\"valorant\":\"D:\\\\Riot\\\\VALORANT-Win64-Shipping.exe\",\"x\":\"D:\\\\x.exe\"},\"Hidden\":[\"fortnite\",\"valorant\",\"cs2\",\"x\"]}");
                 Is(ph.Paths.Count == 1 && ph.Paths["valorant"] == @"D:\Riot\VALORANT-Win64-Shipping.exe" && ph.Hidden.Count == 0 && ph.Game == "valorant", "rutas a mano y no se ocultan todos");
                 Prefs pq = Prefs.Parse("{\"Game\":\"valorant\",\"Hidden\":[\"valorant\",\"valorant\"]}");
                 Is(pq.Hidden.Count == 1 && pq.Game == "fortnite" && Prefs.Parse("{}").Paths != null && Prefs.Parse("{}").Hidden != null, "el juego oculto no queda a la vista");
+                // pinned at the top: always 2 visible ones, in their order, filled up in the order of Game.All
+                Func<string, string> pins = j => string.Join(",", Prefs.Parse(j).Pinned);
+                Is(pins("{}") == "fortnite,valorant" && pins("{\"Pinned\":null}") == "fortnite,valorant" && pins("{\"Pinned\":[\"cs2\",\"fortnite\"]}") == "cs2,fortnite" && Prefs.Default().Pinned.Count == 2, "fijados por defecto y en su orden");
+                Is(pins("{\"Pinned\":[\"x\",\"cs2\",\"cs2\"]}") == "cs2,fortnite" && pins("{\"Pinned\":[\"valorant\",\"cs2\"],\"Hidden\":[\"valorant\"]}") == "cs2,fortnite" && pins("{\"Pinned\":[\"cs2\"],\"Hidden\":[\"fortnite\",\"valorant\"]}") == "cs2", "fijados raros: desconocido, repetido, oculto y un solo juego");
+                Is(string.Join(",", Game.Slots(new List<string> { "valorant", "cs2", "fortnite" }, Game.All).Select(g => g.Id)) == "valorant,cs2" && string.Join(",", Game.Slots(null, new List<Game> { Game.Valorant, Game.Cs2 }).Select(g => g.Id)) == "valorant,cs2" && Game.Slots(new List<string> { "fortnite" }, new List<Game>()).Count == 0, "huecos del selector");
+                Is(Game.Cs2.SlotName == "Counter-Strike\n2" && Game.Fortnite.SlotName == "Fortnite" && Catalog.Build().Where(t => t.Game == "cs2").All(t => t.Cat == Game.Cs2.Name), "CS2 en dos renglones y su categoría con el nombre del juego");
                 Is(Game.OfTweak("fn-vsync") == "fortnite" && Game.OfTweak("val-gpu") == "valorant" && Game.OfTweak("pw-plan") == null, "tweaks por juego");
+                Is(Game.OfTweak("cs2-gpu") == "cs2" && Game.Of("cs2") == Game.Cs2, "tweaks de CS2");
+                List<Tweak> cs2t = Catalog.Build().Where(x => x.Id.StartsWith("cs2-")).ToList();
+                Is(cs2t.Count == 10 && cs2t.All(x => Game.OfTweak(x.Id) == "cs2") && cs2t.SelectMany(x => x.Ops).OfType<NvOp>().Count() == 7 && cs2t.SelectMany(x => x.Ops).OfType<NvOp>().All(o => o.CurrentKeys()[0].StartsWith("nv|Counter-strike 2|")), "CS2 en su perfil NVIDIA");
+
+                // CS2: the KeyValues reader on the shapes Valve uses
+                Dictionary<string, object> kv = Kv.Parse("\"a\"\n{\n\t\"x\"\t\t\"1\" // nota\n\t\"x\"\t\"2\"\n\t\"b\" { \"p\" \"C:\\\\Juegos\" \"q\" \"di \\\"hola\\\"\" }\n\t\"fps_max_ui$2\" \"240\"\n}\n");
+                Is(Kv.Get(kv, "a", "x") as string == "1", "kv: clave repetida, gana la primera");
+                Is(Kv.Get(kv, "a", "b", "p") as string == @"C:\Juegos", "kv: barras escapadas");
+                Is(Kv.Get(kv, "a", "b", "q") as string == "di \"hola\"", "kv: comillas escapadas");
+                Is(Kv.Get(kv, "a", "fps_max_ui$2") as string == "240" && Kv.Get(kv, "a", "nada") == null, "kv: $ en nombres y claves que faltan");
+                Is(Kv.Parse("\"a\" { \"b\" ").Count == 1 && Kv.Parse("").Count == 0, "kv: archivo cortado no rompe");
+                Is(Cs2.RatioMode(new Res { W = 1280, H = 960 }) == 0 && Cs2.RatioMode(new Res { W = 1680, H = 1050 }) == 2 && Cs2.RatioMode(new Res { W = 2560, H = 1440 }) == 1 && Cs2.RatioMode(new Res { W = 1280, H = 1024 }) == 1, "relación de CS2");
+                // CS2 checks: only what Play does not write (no resolution, ratio or mode); "amd" so the real NVIDIA driver is not read
+                Func<string, Dictionary<string, string>> vmon = m => new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { { "setting.monitor_index", m }, { "setting.fullscreen", "0" }, { "setting.defaultres", "640" } };
+                Is(Cs2.Checks(null, "", "amd", null).Any(c => c.Title == "Ajustes de CS2 sin leer" && !c.Ok), "cs2 sin ajustes");
+                Is(Cs2.Checks(vmon("0"), "", "amd", null).Count == 1 && Cs2.Checks(vmon("1"), "", "amd", null).Count(c => c.Text.StartsWith("CS2 está en otro monitor")) == 1, "cs2: solo avisa del monitor, no de resolución ni modo");
+                Is(Cs2.Checks(vmon("0"), "-novid -VULKAN -allow_third_party_software", "amd", null).Count(c => c.Title == "Opciones de lanzamiento") == 2 && !Cs2.Checks(vmon("0"), "-vulkanx +allow_third_party_software", "amd", null).Any(c => c.Title == "Opciones de lanzamiento"), "cs2: avisos de -vulkan y -allow_third_party_software");
+
+                // CS2 with a fake Steam: two libraries, the manifest in the second; the newest account's files
+                Func<string> realSteam = Cs2.Steam;
+                try
+                {
+                    string steam = Path.Combine(dir, "steam"), lib2 = Path.Combine(dir, "lib2");
+                    Cs2.Steam = () => steam;
+                    Directory.CreateDirectory(Path.Combine(steam, "steamapps"));
+                    Directory.CreateDirectory(Path.Combine(lib2, "steamapps"));
+                    File.WriteAllText(Path.Combine(steam, @"steamapps\libraryfolders.vdf"), "\"libraryfolders\"\n{\n\t\"0\" { \"path\" \"" + steam.Replace(@"\", @"\\") + "\" }\n\t\"1\" { \"path\" \"" + lib2.Replace(@"\", @"\\") + "\" \"apps\" { \"730\" \"1\" } }\n}\n");
+                    string man = Path.Combine(lib2, @"steamapps\appmanifest_730.acf");
+                    File.WriteAllText(man, "\"AppState\"\n{\n\t\"appid\" \"730\"\n\t\"installdir\" \"Counter-Strike Global Offensive\"\n}\n");
+                    Is(Cs2.Libraries().Count == 2 && Cs2.Exe() == Path.Combine(lib2, @"steamapps\common\Counter-Strike Global Offensive\game\bin\win64\cs2.exe"), "cs2 en la segunda biblioteca");
+                    Directory.CreateDirectory(Path.GetDirectoryName(Cs2.Exe()));
+                    File.WriteAllText(Cs2.Exe(), "");
+                    Is(Game.Cs2.Installed(), "cs2 instalado");
+                    File.Delete(man);
+                    Is(Cs2.Exe() == Path.Combine(steam, @"steamapps\common\Counter-Strike Global Offensive\game\bin\win64\cs2.exe") && !Game.Cs2.Installed(), "sin manifiesto: ruta de la principal y no instalado");
+                    Is(Cs2.Cfg() == null && Cs2.Video() == null && Cs2.FpsMax() == null && Cs2.LaunchOptions() == null, "cs2 sin archivos del jugador");
+                    foreach (string acc in new[] { "111", "222" })
+                    {
+                        string cfg = Path.Combine(steam, @"userdata\" + acc + @"\730\local\cfg");
+                        Directory.CreateDirectory(cfg);
+                        File.WriteAllText(Path.Combine(cfg, "cs2_video.txt"), "\"video.cfg\"\n{\n\t\"setting.defaultres\"\t\t\"" + (acc == "111" ? "1280" : "2560") + "\"\n\t\"setting.defaultresheight\"\t\t\"1440\"\n\t\"setting.fullscreen\"\t\t\"1\"\n\t\"setting.aspectratiomode\"\t\t\"1\"\n\t\"setting.mat_vsync\"\t\t\"0\"\n}\n");
+                        File.SetLastWriteTimeUtc(Path.Combine(cfg, "cs2_video.txt"), DateTime.UtcNow.AddDays(acc == "111" ? -30 : 0));
+                    }
+                    string cfg2 = Path.Combine(steam, @"userdata\222\730\local\cfg");
+                    Dictionary<string, string> vid = Cs2.Video();
+                    Is(Cs2.Cfg() == cfg2 && vid["setting.defaultres"] == "2560" && vid["setting.defaultresheight"] == "1440" && vid["setting.aspectratiomode"] == "1", "cs2_video.txt de la cuenta más reciente");
+                    File.WriteAllText(Path.Combine(cfg2, "cs2_machine_convars.vcfg"), "\"config\"\n{\n\t\"convars\"\n\t{\n\t\t\"fps_max\"\t\t\"240\"\n\t\t\"fps_max_ui$2\"\t\t\"240\"\n\t}\n}\n");
+                    Is(Cs2.FpsMax() == 240, "fps_max de cs2");
+                    Directory.CreateDirectory(Path.Combine(steam, @"userdata\222\config"));
+                    string lc = Path.Combine(steam, @"userdata\222\config\localconfig.vdf");
+                    File.WriteAllText(lc, "\"UserLocalConfigStore\"\n{\n\t\"Software\" { \"Valve\" { \"Steam\" { \"apps\" { \"730\" { \"LastPlayed\" \"1\" } } } } }\n}\n");
+                    Is(Cs2.LaunchOptions() == "", "cs2 sin opciones de lanzamiento");
+                    File.WriteAllText(lc, "\"UserLocalConfigStore\"\n{\n\t\"Software\" { \"Valve\" { \"Steam\" { \"apps\" { \"730\" { \"LaunchOptions\" \"-novid -vulkan\" } } } } }\n}\n");
+                    Is(Cs2.LaunchOptions() == "-novid -vulkan", "opciones de lanzamiento de cs2");
+                }
+                finally { Cs2.Steam = realSteam; }
+                // CS2's FPS (ETW) and maps (GSI): FramesTest.cs
+                FramesTest.Run(dir);
+
+                // CS2 stretch with a fake display and a fake Steam: only those 3 keys are written, and End leaves the file byte for byte
+                {
+                    Func<string> sSteam = Cs2.Steam; Func<bool> cRun = Game.Cs2.Running; Action<string> sOpen = StretchSession.Open;
+                    Func<Res> dCur = Display.Current, dSav = Display.Saved; Action<Res> dSet = Display.Set; Action dRes = Display.Reset; Func<List<Res>> dMod = Display.Modes;
+                    string cst = Path.Combine(dir, "steam-cs2"), csd = Path.Combine(dir, "cs2s"), cf = Path.Combine(cst, @"userdata\333\730\local\cfg"), vf = Path.Combine(cf, "cs2_video.txt");
+                    try
+                    {
+                        Directory.CreateDirectory(cf); Directory.CreateDirectory(csd);
+                        Cs2.Steam = () => cst;
+                        Res cn = new Res { W = 2560, H = 1440, Hz = 200 }, cur = cn, cw = new Res { W = 1280, H = 960, Hz = 200 };
+                        Display.Current = () => cur; Display.Saved = () => cn; Display.Set = x => cur = x; Display.Reset = () => cur = cn; Display.Modes = () => new List<Res> { cn, cw };
+                        bool crun = false; Game.Cs2.Running = () => crun;
+                        // the real values of this PC (PLAN-CS2 §1)
+                        string vBody = "\"video.cfg\"\r\n{\r\n\t\"Version\"\t\t\"16\"\r\n\t\"setting.defaultres\"\t\t\"2560\"\r\n\t\"setting.defaultresheight\"\t\t\"1440\"\r\n\t\"setting.refreshrate_numerator\"\t\t\"200\"\r\n\t\"setting.fullscreen\"\t\t\"1\"\r\n\t\"setting.coop_fullscreen\"\t\t\"0\"\r\n\t\"setting.nowindowborder\"\t\t\"0\"\r\n\t\"setting.monitor_index\"\t\t\"0\"\r\n\t\"setting.aspectratiomode\"\t\t\"1\"\r\n}\r\n";
+                        byte[] vOrig = Encoding.ASCII.GetBytes(vBody);
+                        File.WriteAllBytes(vf, vOrig);
+                        Is(Game.Cs2.Session(csd) is Cs2Session, "CS2 usa su propia sesión");
+                        Cs2Session c1 = new Cs2Session(csd); c1.Begin(cw);
+                        string vNow = File.ReadAllText(vf), vWant = vBody.Replace("\"2560\"", "\"1280\"").Replace("\"1440\"", "\"960\"").Replace("aspectratiomode\"\t\t\"1\"", "aspectratiomode\"\t\t\"0\"");
+                        Is(cur.Same(cw) && c1.Pending && File.Exists(Path.Combine(csd, "cs2.json")), "cs2: Begin estira y deja cs2.json");
+                        Is(vNow == vWant && File.ReadAllBytes(vf + ".tweakeroo").SequenceEqual(vOrig), "cs2: solo las 3 claves, con copia: " + vNow);
+                        c1.End(); Is(cur.Same(cn) && !c1.Pending && File.ReadAllBytes(vf).SequenceEqual(vOrig), "cs2: End restaura la pantalla y el archivo byte a byte");
+                        // with CS2 open only the display comes back; the app dies and a new session puts the file back once CS2 closes
+                        c1.Begin(cw); crun = true; c1.End(); Is(cur.Same(cn) && c1.Pending && File.ReadAllText(vf) == vWant, "cs2: con el juego abierto solo vuelve la pantalla");
+                        crun = false; c1.Begin(cw); Cs2Session c2 = new Cs2Session(csd); Is(c2.Pending, "cs2: queda pendiente");
+                        c2.End(); Is(cur.Same(cn) && !c2.Pending && File.ReadAllBytes(vf).SequenceEqual(vOrig), "cs2: una sesión nueva lo repone");
+                        // a missing key goes inside "video.cfg" and is removed again
+                        string vMiss = vBody.Replace("\t\"setting.aspectratiomode\"\t\t\"1\"\r\n", "");
+                        File.WriteAllText(vf, vMiss); c1 = new Cs2Session(csd); c1.Begin(cw);
+                        Is(File.ReadAllText(vf).EndsWith("\t\"setting.monitor_index\"\t\t\"0\"\r\n\t\"setting.aspectratiomode\"\t\t\"0\"\r\n}\r\n"), "cs2: la clave que falta va dentro de video.cfg: " + File.ReadAllText(vf));
+                        new Cs2Session(csd).End(); Is(File.ReadAllText(vf) == vMiss, "cs2: y al reponer se quita");
+                        // CS2 open: fails without touching anything
+                        File.WriteAllBytes(vf, vOrig); string json = File.ReadAllText(Path.Combine(csd, "cs2.json")), cNo = null; crun = true; c1 = new Cs2Session(csd);
+                        try { c1.Begin(cw); } catch (InvalidOperationException ex) { cNo = ex.Message; }
+                        Is(cNo == "Cierra CS2 antes de pulsar Jugar." && !c1.Pending && cur.Same(cn) && File.ReadAllBytes(vf).SequenceEqual(vOrig) && File.ReadAllText(Path.Combine(csd, "cs2.json")) == json, "cs2: abierto, Begin falla sin tocar nada");
+                        crun = false;
+                        // read-only, like Fortnite: written, and it stays read-only
+                        File.SetAttributes(vf, FileAttributes.ReadOnly); c1.Begin(cw);
+                        Is(cur.Same(cw) && File.ReadAllText(vf) == vWant && (File.GetAttributes(vf) & FileAttributes.ReadOnly) != 0, "cs2: de solo lectura se escribe y sigue de solo lectura");
+                        c1.End(); Is(cur.Same(cn) && !c1.Pending && File.ReadAllBytes(vf).SequenceEqual(vOrig) && (File.GetAttributes(vf) & FileAttributes.ReadOnly) != 0, "cs2: y sigue de solo lectura");
+                        File.SetAttributes(vf, FileAttributes.Normal);
+                        // without cs2_video.txt: only the display
+                        File.Delete(vf); c1.Begin(cw); Is(cur.Same(cw) && c1.Pending && !File.Exists(vf), "cs2: sin archivo, solo la pantalla");
+                        c1.End(); Is(cur.Same(cn) && !c1.Pending, "cs2: sin archivo, vuelve la pantalla");
+                        // launch through Steam
+                        List<string> opened = new List<string>(); StretchSession.Open = u => opened.Add(u); cNo = null;
+                        try { c1.Launch(csd); } catch (InvalidOperationException ex) { cNo = ex.Message; }
+                        Is(cNo == "No se encontró Steam. Instálalo o abre CS2 una vez." && opened.Count == 0, "cs2 sin steam.exe");
+                        File.WriteAllText(Path.Combine(cst, "steam.exe"), ""); c1.Launch(csd);
+                        Is(opened.SequenceEqual(new[] { "steam://rungameid/730" }), "cs2 se abre por Steam");
+                    }
+                    finally
+                    {
+                        if (File.Exists(vf)) File.SetAttributes(vf, FileAttributes.Normal);
+                        Cs2.Steam = sSteam; Game.Cs2.Running = cRun; StretchSession.Open = sOpen;
+                        Display.Current = dCur; Display.Saved = dSav; Display.Set = dSet; Display.Reset = dRes; Display.Modes = dMod;
+                    }
+                }
 
                 // Valorant: aspect ratio
                 Res big = new Res { W = 2560, H = 1440, Hz = 200 };
@@ -577,11 +700,11 @@ namespace Tablero
                     mc = Macros.Default(); mc.Keys["doble"] = 5; mc.On.Add("doble"); mc.Delay = 5; mc.Gap = 40;
                     File.WriteAllText(lf, pre + "LogWorld: Bringing World /Delilah/Maps/D.D up for play\n");
                     Macros.Use(mc); System.Threading.Thread.Sleep(300); Is(Macros.Status == "Apagadas", "sin aceptar no arranca");
-                    mc.Accepted = true; Macros.Use(mc); trig = true; System.Threading.Thread.Sleep(900); Is(sent.Count == 0 && Macros.Status.StartsWith("En espera"), "en ranked no manda nada");
+                    mc.Accepted = true; Macros.Use(mc); trig = true; System.Threading.Thread.Sleep(900); Is(sent.Count == 0 && Macros.Status == "En pausa: no estás en Creativo", "en ranked no manda nada");
                     trig = false; File.AppendAllText(lf, pre + "LogWorld: Bringing World /VKPlay/Maps/X.X up for play\n"); System.Threading.Thread.Sleep(900);
                     front = false; System.Threading.Thread.Sleep(600); trig = true; System.Threading.Thread.Sleep(500); Is(sent.Count == 0, "sin Fortnite delante no manda nada"); trig = false; front = true; System.Threading.Thread.Sleep(900);
                     trig = true; System.Threading.Thread.Sleep(500); // without releasing
-                    lock (sent) Is(Macros.Status == "Activas" && seq(sent) == "F+ F- L+ L- F+ F- L+ L-", "doble edicion en creativo sin soltar la tecla: " + seq(sent));
+                    lock (sent) Is(Macros.Status == "Activas (Creativo)" && seq(sent) == "F+ F- L+ L- F+ F- L+ L-", "doble edicion en creativo sin soltar la tecla: " + seq(sent));
                     trig = false; System.Threading.Thread.Sleep(300); lock (sent) Is(sent.Count == 8, "soltar no repite"); mc.Hold = true; Macros.Use(mc); System.Threading.Thread.Sleep(100);
                     trig = true; System.Threading.Thread.Sleep(300); File.AppendAllText(lf, pre + "LogLoad: LoadMap: /Game/Maps/Frontend\n"); System.Threading.Thread.Sleep(900);
                     lock (sent) Is(!sent[sent.Count - 1].Down && sent[sent.Count - 1].Vk == 1 && sent.Count(a => a.Down) == sent.Count(a => !a.Down), "al salir de creativo suelta el clic");
@@ -719,7 +842,7 @@ namespace Tablero
                     foreach (string x in new[] { "Colores", "Color: Carmesí", "Carmesí", "Estirar ahora", "Jugando", "Media de 10 partidas", "FPS estimados", "Abre Valorant y, si está activado, estira la pantalla al cargar un mapa. Al cerrarlo, todo se restaura.", "Abre Fortnite con la resolución elegida. Al cerrarlo, la pantalla y la configuración se restauran.", "Abriendo Riot Client: pulsa Jugar allí. La pantalla se estira al cargar un mapa; Tweakeroo debe quedar abierto.", "Abriendo Riot Client: pulsa Jugar allí.", "Algún monitor no se pudo desactivar: Windows no cambió el monitor (código 5).", "Pantalla estirada. Se restaura al cerrar Valorant.", "Pantalla restaurada.", "Tweakeroo debe quedar abierto durante la partida. Si la pantalla no se estira sola, el botón Estirar ahora lo hace a mano.", "No se encontró Riot Client. Abre Valorant una vez e inténtalo de nuevo.", "Windows no encontró el monitor (código 5).", "La gráfica no aceptó el color (código 5).", "La intensidad necesita una gráfica NVIDIA. ", "Windows no permite cambiar brillo, contraste y gamma en esta pantalla. Pasa con HDR o con el monitor desactivado en el Administrador de dispositivos.", "Ahora", "Ahora, intensidad 100 %", "Probando. Vuelve solo en unos segundos.", "Sin perfil: la pantalla no cambia.", "Windows no aceptó ese brillo. Prueba valores más cercanos a 50.", "No se pudo cambiar el color: x", "Se activa al abrir el juego.", "Activo ahora." }) L.T(x);
                     foreach (string x in new[] { "Tweaks", "Apagados", "Activados", "Nada activado en esta sección.", "Todo activado en esta sección." }) L.T(x);
                     foreach (Look lk in Theme.Looks) { L.T(lk.Name); L.T("Temática: " + lk.Name); }
-                    string[] same = { "Tweakeroo", "Español", "English", "Fortnite", "Valorant", "FPS", "Stretched" };
+                    string[] same = { "Tweakeroo", "Español", "English", "Fortnite", "Valorant", "CS2", "FPS", "Stretched" };
                     List<string> miss = L.Missing.Where(x => !same.Contains(x)).ToList();
                     Is(miss.Count == 0, "sin traducir (" + miss.Count + "):\n" + string.Join("\n", miss));
                 }
@@ -740,6 +863,7 @@ namespace Tablero
                 StringBuilder sb = new StringBuilder();
                 sb.AppendLine("Fondos, ms por fotograma: " + sceneCost + ".");
                 sb.AppendLine("Monitores activos: " + string.Join(", ", Monitors.On()) + ". Intensidad: " + Vivid.GetVib() + ". Curva: " + (Vivid.GetRamp() != null) + ". Valorant: " + string.Join(", ", Valorant.Checks(Valorant.Settings(), 0).Select(c => c.Title + " " + c.Ok)) + ". Exe: " + File.Exists(Valorant.Exe()));
+                sb.AppendLine("CS2: " + Cs2.Exe() + (File.Exists(Cs2.Exe()) ? " (existe)" : " (no existe)") + ". Configuración: " + (Cs2.Cfg() ?? "no encontrada") + ". fps_max: " + Cs2.FpsMax() + ". Opciones: " + (Cs2.LaunchOptions() ?? "sin leer"));
                 sb.AppendLine("Stretched aquí: " + string.Join(", ", Display.Stretched(Display.Modes(), Display.Saved()).Select(x => x.Name + "@" + x.Hz + (Display.Accepts(x) ? "" : " NO"))));
                 List<Tweak> av = all.Where(x => x.Available).ToList();
                 sb.AppendLine("OK. Catálogo " + all.Count + ", disponibles " + av.Count + ", ajustes " + keys.Count + ", prendidos " + av.Count(x => x.Read() == State.On) + ", parciales " + av.Count(x => x.Read() == State.Partial));

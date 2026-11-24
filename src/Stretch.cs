@@ -4,6 +4,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text;
+using System.Text.RegularExpressions;
 using System.Web.Script.Serialization;
 
 namespace Tablero
@@ -216,6 +218,7 @@ namespace Tablero
             public bool Applied { get; set; }
             public Res Native { get; set; }
             public List<string> Off { get; set; }
+            public string Video { get; set; }   // CS2 only: the cs2_video.txt written
         }
         const string Section = "/Script/FortniteGame.FortGameUserSettings";
         readonly string file;
@@ -301,5 +304,96 @@ namespace Tablero
         // Through Explorer, so Epic does not inherit administrator rights.
         public static Action<string> Open = url => Process.Start(new ProcessStartInfo("explorer.exe", "\"" + url + "\"") { UseShellExecute = false });
         const string Address = "com.epicgames.launcher://apps/fn%3A4fe75bbc5a674f4f9b356b5c90567da5%3AFortnite?action=launch&silent=true";
+    }
+
+    // CS2 stretch: only the resolution and aspect ratio of cs2_video.txt, plus the display; then restores both.
+    // The display mode (fullscreen, coop_fullscreen, nowindowborder) is the player's choice and is never touched.
+    public class Cs2Session : StretchSession
+    {
+        static readonly string[] Keys = { "setting.defaultres", "setting.defaultresheight", "setting.aspectratiomode" };
+        static readonly Encoding Bytes = Encoding.GetEncoding(28591); // each byte as is, so the rest of the file stays byte for byte
+        public Cs2Session(string dir) : base(dir, "cs2.json") { }
+        public override Game Game { get { return Game.Cs2; } }
+        public override void Launch(string dir) { Cs2.Launch(); }
+
+        public override void Begin(Res r)
+        {
+            if (Game.Running()) throw new InvalidOperationException("Cierra CS2 antes de pulsar Jugar.");
+            if (Pending) End();
+            data.Trial = false;
+            data.Res = r;
+            data.Old = new Dictionary<string, string>();
+            data.Video = null;
+            Save();
+            try
+            {
+                string cfg = Cs2.Cfg(), f = cfg == null ? null : Path.Combine(cfg, "cs2_video.txt");
+                if (f != null && File.Exists(f))
+                {
+                    string t = Bytes.GetString(File.ReadAllBytes(f));
+                    // Recorded before writing: if the app closes halfway, they are put back on return.
+                    data.Old = Keys.ToDictionary(k => k, k => { System.Text.RegularExpressions.Match m = Find(t, k); return m.Success ? m.Groups[2].Value : null; });
+                    data.Video = f;
+                    Save();
+                    string copy = f + ".tweakeroo";
+                    if (!File.Exists(copy)) File.Copy(f, copy);
+                    Put(f, new Dictionary<string, string> { { Keys[0], r.W.ToString() }, { Keys[1], r.H.ToString() }, { Keys[2], Cs2.RatioMode(r).ToString() } });
+                }
+                bool exists = Display.Modes().Any(m => m.Same(r));
+                if (!exists) { Custom.Try(r); data.Trial = true; Save(); }
+                else if (!Display.Current().Same(r)) Display.Set(r);
+                if (!Display.Current().Same(r)) throw new InvalidOperationException("Windows no aplicó " + r.Name + ".");
+            }
+            catch { End(); throw; }
+        }
+
+        // The display always; the file only with CS2 closed, since the game rewrites it.
+        public override void End()
+        {
+            if (!Pending) return;
+            Exception screen = null;
+            try { if (data.Trial) { Custom.Revert(); data.Trial = false; Save(); } if (Display.Current().Same(data.Res) && !Display.Saved().Same(data.Res)) Display.Reset(); }
+            catch (Exception ex) { screen = ex; }
+            if (!Game.Running())
+            {
+                string f = data.Video;
+                if (f != null && File.Exists(f)) Put(f, data.Old);
+                // If the display failed, the session stays pending to retry.
+                if (screen == null) { data.Old = null; data.Video = null; Save(); }
+            }
+            if (screen != null) throw screen;
+        }
+
+        // The key's whole line: group 2 is the value. Only lines that start with the key, so comments do not count.
+        static System.Text.RegularExpressions.Match Find(string t, string key)
+        {
+            return Regex.Match(t, "^([ \\t]*\"" + Regex.Escape(key) + "\"[ \\t]+\")([^\"\\r\\n]*)\"[^\\r\\n]*(\\r?\\n)?", RegexOptions.Multiline | RegexOptions.IgnoreCase);
+        }
+        // Sets those values; null removes the key's line. A missing key goes in its own line before the } of "video.cfg".
+        static void Put(string file, Dictionary<string, string> values)
+        {
+            string before = Bytes.GetString(File.ReadAllBytes(file)), t = before, nl = t.Contains("\r\n") ? "\r\n" : "\n";
+            foreach (KeyValuePair<string, string> v in values)
+            {
+                System.Text.RegularExpressions.Match m = Find(t, v.Key);
+                if (m.Success && v.Value == null) t = t.Remove(m.Index, m.Length);
+                else if (m.Success) t = t.Remove(m.Groups[2].Index, m.Groups[2].Length).Insert(m.Groups[2].Index, v.Value);
+                else if (v.Value != null)
+                {
+                    System.Text.RegularExpressions.Match b = Regex.Match(t, "\"video\\.cfg\"\\s*\\{[^}]*", RegexOptions.IgnoreCase);
+                    if (!b.Success || b.Index + b.Length >= t.Length) continue;
+                    int close = b.Index + b.Length, line = t.LastIndexOf('\n', close - 1) + 1;
+                    // shortcut: only when the } is alone on its line, as CS2 writes it; otherwise the key is not added.
+                    if (line <= b.Index || t.Substring(line, close - line).Trim().Length > 0) continue;
+                    t = t.Insert(line, "\t\"" + v.Key + "\"\t\t\"" + v.Value + "\"" + nl);
+                }
+            }
+            if (t == before) return;
+            // Like IniOp.Write: a read-only file is written and stays read-only, so the game cannot overwrite it.
+            FileAttributes a = File.GetAttributes(file);
+            File.SetAttributes(file, a & ~FileAttributes.ReadOnly);
+            try { File.WriteAllBytes(file, Bytes.GetBytes(t)); }
+            finally { File.SetAttributes(file, a); }
+        }
     }
 }
