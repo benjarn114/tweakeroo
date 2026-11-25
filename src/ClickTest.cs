@@ -163,6 +163,12 @@ namespace Tablero
                 Is(V("a") == "d:1" && V("b") == Op.None && V("r") == Op.None, "optimizar activa solo lo recomendado");
                 ((ListBox)w.FindName("Palettes")).SelectedIndex = 1; await Task.Delay(900);
                 Is(((TextBlock)w.FindName("PaletteName")).Text == "Color: Medianoche", "cambia la paleta");
+                {
+                    // every swatch fits in the column: the list cannot scroll, a cut one is unreachable
+                    ListBox pl = (ListBox)w.FindName("Palettes");
+                    FrameworkElement last = (FrameworkElement)pl.ItemContainerGenerator.ContainerFromIndex(pl.Items.Count - 1);
+                    Is(VisualTreeHelper.GetOffset(last).X + last.ActualWidth <= pl.ActualWidth + 0.5, "el último color entra entero");
+                }
                 // stretched with a fake display, game and launcher
                 Button play = (Button)w.FindName("Play"), back = (Button)w.FindName("Back");
                 Go(w, "Jugar"); await Task.Delay(300);
