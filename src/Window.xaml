@@ -51,6 +51,9 @@
     <Geometry x:Key="IcoRain">M6.8,13.6 C4.7,13.5 3.4,12.1 3.5,10.4 C3.6,8.6 5.1,7.4 6.8,7.6 C7.3,5.2 9.4,3.6 11.8,3.8 C14.1,4 15.8,5.7 16,7.8 C17.9,7.6 19.6,8.9 19.6,10.7 C19.6,12.3 18.3,13.6 16.5,13.6 Z M8.2,16.2 L7.3,18.6 M12.3,16.4 L11.5,19 M16.2,16.1 L15.3,18.6</Geometry>
     <Geometry x:Key="IcoMute">M4.3,9.6 L7.4,9.5 L11.8,5.8 L12,18.4 L7.5,14.8 L4.3,14.9 Z M15.4,9.4 L19.9,14.5 M19.8,9.5 L15.5,14.5</Geometry>
     <Geometry x:Key="IcoCpu">M7,7 H17 V17 H7 Z M10,3 V7 M14,3 V7 M10,17 V21 M14,17 V21 M3,10 H7 M3,14 H7 M17,10 H21 M17,14 H21</Geometry>
+    <Geometry x:Key="IcoChat">M6,4 H18 A3,3 0 0 1 21,7 V13 A3,3 0 0 1 18,16 H11 L6.5,20 V16 H6 A3,3 0 0 1 3,13 V7 A3,3 0 0 1 6,4 Z M8,10 V10.1 M12,10 V10.1 M16,10 V10.1</Geometry>
+
+    <Geometry x:Key="IcoCross">M12,5 A7,7 0 1 1 11.99,5 Z M12,2 V8 M12,16 V22 M2,12 H8 M16,12 H22</Geometry>
 
     <Style x:Key="Ico" TargetType="Path">
       <Setter Property="Stroke" Value="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Control}}"/>
@@ -296,6 +299,53 @@
         </Setter.Value>
       </Setter>
     </Style>
+    <!-- Text tab: the chosen one in Ink with an On underline; a Line divider before every tab but the first -->
+    <Style x:Key="TabItem" TargetType="ListBoxItem">
+      <Setter Property="FocusVisualStyle" Value="{StaticResource Focus}"/>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="Foreground" Value="{DynamicResource Ink2}"/>
+      <Setter Property="FontSize" Value="14.5"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="ListBoxItem">
+            <StackPanel Orientation="Horizontal">
+              <Border x:Name="bar" Width="1" Height="16" Background="{DynamicResource Line}" Margin="16,0" VerticalAlignment="Center"/>
+              <Grid Background="Transparent">
+                <ContentPresenter Margin="0,6,0,9" VerticalAlignment="Center"/>
+                <Border x:Name="under" Height="2" VerticalAlignment="Bottom" Background="{DynamicResource On}" CornerRadius="1" Visibility="Hidden"/>
+              </Grid>
+            </StackPanel>
+            <ControlTemplate.Triggers>
+              <Trigger Property="ItemsControl.AlternationIndex" Value="0"><Setter TargetName="bar" Property="Visibility" Value="Collapsed"/></Trigger>
+              <Trigger Property="IsMouseOver" Value="True"><Setter Property="Foreground" Value="{DynamicResource Ink}"/></Trigger>
+              <Trigger Property="IsSelected" Value="True"><Setter Property="Foreground" Value="{DynamicResource Ink}"/><Setter TargetName="under" Property="Visibility" Value="Visible"/></Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+    <!-- Row in a small list popup (saved crosshairs): hover fill, content laid out in code -->
+    <Style x:Key="PopRow" TargetType="Button">
+      <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="Foreground" Value="{DynamicResource Ink}"/>
+      <Setter Property="FontSize" Value="14"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="Height" Value="34"/>
+      <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Button">
+            <Border x:Name="b" Background="Transparent" CornerRadius="7" Padding="8,0,4,0"><ContentPresenter VerticalAlignment="Center" Margin="0,1,0,0"/></Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="b" Property="Background" Value="{DynamicResource CardHover}"/></Trigger>
+              <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="b" Property="Background" Value="{DynamicResource CardHover}"/></Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
     <DataTemplate x:Key="IconFace">
       <StackPanel Orientation="Horizontal">
         <Viewbox Width="22" Height="22" VerticalAlignment="Center"><Path x:Name="p" Data="{Binding Icon}" Stroke="{DynamicResource On}" StrokeThickness="1.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" Width="24" Height="24"/></Viewbox>
@@ -396,6 +446,70 @@
       <Setter Property="FontSize" Value="12"/>
       <Setter Property="FontWeight" Value="SemiBold"/>
       <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Label"><ContentPresenter Content="{TemplateBinding Content, Converter={StaticResource Upper}}"/></ControlTemplate></Setter.Value></Setter>
+    </Style>
+
+    <!-- Hover box of a check: the full text (Tag, only in Help) and the step by step with its photo, if any -->
+    <ControlTemplate x:Key="DetailTip" TargetType="ToolTip">
+      <Border Background="{DynamicResource Card}" BorderBrush="{DynamicResource Line}" BorderThickness="1" CornerRadius="12" Padding="14" MaxWidth="360">
+        <StackPanel>
+          <TextBlock x:Name="text" Text="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}}" FontSize="14" Foreground="{DynamicResource Ink}" TextWrapping="Wrap" LineHeight="21" Margin="0,0,0,10"/>
+          <Border CornerRadius="8" Margin="0,0,0,10" HorizontalAlignment="Left" Visibility="{Binding HasPicture, Converter={StaticResource Vis}}">
+            <Border.Background><ImageBrush ImageSource="{Binding Picture}" Stretch="Uniform"/></Border.Background>
+            <Image Source="{Binding Picture}" Stretch="Uniform" MaxHeight="200" Opacity="0"/>
+          </Border>
+          <TextBlock x:Name="detail" Text="{Binding Detail}" FontSize="14" Foreground="{DynamicResource Ink}" TextWrapping="Wrap" LineHeight="21"/>
+        </StackPanel>
+      </Border>
+      <ControlTemplate.Triggers>
+        <Trigger Property="Tag" Value="{x:Null}"><Setter TargetName="text" Property="Visibility" Value="Collapsed"/></Trigger>
+        <DataTrigger Binding="{Binding HasDetail}" Value="False"><Setter TargetName="detail" Property="Visibility" Value="Collapsed"/><Setter TargetName="text" Property="Margin" Value="0"/></DataTrigger>
+      </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <!-- Help: one fix as a compact row inside the reply bubble (Assistant.cs); a line above every row but the first -->
+    <DataTemplate x:Key="HelpRow">
+      <Border x:Name="row" Background="Transparent" BorderBrush="{DynamicResource Line}" BorderThickness="0,1,0,0" Padding="0,6" ToolTipService.InitialShowDelay="250" ToolTipService.ShowDuration="3600000" ToolTipService.Placement="Right">
+        <Border.ToolTip><ToolTip HasDropShadow="False" Template="{StaticResource DetailTip}" Tag="{Binding Text}"/></Border.ToolTip>
+        <DockPanel>
+          <Grid DockPanel.Dock="Left" Width="16" Height="16" VerticalAlignment="Center" Margin="0,0,10,0">
+            <Border CornerRadius="8" Background="{DynamicResource On}" Visibility="{Binding Ok, Converter={StaticResource Vis}}"><Viewbox Width="9" Height="9"><Path Data="{StaticResource IcoCheck}" Stroke="{DynamicResource OnInk}" StrokeThickness="4" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" Width="24" Height="24"/></Viewbox></Border>
+            <Border CornerRadius="8" BorderBrush="{DynamicResource Ink}" BorderThickness="1.5" Visibility="{Binding Todo, Converter={StaticResource Vis}}"/>
+          </Grid>
+          <t:Btn DockPanel.Dock="Right" Style="{StaticResource Btn}" Content="{Binding Small}" Height="28" Padding="10,0" FontSize="12.5" VerticalAlignment="Center" Margin="10,0,0,0" Visibility="{Binding HasAct, Converter={StaticResource Vis}}"/>
+          <TextBlock DockPanel.Dock="Right" Text="Correcto" FontSize="12" Foreground="{DynamicResource Ink2}" VerticalAlignment="Center" Margin="10,0,0,0" Visibility="{Binding Ok, Converter={StaticResource Vis}}"/>
+          <StackPanel VerticalAlignment="Center">
+            <TextBlock Text="{Binding Title}" FontSize="13.5" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+            <TextBlock Text="{Binding Text}" FontSize="12.5" Foreground="{DynamicResource Ink2}" TextTrimming="CharacterEllipsis" Margin="0,1,0,0"/>
+          </StackPanel>
+        </DockPanel>
+      </Border>
+      <DataTemplate.Triggers>
+        <DataTrigger Binding="{Binding RelativeSource={RelativeSource PreviousData}}" Value="{x:Null}"><Setter TargetName="row" Property="BorderThickness" Value="0"/></DataTrigger>
+      </DataTemplate.Triggers>
+    </DataTemplate>
+
+    <!-- Several lines of text: like Field, with the text from the top -->
+    <Style x:Key="Area" TargetType="TextBox" BasedOn="{StaticResource Field}">
+      <Setter Property="Height" Value="104"/>
+      <Setter Property="AcceptsReturn" Value="True"/>
+      <Setter Property="TextWrapping" Value="Wrap"/>
+      <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="TextBox">
+            <Border x:Name="b" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding Background}" BorderThickness="2" CornerRadius="13" Padding="12,9">
+              <Grid>
+                <TextBlock x:Name="hint" Text="{TemplateBinding Tag}" Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" IsHitTestVisible="False" Visibility="Collapsed" Margin="2,0"/>
+                <ScrollViewer x:Name="PART_ContentHost"/>
+              </Grid>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="Text" Value=""><Setter TargetName="hint" Property="Visibility" Value="Visible"/></Trigger>
+              <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="b" Property="BorderBrush" Value="{DynamicResource Ink}"/></Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
     </Style>
 
     <Style x:Key="PartCard" TargetType="ContentControl">
@@ -768,6 +882,56 @@
         </StackPanel>
       </ScrollViewer>
 
+      <!-- Crosshair (Fortnite only; rows and swatches are built in CrosshairUi.cs) -->
+      <ScrollViewer x:Name="CrossPage" Grid.Column="1" VerticalScrollBarVisibility="Auto" Focusable="False" Visibility="Collapsed">
+        <StackPanel Margin="28,24,20,110">
+          <TextBlock Text="Crosshair" FontSize="32" FontWeight="Bold"/>
+          <TextBlock Text="Se dibuja encima de Fortnite sin tocar el juego. Con Stretched se estira igual que en Valorant." Foreground="{DynamicResource Ink2}" FontSize="15" TextWrapping="Wrap" Margin="0,6,0,16" MaxWidth="600" HorizontalAlignment="Left"/>
+          <Border Background="{DynamicResource Card}" CornerRadius="16" Padding="18,12" Margin="0,0,0,6">
+            <DockPanel><t:Switch x:Name="CrossOn" DockPanel.Dock="Right" Style="{StaticResource Switch}" AutomationProperties.Name="Mostrar en Fortnite" VerticalAlignment="Center" Margin="16,0,0,0"/><TextBlock Text="Mostrar en Fortnite" FontSize="16" FontWeight="Bold" VerticalAlignment="Center"/></DockPanel>
+          </Border>
+          <TextBlock Text="Las reglas de los torneos de Epic pueden prohibir crosshairs externos." Foreground="{DynamicResource Ink2}" FontSize="12.5" TextWrapping="Wrap" Margin="2,0,0,18"/>
+          <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+            <TextBlock Text="Crosshair seleccionado" Foreground="{DynamicResource Ink2}" FontSize="13" VerticalAlignment="Center" Margin="0,2,12,0"/>
+            <t:Drop x:Name="CrossPick" Style="{StaticResource Drop}" Height="38" MinWidth="220" FontSize="14.5" AutomationProperties.Name="Crosshair seleccionado"/>
+          </StackPanel>
+          <!-- 16:9 like the game; the screenshot (crosshair-fondo.jpg) is set in code, this gradient stays if it is missing -->
+          <Border x:Name="CrossBox" Width="480" Height="270" CornerRadius="12" HorizontalAlignment="Left" RenderOptions.BitmapScalingMode="HighQuality">
+            <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#2B3440" Offset="0"/><GradientStop Color="#11161C" Offset="1"/></LinearGradientBrush></Border.Background>
+            <Grid x:Name="CrossStage"/>
+          </Border>
+          <CheckBox x:Name="CrossWide" Style="{StaticResource Check}" Content="Ver estirado" FontSize="15" Margin="0,4,0,0"/>
+          <DockPanel Margin="0,12,0,0">
+            <t:Btn x:Name="CrossCopy" DockPanel.Dock="Right" Style="{StaticResource Btn}" Content="Copiar código" Margin="10,0,0,0"/>
+            <t:Btn x:Name="CrossImport" DockPanel.Dock="Right" Style="{StaticResource Btn}" Content="Importar" Margin="10,0,0,0"/>
+            <TextBox x:Name="CrossCode" Style="{StaticResource Field}" Tag="Pega un código de Valorant o CS2" AutomationProperties.Name="Código de crosshair"/>
+          </DockPanel>
+          <TextBlock x:Name="CrossError" Foreground="{DynamicResource Danger}" TextWrapping="Wrap" Margin="2,6,0,0" Visibility="Collapsed"/>
+          <Label Style="{StaticResource Head}" Content="Color" Margin="0,22,0,10"/>
+          <WrapPanel x:Name="CrossColors"/>
+          <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+            <TextBlock Text="Personalizado" FontSize="15" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,12,0"/>
+            <TextBox x:Name="CrossHex" Style="{StaticResource Field}" Width="120" MaxLength="7" AutomationProperties.Name="Color personalizado"/>
+          </StackPanel>
+          <!-- One section at a time; the panels are filled in CrosshairUi.cs -->
+          <ListBox x:Name="CrossTabs" Template="{StaticResource BareList}" ItemContainerStyle="{StaticResource TabItem}" AlternationCount="4" SelectedIndex="2" Background="Transparent" BorderThickness="0" Padding="0" Margin="0,22,0,10" HorizontalAlignment="Left" AutomationProperties.Name="Partes del crosshair">
+            <ListBox.ItemsPanel><ItemsPanelTemplate><StackPanel Orientation="Horizontal"/></ItemsPanelTemplate></ListBox.ItemsPanel>
+            <ListBoxItem Content="Contornos"/>
+            <ListBoxItem Content="Punto central"/>
+            <ListBoxItem Content="Líneas interiores"/>
+            <ListBoxItem Content="Líneas exteriores"/>
+          </ListBox>
+          <Border Background="{DynamicResource Card}" CornerRadius="16" Padding="18,6,18,4">
+            <Grid>
+              <StackPanel x:Name="CrossOutline"/>
+              <StackPanel x:Name="CrossDot"/>
+              <StackPanel x:Name="CrossInner"/>
+              <StackPanel x:Name="CrossOuter"/>
+            </Grid>
+          </Border>
+        </StackPanel>
+      </ScrollViewer>
+
       <!-- Settings -->
       <ScrollViewer x:Name="SettingsPage" Grid.Column="1" VerticalScrollBarVisibility="Auto" Focusable="False" Visibility="Collapsed">
         <StackPanel Margin="28,24,28,110">
@@ -884,7 +1048,11 @@
           <ItemsControl x:Name="Checks" Focusable="False">
             <ItemsControl.ItemTemplate>
               <DataTemplate>
-                <Border Background="{DynamicResource Card}" CornerRadius="18" Padding="18,14" Margin="0,0,0,8">
+                <Border Background="{DynamicResource Card}" CornerRadius="18" Padding="18,14" Margin="0,0,0,8" ToolTipService.IsEnabled="{Binding HasDetail}" ToolTipService.InitialShowDelay="250" ToolTipService.ShowDuration="3600000" ToolTipService.Placement="Right">
+                  <!-- Step by step on hover, only for checks with Detail; the photo only if its resource exists -->
+                  <Border.ToolTip>
+                    <ToolTip HasDropShadow="False" Template="{StaticResource DetailTip}"/>
+                  </Border.ToolTip>
                   <DockPanel>
                     <Grid DockPanel.Dock="Left" Width="30" Height="30" VerticalAlignment="Center" Margin="0,0,16,0">
                       <Border CornerRadius="15" Background="{DynamicResource On}" Visibility="{Binding Ok, Converter={StaticResource Vis}}"><Viewbox Width="15" Height="15"><Path Data="{StaticResource IcoCheck}" Stroke="{DynamicResource OnInk}" StrokeThickness="4" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" Width="24" Height="24"/></Viewbox></Border>
@@ -920,6 +1088,20 @@
               </ItemsControl.ItemTemplate>
             </ItemsControl>
           </StackPanel>
+        </StackPanel>
+      </ScrollViewer>
+
+      <!-- Help: problem described in words, answered with checks (Assistant.cs) -->
+      <ScrollViewer x:Name="HelpPage" Grid.Column="1" VerticalScrollBarVisibility="Auto" Focusable="False" Visibility="Collapsed">
+        <StackPanel Margin="28,24,20,110">
+          <TextBlock Text="Describe el problema" FontSize="32" FontWeight="Bold" TextWrapping="Wrap"/>
+          <TextBlock Text="Se revisa la PC y se proponen arreglos. Funciona sin internet." Foreground="{DynamicResource Ink2}" FontSize="15" TextWrapping="Wrap" Margin="0,6,0,18" MaxWidth="560" HorizontalAlignment="Left"/>
+          <WrapPanel x:Name="HelpChips" Margin="0,0,0,16"/>
+          <StackPanel x:Name="HelpLog"/>
+          <DockPanel Margin="0,8,0,0">
+            <t:Btn x:Name="HelpSend" DockPanel.Dock="Right" Style="{StaticResource BtnCta}" Content="Revisar" Margin="10,0,0,0"/>
+            <TextBox x:Name="HelpInput" Style="{StaticResource Field}" Tag="Ej.: se me traba el juego cada tanto" AutomationProperties.Name="Describe el problema"/>
+          </DockPanel>
         </StackPanel>
       </ScrollViewer>
 

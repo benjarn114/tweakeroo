@@ -1167,9 +1167,9 @@ Valorant solo estira desde 1,45:1. Con {0} de alto, el mínimo de ancho es {1}.	
 Valorant solo estira desde 1,45:1.	Valorant only stretches from 1.45:1.
 Con {0} de alto, el mínimo de ancho es {1}.	With a height of {0}, the minimum width is {1}.
 Valorant solo estira con una relación de aspecto de 1,45:1 o más: las más cuadradas, como 4:3, no funcionan.	Valorant only stretches with an aspect ratio of 1.45:1 or more: squarer ones, like 4:3, don't work.
-La pantalla se estira al pulsar Jugar y vuelve al cerrar el juego. No hace falta crear nada en el panel de NVIDIA: se usan los Hz más altos de cada resolución.	The screen stretches when you press Play and goes back when the game closes. Nothing needs to be created in the NVIDIA panel: each resolution uses its highest Hz.
+La pantalla se estira al pulsar Jugar y vuelve al cerrar el juego. No hace falta crear nada en el panel de la gráfica: se usan los Hz más altos de cada resolución.	The screen stretches when you press Play and goes back when the game closes. Nothing needs to be created in the graphics panel: each resolution uses its highest Hz.
 La pantalla se estira al pulsar Jugar y vuelve al cerrar el juego.	The screen stretches when you press Play and goes back when the game closes.
-No hace falta crear nada en el panel de NVIDIA: se usan los Hz más altos de cada resolución.	Nothing needs to be created in the NVIDIA panel: each resolution uses its highest Hz.
+No hace falta crear nada en el panel de la gráfica: se usan los Hz más altos de cada resolución.	Nothing needs to be created in the graphics panel: each resolution uses its highest Hz.
 Abre Fortnite con la resolución elegida en Stretched Resolution. Al cerrarlo, la pantalla y la configuración se restauran.	Opens Fortnite at the resolution chosen in Stretched Resolution. When it closes, the screen and settings are restored.
 Abre Fortnite con la resolución elegida en Stretched Resolution.	Opens Fortnite at the resolution chosen in Stretched Resolution.
 Al cerrarlo, la pantalla y la configuración se restauran.	When it closes, the screen and settings are restored.
@@ -1271,3 +1271,180 @@ Fijar arriba	Pin to top
 Fijado	Pinned
 No instalado	Not installed
 Fijar	Pin
+En Intel Graphics Command Center, Pantalla: en Escala, elige Estirar.	In Intel Graphics Command Center, Display: under Scale, choose Stretch.
+1. En Valorant, pulsa Esc y abre Ajustes.	1. In Valorant, press Esc and open Settings.
+2. Entra en Vídeo y después en General.	2. Go to Video and then General.
+3. En Modo de pantalla, elige Ventana a pantalla completa.	3. Under Display Mode, choose Windowed Fullscreen.
+4. Cierra los ajustes: el cambio se guarda al momento.	4. Close the settings: the change is saved right away.
+Con el juego cerrado, Arreglar lo escribe en sus ajustes sin abrirlo.	With the game closed, Fix writes it to its settings without opening it.
+Queda bien cuando el juego ocupa toda la pantalla y Alt + Tab cambia de ventana al instante.	It is right when the game fills the whole screen and Alt + Tab switches windows instantly.
+3. En Método de relación de aspecto, elige Rellenar en vez de Bandas negras.	3. Under Aspect Ratio Method, choose Fill instead of Letterbox.
+Queda bien cuando, con la resolución estirada, no quedan bandas negras a los lados.	It is right when, at the stretched resolution, there are no black bars on the sides.
+1. Abre Panel de control de NVIDIA desde el menú Inicio o con clic derecho en el escritorio (en Windows 11, Mostrar más opciones).	1. Open NVIDIA Control Panel from the Start menu or by right-clicking the desktop (on Windows 11, Show more options).
+2. En la columna izquierda, en Pantalla, entra en Ajustar el tamaño y la posición del escritorio y abre la pestaña Escala.	2. In the left column, under Display, go to Adjust desktop size and position and open the Scaling tab.
+3. En Seleccione un modo de escala, elige Pantalla completa.	3. Under Select a scaling mode, choose Full-screen.
+4. En Realizar escala en, elige GPU.	4. Under Perform scaling on, choose GPU.
+5. Pulsa Aplicar. La pantalla puede parpadear un momento.	5. Click Apply. The screen may flicker for a moment.
+Arreglar hace los pasos 3 y 4 sin abrir el panel.	Fix does steps 3 and 4 without opening the panel.
+Si esa página no aparece, la pantalla va conectada a otra gráfica y la escala se ajusta en su panel.	If that page is missing, the screen is wired to another graphics card and scaling is set in its panel.
+Queda bien cuando, al estirar, la imagen llena toda la pantalla sin bandas negras.	It is right when, once stretched, the picture fills the whole screen with no black bars.
+3. Marca Anular el modo de escalado establecido por juegos y programas.	3. Tick Override the scaling mode set by games and programs.
+4. Pulsa Aplicar.	4. Click Apply.
+Queda bien cuando la casilla sigue marcada al volver a abrir el panel.	It is right when the box is still ticked after reopening the panel.
+1. Abre AMD Software: Adrenalin Edition con el botón o con clic derecho en el escritorio.	1. Open AMD Software: Adrenalin Edition with the button or by right-clicking the desktop.
+2. Pulsa la rueda dentada de arriba a la derecha y abre la pestaña Pantalla.	2. Click the gear at the top right and open the Display tab.
+3. Activa Escalado de GPU. La pantalla puede quedarse en negro unos segundos.	3. Turn on GPU Scaling. The screen may go black for a few seconds.
+4. En Modo de escalado, elige Panel completo.	4. Under Scaling Mode, choose Full panel.
+5. Deja Escalado de enteros apagado.	5. Leave Integer Scaling off.
+1. Abre Intel Graphics Command Center desde el menú Inicio. En equipos recientes se llama Intel Graphics Software.	1. Open Intel Graphics Command Center from the Start menu. On recent PCs it is called Intel Graphics Software.
+2. Entra en Pantalla y, si hay varias, elige la principal.	2. Go to Display and, if there are several, choose the main one.
+3. En la pestaña General, busca Escala.	3. On the General tab, find Scale.
+4. Elige Estirar. Según la versión se llama Pantalla completa o Escalar a pantalla completa.	4. Choose Stretch. Depending on the version it is called Full screen or Scale full screen.
+5. Si aparece la casilla Anular la configuración de la aplicación, márcala.	5. If the Override application settings box appears, tick it.
+Si Escala está en gris, elige antes una resolución menor, cambia la escala y vuelve a la resolución normal.	If Scale is greyed out, first pick a lower resolution, change the scaling and go back to the normal resolution.
+1. En Steam, entra en Biblioteca.	1. In Steam, go to Library.
+2. Haz clic derecho en Counter-Strike 2 y elige Propiedades.	2. Right-click Counter-Strike 2 and choose Properties.
+3. En General, busca Opciones de lanzamiento.	3. Under General, find Launch Options.
+4. Borra {0} y deja el resto como está.	4. Delete {0} and leave the rest as it is.
+5. Cierra la ventana: se guarda sola.	5. Close the window: it saves by itself.
+Queda bien cuando {0} ya no aparece en ese campo.	It is right when {0} no longer appears in that field.
+Describe el problema	Describe the problem
+Se revisa la PC y se proponen arreglos. Funciona sin internet.	The PC is checked and fixes are suggested. Works offline.
+Revisar	Check
+Ej.: se me traba el juego cada tanto	E.g.: the game stutters every now and then
+Bajones de FPS	FPS drops
+Mucho delay	Lots of delay
+Ping alto	High ping
+Sensibilidad rara	Odd sensitivity
+El juego no abre	Game won't launch
+Stretched no anda	Stretched not working
+Colores apagados	Dull colors
+Bajones de FPS y tirones	FPS drops and stutters
+Suelen venir de la gráfica o el procesador al límite, de programas en segundo plano o de la caché de sombreadores al empezar la partida.	They usually come from the graphics card or processor at their limit, background programs, or the shader cache at the start of a match.
+Retraso al jugar (input lag)	Delay while playing (input lag)
+Lo suman el VSync, la gráfica al 100 % y una pantalla por debajo de sus Hz máximos. Reflex y la baja latencia de NVIDIA lo reducen.	VSync, a graphics card at 100 % and a display below its maximum Hz add to it. Reflex and NVIDIA low latency reduce it.
+Ping alto, lag o cortes	High ping, lag or drops
+Lo más común es el Wi-Fi o una descarga en segundo plano. Si la red de casa va bien, suele ser la distancia al servidor.	The most common cause is Wi-Fi or a background download. If the home network is fine, it is usually the distance to the server.
+Sensibilidad rara del ratón	Odd mouse sensitivity
+Suele ser la aceleración de Windows (Mejorar precisión del puntero), un cambio de DPI o la resolución estirada.	It is usually Windows acceleration (Enhance pointer precision), a DPI change or the stretched resolution.
+El juego no abre o se cierra	The game won't launch or closes
+Suele ser el driver de la gráfica, archivos del juego dañados, el anticheat o un programa superpuesto.	It is usually the graphics driver, damaged game files, the anticheat or an overlay program.
+Stretched no funciona o hay bandas negras	Stretched not working or black bars
+La gráfica tiene que escalar a pantalla completa y el juego tiene que rellenar la pantalla en vez de poner bandas negras.	The graphics card has to scale to full screen and the game has to fill the screen instead of adding black bars.
+Colores o brillo de la pantalla	Display colors or brightness
+La intensidad de color solo se cambia con NVIDIA. Con HDR de Windows activo, brillo, contraste y gamma quedan bloqueados.	Color vibrance can only be changed with NVIDIA. With Windows HDR on, brightness, contrast and gamma are locked.
+No se reconoció el problema. Prueba con otras palabras o elige uno:	The problem wasn't recognized. Try other words or pick one:
+¿Cuál se parece más?	Which one is closest?
+No se pudo revisar el PC	The PC couldn't be checked
+PC sin escanear	PC not scanned
+Con el escaneo también se revisan la RAM, el driver y el disco.	The scan also checks RAM, the driver and the disk.
+Activar	Turn on
+Sin partidas registradas	No matches recorded
+Mis FPS mide cada partida desde los registros del juego.	My FPS measures each match from the game's logs.
+Últimas partidas: {0} FPS de media	Last matches: {0} FPS on average
+En los peores momentos bajan a {0} FPS.	At the worst moments they drop to {0} FPS.
+Memoria libre: {0} GB	Free memory: {0} GB
+Cerrar programas antes de jugar libera memoria. Jugar muestra los que más usan.	Closing programs before playing frees memory. Play shows the ones using the most.
+Suficiente para jugar.	Enough to play.
+Tirones al empezar la partida	Stutters at the start of a match
+Suelen ser los sombreadores compilándose y desaparecen solos tras unos minutos.	They are usually shaders compiling and go away on their own after a few minutes.
+Gráfica al 100 %	Graphics card at 100 %
+Con la gráfica al límite el retraso sube. Un límite de FPS algo por debajo del máximo lo evita.	With the graphics card at its limit, delay goes up. An FPS cap slightly below the maximum avoids it.
+Conexión sin medir	Connection not tested
+La prueba de Conexión mide el ping y las pérdidas hasta el router, internet y el servidor.	The Connection test measures ping and loss to the router, the internet and the server.
+Última medición: {0}	Last test: {0}
+Región del servidor	Server region
+En los ajustes del juego conviene elegir la región más cercana.	In the game settings, the nearest region is the best choice.
+Resolución estirada	Stretched resolution
+Con stretched los giros horizontales parecen más rápidos. Conviene quedarse siempre con la misma resolución.	With stretched, horizontal turns feel faster. It's best to always stay on the same resolution.
+DPI y sensibilidad	DPI and sensitivity
+La sensibilidad real es los DPI del ratón por la del juego. Si cambian los DPI, hay que ajustar la del juego.	Real sensitivity is the mouse DPI times the in-game one. If the DPI changes, the in-game sensitivity has to be adjusted.
+Raw input	Raw input
+Valorant, CS2 y Fortnite leen el ratón directamente: la velocidad del puntero de Windows solo cambia el escritorio.	Valorant, CS2 and Fortnite read the mouse directly: Windows pointer speed only changes the desktop.
+Se puede elegir su archivo a mano.	Its file can be picked by hand.
+{0} instalado	{0} installed
+Integridad de memoria apagada	Memory integrity off
+Algunos anticheat la exigen para abrir el juego. Encenderla requiere reiniciar el PC.	Some anticheats require it to launch the game. Turning it on requires restarting the PC.
+TPM 2.0 y Secure Boot activos	TPM 2.0 and Secure Boot on
+Vanguard: falta TPM 2.0 o Secure Boot	Vanguard: TPM 2.0 or Secure Boot missing
+En Windows 11, Vanguard los exige para abrir Valorant. Se activan en la BIOS.	On Windows 11, Vanguard requires them to launch Valorant. They are turned on in the BIOS.
+Reparar los archivos del juego	Repair the game files
+Desde su launcher: Epic Games (Administrar, Verificar), Riot Client (Ajustes, Reparar) o Steam (Propiedades, Verificar integridad).	From its launcher: Epic Games (Manage, Verify), Riot Client (Settings, Repair) or Steam (Properties, Verify integrity).
+Programas superpuestos	Overlay programs
+Cerrar superposiciones como MSI Afterburner o RivaTuner antes de abrir el juego descarta que lo cierren.	Closing overlays such as MSI Afterburner or RivaTuner before launching the game rules them out.
+Sin resolución estirada elegida	No stretched resolution picked
+Se elige en Stretched Resolution y se aplica al pulsar Jugar.	It's picked in Stretched Resolution and applied when pressing Play.
+Resolución elegida: {0}	Picked resolution: {0}
+Se aplica al pulsar Jugar y se restaura al cerrar el juego.	Applied when pressing Play and restored when the game closes.
+Estirar Valorant desactivado	Stretch Valorant is off
+Se activa en Stretched Resolution.	It's turned on in Stretched Resolution.
+Sin perfil de color en {0}	No color profile in {0}
+En Colores se elige un perfil, que se aplica al abrir el juego y se quita al cerrarlo.	A profile is picked in Colors; it applies when the game opens and is removed when it closes.
+Perfil de color: {0}	Color profile: {0}
+Se aplica al abrir el juego y se quita al cerrarlo.	Applied when the game opens and removed when it closes.
+Intensidad de color no disponible	Color vibrance not available
+Intensidad de color: {0} %	Color vibrance: {0} %
+Valor actual de la intensidad digital de NVIDIA.	Current NVIDIA digital vibrance value.
+Brillo, contraste y gamma bloqueados	Brightness, contrast and gamma locked
+Brillo, contraste y gamma disponibles	Brightness, contrast and gamma available
+Se ajustan en Colores.	Adjusted in Colors.
+No es este problema	Not this problem
+No se solucionó	Still not fixed
+Otro problema: enviar reporte	Another problem: send a report
+Qué pasa, desde cuándo y qué se probó	What happens, since when and what was tried
+Adjuntar imágenes	Attach images
+Imágenes	Images
+Quitar imagen	Remove image
+Incluir datos de la PC	Include PC data
+El reporte es público en GitHub. No incluyas datos personales.	The report is public on GitHub. Don't include personal data.
+Enviar reporte	Send report
+Se admiten hasta 4 imágenes.	Up to 4 images are allowed.
+No se pudo abrir la imagen: {0}	The image couldn't be opened: {0}
+No se pudo preparar el reporte: {0}	The report couldn't be prepared: {0}
+Problema sin identificar	Unidentified problem
+(recortado)	(trimmed)
+Se abrió GitHub con el reporte escrito.	GitHub was opened with the report written.
+Arrastra las imágenes de la carpeta abierta al cuadro del reporte y pulsa Submit new issue.	Drag the images from the opened folder into the report box and press Submit new issue.
+Pulsa Submit new issue.	Press Submit new issue.
+Hace falta una cuenta de GitHub.	A GitHub account is needed.
+Código de crosshair no reconocido.	Crosshair code not recognized.
+El código de CS2 está mal copiado: no cuadra la suma de control.	The CS2 code was copied wrong: the checksum does not match.
+Esta versión de código de CS2 aún no está soportada.	This CS2 code version is not supported yet.
+Crosshair	Crosshair
+Se dibuja encima de Fortnite sin tocar el juego. Con Stretched se estira igual que en Valorant.	Drawn on top of Fortnite without touching the game. With Stretched it stretches just like in Valorant.
+Mostrar en Fortnite	Show in Fortnite
+Las reglas de los torneos de Epic pueden prohibir crosshairs externos.	Epic's tournament rules may forbid external crosshairs.
+Ver estirado	View stretched
+Copiar código	Copy code
+Importar	Import
+Pega un código de Valorant o CS2	Paste a Valorant or CS2 code
+Código de crosshair	Crosshair code
+Guardar	Save
+Nombre del crosshair	Crosshair name
+Color	Color
+Color personalizado	Custom color
+Contornos	Outlines
+Punto central	Center dot
+Líneas interiores	Inner lines
+Líneas exteriores	Outer lines
+Blanco	White
+Verde	Green
+Amarillo verdoso	Yellow green
+Verde amarillento	Green yellow
+Amarillo	Yellow
+Cian	Cyan
+Rosa	Pink
+Rojo	Red
+Mostrar	Show
+Opacidad	Opacity
+Grosor	Thickness
+Longitud	Length
+Desplazamiento	Offset
+Crosshair guardado.	Crosshair saved.
+Crosshair importado.	Crosshair imported.
+Código copiado.	Code copied.
+Crosshair seleccionado	Selected crosshair
++ Nuevo crosshair	+ New crosshair
+Falta el nombre.	The name is missing.
+Ya hay un crosshair con ese nombre.	A crosshair with that name already exists.
+Partes del crosshair	Crosshair parts

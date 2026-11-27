@@ -144,7 +144,7 @@ namespace Tablero
         }
 
         // Before playing. Resolution and ratio are written by Play, and both fullscreen modes stretch: only what is not written.
-        // video: Video(); launch: LaunchOptions(); gpu: "nvidia", "amd" or null; dir: app data folder.
+        // video: Video(); launch: LaunchOptions(); gpu: brand wired to the main display, "nvidia", "amd", "intel" or null; dir: app data folder.
         public static List<Check> Checks(Dictionary<string, string> video, string launch, string gpu, string dir)
         {
             List<Check> r = new List<Check>();
@@ -153,8 +153,9 @@ namespace Tablero
             else if (video.TryGetValue("setting.monitor_index", out v) && v.Trim() != "0")
                 r.Add(new Check { Title = "Monitor", Text = "CS2 está en otro monitor: solo se estira la pantalla principal.", Kind = Kind.Gratis });
             Func<string, bool> has = o => launch != null && Regex.IsMatch(launch, "(^|\\s)" + o + "(\\s|$)", RegexOptions.IgnoreCase);
-            if (has("-vulkan")) r.Add(new Check { Title = "Opciones de lanzamiento", Text = "Con -vulkan no se miden los FPS y el 4:3 puede no estirarse.", Kind = Kind.Gratis });
-            if (has("-allow_third_party_software")) r.Add(new Check { Title = "Opciones de lanzamiento", Text = "Con -allow_third_party_software CS2 juega sin el Modo de confianza. Conviene quitarlo.", Kind = Kind.Gratis });
+            Func<string, string> remove = o => "1. En Steam, entra en Biblioteca.\n2. Haz clic derecho en Counter-Strike 2 y elige Propiedades.\n3. En General, busca Opciones de lanzamiento.\n4. Borra " + o + " y deja el resto como está.\n5. Cierra la ventana: se guarda sola.\nQueda bien cuando " + o + " ya no aparece en ese campo.";
+            if (has("-vulkan")) r.Add(new Check { Title = "Opciones de lanzamiento", Text = "Con -vulkan no se miden los FPS y el 4:3 puede no estirarse.", Kind = Kind.Gratis, Detail = remove("-vulkan") });
+            if (has("-allow_third_party_software")) r.Add(new Check { Title = "Opciones de lanzamiento", Text = "Con -allow_third_party_software CS2 juega sin el Modo de confianza. Conviene quitarlo.", Kind = Kind.Gratis, Detail = remove("-allow_third_party_software") });
             Valorant.Scale(r, gpu, dir);
             return r;
         }

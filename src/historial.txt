@@ -1,3 +1,7 @@
+## 1.2.0 2026-11-26
+- Stretched: los pasos de escala siguen a la gráfica conectada a la pantalla, también en portátiles con AMD o Intel y NVIDIA. Pasos nuevos para Intel. Al pasar el ratón por cada paso se ve el detalle.	Stretched: the scaling steps follow the GPU wired to the screen, also on laptops with AMD or Intel plus NVIDIA. New steps for Intel. Hovering each step shows the details.
+- Ayuda: un chat que entiende el problema escrito, revisa el PC y propone arreglos, sin internet. Si no se soluciona, prepara un reporte para GitHub con las imágenes comprimidas.	Help: a chat that understands the problem as written, checks the PC and suggests fixes, offline. If it is not solved, it prepares a GitHub report with the images compressed.
+- Crosshair para Fortnite: se dibuja encima del juego sin tocarlo y se estira con Stretched como en Valorant. Editor como el de Valorant, crosshairs guardados y códigos de Valorant y CS2.	Crosshair for Fortnite: drawn over the game without touching it, and stretched with Stretched like in Valorant. Valorant-style editor, saved crosshairs and Valorant and CS2 codes.
 ## 1.1.0 2026-11-24
 - Counter-Strike 2 como tercer juego.	Counter-Strike 2 as a third game.
 - Jugar estira el escritorio y, con CS2 cerrado, escribe la resolución y la relación en cs2_video.txt. Al cerrarlo, todo vuelve.	Play stretches the desktop and, with CS2 closed, writes the resolution and aspect ratio to cs2_video.txt. Everything goes back when it closes.

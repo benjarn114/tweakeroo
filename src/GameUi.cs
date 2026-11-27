@@ -263,8 +263,9 @@ namespace Tablero
             ShowMissing();
             if (circuits != null)
             {
-                if (!fn) { if (F<ListBox>("Circuits").SelectedItem == macroCircuit) F<ListBox>("Circuits").SelectedItem = circuits[0]; circuits.Remove(macroCircuit); }
-                else if (!circuits.Contains(macroCircuit)) circuits.Insert(circuits.IndexOf(upgrades), macroCircuit);
+                foreach (Circuit only in new[] { macroCircuit, crossCircuit })
+                    if (!fn) { if (F<ListBox>("Circuits").SelectedItem == only) F<ListBox>("Circuits").SelectedItem = circuits[0]; circuits.Remove(only); }
+                    else if (!circuits.Contains(only)) circuits.Insert(circuits.IndexOf(upgrades), only);
             }
             F<ItemsControl>("ValChecks").ItemTemplate = F<ItemsControl>("Checks").ItemTemplate;
             if (netTiles == null) return;
@@ -809,7 +810,7 @@ namespace Tablero
             F<FrameworkElement>("ValChecks").Visibility = v != null && v.Stretch || game == Game.Cs2 ? Visibility.Visible : Visibility.Collapsed;
             F<CheckBox>("ValOn").IsChecked = v != null && v.Stretch;
             Preview();
-            F<TextBlock>("ResHint").Text = game == Game.Cs2 ? "La pantalla se estira al pulsar Jugar y vuelve al cerrar CS2. Jugar también pone esa resolución y su relación de aspecto en el vídeo de CS2, y las repone al cerrarlo." : val ? "Valorant solo estira con una relación de aspecto de 1,45:1 o más: las más cuadradas, como 4:3, no funcionan." : "La pantalla se estira al pulsar Jugar y vuelve al cerrar el juego. No hace falta crear nada en el panel de NVIDIA: se usan los Hz más altos de cada resolución.";
+            F<TextBlock>("ResHint").Text = game == Game.Cs2 ? "La pantalla se estira al pulsar Jugar y vuelve al cerrar CS2. Jugar también pone esa resolución y su relación de aspecto en el vídeo de CS2, y las repone al cerrarlo." : val ? "Valorant solo estira con una relación de aspecto de 1,45:1 o más: las más cuadradas, como 4:3, no funcionan." : "La pantalla se estira al pulsar Jugar y vuelve al cerrar el juego. No hace falta crear nada en el panel de la gráfica: se usan los Hz más altos de cada resolución.";
             if (list.Count == 1 && val) F<TextBlock>("StretchInfo").Text = "La pantalla no ofrece resoluciones estiradas que cumplan 1,45:1. Para estirar Valorant, crea " + Display.ValorantBest(list[0]).Name + " en el panel de la gráfica y reinicia la app.";
             else if (list.Count == 1 && game == Game.Cs2) F<TextBlock>("StretchInfo").Text = "La pantalla no ofrece ninguna resolución más estrecha. Para estirar CS2, crea 1280 × 960 en el panel de la gráfica y reinicia la app.";
             else if (list.Count == 1) F<TextBlock>("StretchInfo").Text = "La pantalla no ofrece ninguna resolución más estrecha. Para usar stretched, crea 1720 × 1080 en el panel de la gráfica y reinicia la app.";
@@ -840,14 +841,12 @@ namespace Tablero
         {
             List<Check> c = null;
             Hw h = hw ?? quick;
-            string gpu = h == null || h.Gpu == null ? null : h.Nvidia ? "nvidia" : h.Gpu.Contains("Radeon") ? "amd" : null;
             bool cs2 = game == Game.Cs2;
             await Task.Run(() =>
             {
                 int on = 0;
                 if (!cs2) try { on = Monitors.On().Count; } catch (InvalidOperationException) { }
-                // Without a scan, NVIDIA vibrance gives away the brand.
-                if (h == null || h.Gpu == null) try { if (Vivid.GetVib() != null) gpu = "nvidia"; } catch (Exception) { }
+                string gpu = Valorant.ScaleBrand(h);
                 c = cs2 ? Cs2.Checks(Cs2.Video(), Cs2.LaunchOptions(), gpu, dir) : Valorant.Checks(Valorant.Settings(), on, gpu, dir);
             });
             if ((game == Game.Cs2) != cs2) return; // the game changed meanwhile

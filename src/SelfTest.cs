@@ -376,6 +376,26 @@ namespace Tablero
                         try { nvRow.Fix(); } catch (InvalidOperationException ex) { gNo = ex.Message; }
                         Is(gNo == "La gráfica no aceptó el cambio de escala." && File.ReadAllText(Path.Combine(nvDir, "escalado.json")).Contains("\"Old\": 1"), "si la grafica no acepta, avisa");
                         Is(Valorant.Checks(null, 0, "amd", nvDir).Count(c => c.Title == "Escala de la gráfica" && c.Act == "Abrir AMD Software" && c.Url != null) == 1 && !Valorant.Checks(null, 0, "amd", nvDir).Any(c => c.Fix != null), "AMD solo abre su programa");
+                        // hybrid laptop: the scaling tutorial follows the card wired to the display, not the NVIDIA one
+                        Func<string> brOld = Display.Brand;
+                        try
+                        {
+                            string brReal = brOld();
+                            Is(brReal == null || brReal == "nvidia" || brReal == "amd" || brReal == "intel", "marca de la pantalla real: " + brReal);
+                            Is(Display.BrandOf("AMD Radeon(TM) Graphics") == "amd" && Display.BrandOf("NVIDIA GeForce RTX 4060 Laptop GPU") == "nvidia" && Display.BrandOf("Intel(R) UHD Graphics") == "intel" && Display.BrandOf("Microsoft Basic Display Adapter") == null && Display.BrandOf(null) == null, "marca por nombre del adaptador");
+                            Hw hyb = new Hw { Gpu = "NVIDIA GeForce RTX 4060 Laptop GPU", Nvidia = true };
+                            Func<string, List<Check>> scaleOf = b => { Display.Brand = () => b; return Valorant.Checks(null, 0, Valorant.ScaleBrand(hyb), nvDir); };
+                            Func<List<Check>, bool> noNv = k => !k.Any(c => c.Title == "Anular el modo de los juegos" || c.Text.Contains("NVIDIA"));
+                            List<Check> kAmd = scaleOf("amd"), kIntel = scaleOf("intel"), kNv = scaleOf("nvidia"), kNone = scaleOf(null);
+                            Is(kAmd.Count(c => c.Act == "Abrir AMD Software" && c.HasDetail && c.Photo == "paso-amd-escala.jpg") == 1 && noNv(kAmd), "portatil hibrido AMD + NVIDIA: paso de AMD y ninguno de NVIDIA");
+                            Is(kIntel.Count(c => c.Text.StartsWith("En Intel Graphics Command Center") && c.HasDetail && c.Photo == "paso-intel-escala.jpg") == 1 && noNv(kIntel) && !kIntel.Any(c => c.Act == "Abrir AMD Software"), "pantalla en Intel: paso de Intel");
+                            Is(kNv.Count(c => c.Title == "Escala de la gráfica" && c.Text.Contains("NVIDIA") && c.HasDetail) == 1 && kNv.Count(c => c.Title == "Anular el modo de los juegos" && c.HasDetail) == 1, "pantalla en NVIDIA: pasos de NVIDIA");
+                            Is(kNone.Any(c => c.Title == "Anular el modo de los juegos"), "adaptador desconocido: vale el escaneo");
+                            Display.Brand = () => { throw new InvalidOperationException("x"); };
+                            Is(Valorant.ScaleBrand(new Hw { Gpu = "AMD Radeon RX 7600" }) == "amd", "si falla la marca de la pantalla, vale el escaneo");
+                            Is(Valorant.Checks(new Dictionary<string, string>(), 0, "amd", nvDir).Where(c => c.Title == "Modo de pantalla" || c.Title == "Relación de aspecto").All(c => c.HasDetail) && Valorant.Checks(null, 0, "amd", nvDir).Count(c => c.HasDetail) == 1 && Cs2.Checks(new Dictionary<string, string>(), "-vulkan -allow_third_party_software", "amd", null).Count(c => c.Title == "Opciones de lanzamiento" && c.Detail.Contains("Propiedades")) == 2, "pasos con detalle");
+                        }
+                        finally { Display.Brand = brOld; }
                     }
                     finally { Game.Valorant.Running = gRun; NvScale.Get = nvGet; NvScale.Set = nvSet; }
                 }
@@ -505,6 +525,80 @@ namespace Tablero
                 finally { Cs2.Steam = realSteam; }
                 // CS2's FPS (ETW) and maps (GSI): FramesTest.cs
                 FramesTest.Run(dir);
+
+                // Crosshair codes (Crosshair.cs): Valorant and CS2, export, prefs line
+                {
+                    Func<string, Crosshair> Vc = Crosshair.FromValorant;
+                    Func<Crosshair, Crosshair, bool> same = (a, b) => a.Serialize() == b.Serialize();
+                    Is(same(Vc("0"), new Crosshair()) && new Crosshair().ToValorantCode() == "0", "crosshair: 0 = valores por defecto");
+                    // TenZ (published code): cyan, no outline, inner 4 long / offset 2 / opacity 1, no outer lines; 0f is ignored
+                    Crosshair x1 = Vc("0;P;c;5;h;0;0l;4;0o;2;0a;1;0f;0;1b;0");
+                    Is(x1.Color == 0xFF00FFFF && !x1.Outline && x1.Inner.Length == 4 && x1.Inner.Offset == 2 && x1.Inner.Opacity == 1 && x1.Inner.Thickness == 2 && !x1.Outer.Show, "crosshair: código de TenZ");
+                    Is(x1.ToValorantCode() == "0;P;c;5;h;0;0l;4;0o;2;0a;1;1b;0", "crosshair: exporta solo lo distinto: " + x1.ToValorantCode());
+                    // custom colour, dot, separate vertical length (ignored), general and sniper sections ignored
+                    Crosshair x2 = Vc("0;s;1;P;c;8;u;FF00AAFF;d;1;z;3;0g;1;0v;8;1b;0;S;c;1");
+                    Is(x2.Color == 0xFFFF00AA && x2.Dot && x2.DotThickness == 3 && x2.Inner.Length == 6 && !x2.Outer.Show, "crosshair: color propio y punto");
+                    Is(x2.ToValorantCode() == "0;P;c;8;u;FF00AAFF;d;1;z;3;1b;0", "crosshair: exporta c;8;u: " + x2.ToValorantCode());
+                    // published dot-only code
+                    Crosshair x3 = Vc("0;c;1;s;1;P;o;0.622;d;1;0t;0;0l;0;0o;0;0a;0;1t;0;1l;0;1o;0;S;s;0.75");
+                    Is(x3.Color == 0xFFFFFFFF && x3.OutlineOpacity == 0.622 && x3.Dot && x3.Inner.Thickness == 0 && x3.Inner.Opacity == 0 && x3.Outer.Show && x3.Outer.Length == 0 && x3.Outer.Offset == 0, "crosshair: código de solo punto");
+                    // the ADS profile does not leak into the primary one
+                    Crosshair x4 = Vc("0;P;c;1;0l;3;A;c;7;0l;10;S;d;0;");
+                    Is(x4.Color == 0xFF00FF00 && x4.Inner.Length == 3, "crosshair: ignora A y S");
+                    Crosshair x5 = new Crosshair { Color = 0xFF123456, Outline = false, OutlineThickness = 3, OutlineOpacity = 0.123, Dot = true, DotThickness = 5, DotOpacity = 0.25 };
+                    x5.Inner = new XLines { Show = false, Length = 12, Thickness = 1, Offset = 0, Opacity = 0.3 };
+                    x5.Outer = new XLines { Show = true, Length = 7, Thickness = 4, Offset = 20, Opacity = 1 };
+                    Crosshair x6 = new Crosshair { Color = 0xFFFF0000 }; x6.Inner.Offset = 2.5;
+                    foreach (Crosshair xc in new[] { x1, x2, x3, x4, x5, x6, new Crosshair() })
+                        Is(same(Vc(xc.ToValorantCode()), xc), "crosshair: ida y vuelta de " + xc.ToValorantCode());
+                    Is(x6.ToValorantCode() == "0;P;c;7;0o;2.5", "crosshair: color de la paleta por índice");
+                    // CS2: legacy-v1 codes with their decoded values published in akiver/csgo-sharecode (src/index.test.ts), at 1080p
+                    Crosshair c1 = Crosshair.FromCs2("CSGO-Cn37R-YE7vo-pLCAL-aURmZ-z6zkG", 1080);   // gap -1.3, size 4.6, thickness 1.2, rgb 175/81/213, alpha 137, dot, T, outline 2
+                    Is(c1.Color == 0xFFAF51D5 && c1.Inner.Opacity == 137 / 255.0 && c1.Inner.Thickness == 3 && c1.Inner.Length == 10 && c1.Inner.Offset == 4.5 && c1.Dot && c1.TStyle && c1.Outline && c1.OutlineThickness == 2 && !c1.Outer.Show, "cs2: código legacy-v1 con color propio");
+                    Crosshair c2 = Crosshair.FromCs2("CSGO-LibdP-VCVEd-ESayK-rSivi-2UBtG", 1080);   // gap 1, size 5, thickness 0.5, colour 1 (green), no alpha, no outline
+                    Is(c2.Color == 0xFF32FA32 && c2.Inner.Opacity == 1 && c2.Inner.Thickness == 1 && c2.Inner.Length == 11 && c2.Inner.Offset == 5.5 && !c2.Dot && !c2.Outline, "cs2: código legacy-v1 verde");
+                    Crosshair c3 = Crosshair.FromCs2("CSGO-MnUCC-89iG7-2cVar-wy7Yn-amCpF", 1080);   // legacy-v3, Dot Only, rgb 252/15/192, thickness 3 at 1080
+                    Is(c3.Color == 0xFFFC0FC0 && !c3.Inner.Show && c3.Dot && c3.DotThickness == 3 && c3.Outline, "cs2: código legacy-v3 de solo punto");
+                    Crosshair c4 = Crosshair.FromCs2("CSvbPubOq37zTGqtsPTP5QTrp5CB4xFXiKRLfzJsm49ZRe", 1536);   // cs2-v1 made at 768: red, gap 0, length 5, thickness 1, dot
+                    Is(c4.Color == 0xFFFF0000 && c4.Inner.Thickness == 2 && c4.Inner.Length == 10 && c4.Inner.Offset == 1 && c4.Dot && !c4.Outline && !c4.Outer.Show, "cs2: código nuevo escalado de 768 a 1536");
+                    // pro codes from gamerstats.net/cs2/crosshairs, published as length / thickness / gap in px: koala 5/3/4 and doc 2/2/1 (made at 960), gafolo 4/1/2 (1080)
+                    Crosshair c5 = Crosshair.FromCs2("CSwzEGdwQacCcV8MjEBd36PtETKS279NQWUjqjuczZh6pG", 960), c6 = Crosshair.FromCs2("CSwzEGdwQacCcV8MjEBd36PtETKS279NQWUjqjuczZh6pG", 1920);
+                    Is(c5.Inner.Length == 5 && c5.Inner.Thickness == 3 && c5.Inner.Offset == 4 + 1.5 && c6.Inner.Length == 10 && c6.Inner.Thickness == 6 && c6.Inner.Offset == 8 + 3, "cs2: código de koala a 960 y 1920");
+                    Crosshair c7 = Crosshair.FromCs2("CSvVyK4QRzD33dDVTHAjebCQ4wo8YNjOPqkoWWbbb4rcnQ", 960), c8 = Crosshair.FromCs2("CS76zKoYOXM9HOc6qB6SdJosRo899KQrZv6xxRbhUSRUPH", 1080);
+                    Is(c7.Inner.Length == 2 && c7.Inner.Thickness == 2 && c7.Inner.Offset == 1 + 1 && c8.Inner.Length == 4 && c8.Inner.Thickness == 1 && c8.Inner.Offset == 2 + 0.5, "cs2: códigos de doc y gafolo");
+                    // FromCode picks the format and uses the screen height
+                    Func<Res> dCur2 = Display.Current;
+                    try
+                    {
+                        Display.Current = () => new Res { W = 1024, H = 768, Hz = 60 };
+                        Is(Crosshair.FromCode("  CSvbPubOq37zTGqtsPTP5QTrp5CB4xFXiKRLfzJsm49ZRe ").Inner.Length == 5 && Crosshair.FromCode(" 0;P;c;5 ").Color == 0xFF00FFFF, "crosshair: FromCode detecta el formato");
+                    }
+                    finally { Display.Current = dCur2; }
+                    foreach (string badCode in new[] { "", null, "hola", "1;P;c;1", "0;P;c", "0;P;c;9", "0;P;c;1.5", "0;P;0l;abc", "0;P;c;8;u;XYZ", "0;P;hola;1", "CSGO-12345-12345-12345-12345-12345",
+                        "CSGO-L9spZ-ihuov-cyhtE-kxbqa-FkBAA", "CSBOp9bHebsSeuEGZdkmAoMSfAAScoDsNveuHmxqXvbUJf", "CSGO-Cn37R-YE7vo-pLCAL-aURmZ-z6zkH", "CSGO-Cn37R" })
+                    {
+                        bool thrown = false;
+                        try { Crosshair.FromCode(badCode); } catch (FormatException) { thrown = true; }
+                        Is(thrown, "crosshair: rechaza " + badCode);
+                    }
+                    // prefs line: everything survives, odd names too; missing or broken parts give defaults
+                    Crosshair s1 = x5.Clone(); s1.Name = "Mi cruz | 100% ; =ñ"; s1.TStyle = true;
+                    Crosshair s2 = Crosshair.Deserialize(s1.Serialize());
+                    Is(s2.Name == s1.Name && s2.TStyle && same(s1, s2) && s2.Serialize().IndexOf('\n') < 0, "crosshair: Serialize/Deserialize: " + s1.Serialize());
+                    Is(same(Crosshair.Deserialize(null), new Crosshair()) && same(Crosshair.Deserialize("basura"), new Crosshair()) && Crosshair.Deserialize("0;P;c;1").Color == 0xFF00FF00, "crosshair: Deserialize tolera campos que faltan");
+                    Is(!ReferenceEquals(s1.Inner, x5.Inner) && s1.Inner.Length == x5.Inner.Length, "crosshair: Clone copia las líneas");
+                    // Prefs.CrossFix: the edited crosshair is always one of the saved ones; old unsaved edits become one more.
+                    Prefs f0 = Prefs.Default();
+                    Is(f0.CrossSaved.Count == 1 && f0.CrossSaved[0] == f0.CrossNow, "crosshair: ajustes nuevos con uno elegido");
+                    Crosshair m1 = new Crosshair { Name = "Mi cruz" }, m2 = m1.Clone(); m2.Inner.Length = 15;
+                    Prefs f1 = new Prefs { CrossSaved = new List<string> { m1.Serialize() }, CrossNow = m2.Serialize() }; Prefs.CrossFix(f1);
+                    Is(f1.CrossSaved.Count == 2 && f1.CrossSaved[0] == m1.Serialize() && f1.CrossNow == f1.CrossSaved[1] && Crosshair.Deserialize(f1.CrossNow).Name == "Mi cruz 2" && Crosshair.Deserialize(f1.CrossNow).Inner.Length == 15, "crosshair: cambios sin guardar pasan a uno más");
+                    Prefs f2 = new Prefs { CrossSaved = new List<string> { m1.Serialize(), m2.Serialize() }, CrossNow = m1.Serialize() }; Prefs.CrossFix(f2); Prefs.CrossFix(f2);
+                    Is(f2.CrossSaved.Count == 2 && f2.CrossNow == f2.CrossSaved[0], "crosshair: CrossFix no cambia datos ya buenos");
+                    Prefs f3 = new Prefs { CrossSaved = new List<string> { "", m1.Serialize() } }; Prefs.CrossFix(f3);
+                    Is(f3.CrossSaved.Count == 1 && f3.CrossNow == m1.Serialize(), "crosshair: sin el elegido, el primero guardado");
+                    Is(Prefs.FreeName("crosshair", new[] { "Crosshair", "Crosshair 2" }) == "crosshair 3" && Prefs.FreeName(" ", new string[0]) == "Crosshair", "crosshair: nombre libre");
+                }
 
                 // CS2 stretch with a fake display and a fake Steam: only those 3 keys are written, and End leaves the file byte for byte
                 {
@@ -800,6 +894,44 @@ namespace Tablero
                 Is(def && es, "ingles por defecto y español si se elige");
                 Is(Custom.Invalid("1500", "1000", nat) == null && Custom.Invalid("1500", "x", nat) != null && Custom.Invalid("700", "600", nat) != null && Custom.Invalid("1920", "1200", nat) != null, "reglas de la personalizada");
 
+                // Help: the problem from the player's words (Assistant.cs)
+                Func<string, string> helpAsk = hx => string.Join("+", Assistant.Match(hx).Select(hp => hp.Id));
+                foreach (string[] hq in new[] { new[] { "me bajan mucho los fps", "fps" }, new[] { "tirones", "fps" }, new[] { "tengo input lag", "delay" }, new[] { "lagggg y ping alto", "network" }, new[] { "la sensi del mouse esta rara", "mouse" }, new[] { "no me abre el juego", "launch" }, new[] { "el streched no anda", "stretched" }, new[] { "won't launch", "launch" }, new[] { "asdfgh", "" }, new[] { "tengo lag", "fps+network" }, new[] { "Se me traba el juego cada tanto", "fps" }, new[] { "high ping and packet loss", "network" }, new[] { "colores lavados", "colors" }, new[] { "BANDAS NEGRAS en Valorant", "stretched" }, new[] { "", "" } })
+                    Is(helpAsk(hq[0]) == hq[1], "ayuda: \"" + hq[0] + "\" da " + helpAsk(hq[0]));
+                foreach (Problem hp in Assistant.All) Is(helpAsk(hp.Chip) == hp.Id, "ayuda: la etiqueta " + hp.Chip + " da " + helpAsk(hp.Chip));
+
+                // Help report: compressed images and the GitHub link (Assistant.cs)
+                {
+                    Func<int, int, System.Windows.Media.PixelFormat, System.Windows.Media.Imaging.WriteableBitmap> bmp = (bw, bh, bf) => new System.Windows.Media.Imaging.WriteableBitmap(bw, bh, 96, 96, bf, null);
+                    Func<byte[], System.Windows.Media.Imaging.BitmapFrame> back = b => System.Windows.Media.Imaging.BitmapDecoder.Create(new MemoryStream(b), System.Windows.Media.Imaging.BitmapCreateOptions.None, System.Windows.Media.Imaging.BitmapCacheOption.OnLoad).Frames[0];
+                    byte[] jb = Issue.Jpeg(bmp(4000, 3000, System.Windows.Media.PixelFormats.Bgra32)), js = Issue.Jpeg(bmp(800, 600, System.Windows.Media.PixelFormats.Bgr24));
+                    System.Windows.Media.Imaging.BitmapFrame fb = back(jb), fs = back(js);
+                    Is(jb[0] == 0xFF && jb[1] == 0xD8 && fb.Decoder is System.Windows.Media.Imaging.JpegBitmapDecoder && fb.PixelWidth == 1600 && fb.PixelHeight == 1200 && jb.Length <= 1024 * 1024 && fs.PixelWidth == 800 && fs.PixelHeight == 600, "reporte: imagen comprimida " + fb.PixelWidth + "x" + fb.PixelHeight + ", " + jb.Length + " bytes; pequeña " + fs.PixelWidth + "x" + fs.PixelHeight);
+                    // an odd size, saved from a file in the background as the Send button does
+                    string png = Path.Combine(dir, "captura.png");
+                    System.Windows.Media.Imaging.PngBitmapEncoder pe = new System.Windows.Media.Imaging.PngBitmapEncoder();
+                    pe.Frames.Add(System.Windows.Media.Imaging.BitmapFrame.Create(bmp(4001, 2251, System.Windows.Media.PixelFormats.Bgr24)));
+                    using (FileStream pf = File.Create(png)) pe.Save(pf);
+                    List<string> sv = System.Threading.Tasks.Task.Run(() => Issue.Save(new List<string> { png }, Path.Combine(dir, "reportes", "x"))).Result;
+                    System.Windows.Media.Imaging.BitmapFrame fv = back(File.ReadAllBytes(sv[0]));
+                    Is(sv.Count == 1 && Path.GetFileName(sv[0]) == "imagen-1.jpg" && Math.Max(fv.PixelWidth, fv.PixelHeight) <= 1600 && fv.PixelWidth >= 1599, "reporte: guardada en segundo plano " + fv.PixelWidth + "x" + fv.PixelHeight);
+
+                    bool en0 = L.En; L.En = false;
+                    try
+                    {
+                        Func<string, string, string> part = (url, k) => Uri.UnescapeDataString(System.Text.RegularExpressions.Regex.Match(url, "[?&]" + k + "=([^&]*)").Groups[1].Value);
+                        List<Check> shown = Enumerable.Range(1, 30).Select(i => new Check { Title = "Revisión " + i, Kind = i % 2 == 0 ? Kind.Bien : Kind.Gratis }).ToList();
+                        string unit = "Ánimo, línea ñ", huge = string.Concat(Enumerable.Repeat(unit + "\n", 2000)).Substring(0, 20000);
+                        string u = Issue.Url(huge, "me bajan los fps", "Bajones de FPS y tirones", shown, "CPU: x\r\nGPU: y", 2), rt1 = part(u, "title"), rb1 = part(u, "body");
+                        Is(u.Length <= 7500 && u.StartsWith("https://github.com/benjarn114/tweakeroo/issues/new?title=") && u.EndsWith("&labels=from-app") && u.Contains("%C3%81nimo") && u.Contains("%0A") && !u.Contains(" ")
+                            && rt1 == "[App] Bajones de FPS y tirones: " + string.Join(" ", Enumerable.Repeat(unit, 5)).Substring(0, 60).TrimEnd() + "…"
+                            && rb1.StartsWith("### Message\n" + unit + "\n") && rb1.Contains("(recortado)") && !rb1.Contains("Revisión ") && rb1.Contains("### Last question\nme bajan los fps") && rb1.Contains("### PC data\n```\nCPU: x\nGPU: y\n```") && rb1.Contains("2 images attached below"), "reporte: enlace largo " + u.Length + ", titulo " + rt1);
+                        string ru2 = Issue.Url("Se traba\nal saltar", "tirones", null, shown.Take(2).ToList(), null, 0), rb2 = part(ru2, "body");
+                        Is(part(ru2, "title") == "[App] Problema sin identificar: Se traba al saltar" && rb2.Contains("### Message\nSe traba\nal saltar") && rb2.Contains("- Pending: Revisión 1\n- OK: Revisión 2") && !rb2.Contains("(recortado)") && !rb2.Contains("### PC data") && !rb2.Contains("### Images"), "reporte: enlace corto " + rb2);
+                    }
+                    finally { L.En = en0; }
+                }
+
                 // purchase plan
                 List<Check> pl = Review.Plan(my, new List<Match> { new Match { Median = 383, Cap = 0 } });
                 Is(pl[0].Title.StartsWith("Gráfica: RTX") && pl[0].Text.StartsWith("Es el cuello de botella") && pl.Any(c => c.Title.StartsWith("Procesador: Ryzen 7 7800X3D")), "plan: " + string.Join("; ", pl.Select(c => c.Title)));
@@ -833,20 +965,50 @@ namespace Tablero
                     foreach (Boost x in Boost.Retired) L.T(x.Name);
                     L.T("Personajes 19 % más anchos y 16 % menos de visión lateral. El estirado cambia cómo se siente la sensibilidad: los giros horizontales parecen más rápidos y el cursor de los menús se mueve distinto. Por eso conviene quedarse siempre con la misma resolución.");
                     { DriverInfo kn = Drivers.Known; Drivers.Known = new DriverInfo { Version = "621.24", Date = "12/11/2026", Url = "https://www.nvidia.com/x" }; foreach (string x in new[] { "32.0.16.2114", "32.0.16.2124" }) { Check c = Drivers.Advice(new Hw { Nvidia = true, Driver = x }); L.T(c.Title); L.T(c.Text); L.T(c.Act); } Drivers.Known = kn; L.T("Abrir web"); }
-                    foreach (string x in new[] { "Al jugar", "Stretched", "Stretched Resolution", "Recomendada", "La pantalla no ofrece resoluciones estiradas que cumplan 1,45:1. Para estirar Valorant, crea 1566 × 1080 en el panel de la gráfica y reinicia la app.", "1,45:1 · 200 Hz", "Volviendo en 10 s", "Probar 10 segundos", "Sonido", "Música", "Cuándo suena", "Volumen de la música", "Efectos de sonido", "Volumen de los efectos", "Noche", "Arcade", "Lluvia", "Apagada", "Solo con la app delante", "Siempre menos al jugar", "Silenciada", "Juegos", "No encontrado", "Cambiar carpeta", "Mostrar en el selector", "Buscar el archivo", "Quitar del selector", "Tiene que quedar al menos un juego.", "Retraso", "Cierra sesión y vuelve a entrar para completar los cambios.", "Reinicia el juego para completar los cambios.", "x: activado. Reinicia Chrome para que haga efecto.", "Recomendada, 200 Hz", "Se crea al usarla, 200 Hz", "Valorant solo estira desde 1,45:1. Con 1080 de alto, el mínimo de ancho es 1566.", "Valorant solo estira con una relación de aspecto de 1,45:1 o más: las más cuadradas, como 4:3, no funcionan.", "La pantalla se estira al pulsar Jugar y vuelve al cerrar el juego. No hace falta crear nada en el panel de NVIDIA: se usan los Hz más altos de cada resolución.", "Abre Fortnite con la resolución elegida en Stretched Resolution. Al cerrarlo, la pantalla y la configuración se restauran.", "Se ponen al abrir Valorant y se quitan al cerrarlo, sin reiniciar. Cada juego guarda los suyos.", "Activos ahora: 3", "Ninguno elegido.", "1 elegido.", "4 elegidos.", "No se pudo aplicar: Índice de búsqueda en pausa", "Jugar", "Jugando", "Pantalla completa en la GPU.", "En el panel de NVIDIA, Ajustar tamaño y posición: Pantalla completa, escalar en la GPU.", "Anular el modo de los juegos", "En el panel de NVIDIA, Ajustar tamaño y posición: marca Anular el modo de escalado de juegos y programas.", "Abrir panel", "En AMD Software, Pantalla: activa Escalado de GPU y elige Panel completo.", "Abrir AMD Software", "Arreglar", "La gráfica no aceptó el cambio de escala.", "Cierra Valorant antes de cambiar sus ajustes.", "No toca la memoria del juego.", "El controlador NVIDIA devolvió el error 5.", "No se pudo cambiar: x" }) L.T(x);
+                    foreach (string x in new[] { "Al jugar", "Stretched", "Stretched Resolution", "Recomendada", "La pantalla no ofrece resoluciones estiradas que cumplan 1,45:1. Para estirar Valorant, crea 1566 × 1080 en el panel de la gráfica y reinicia la app.", "1,45:1 · 200 Hz", "Volviendo en 10 s", "Probar 10 segundos", "Sonido", "Música", "Cuándo suena", "Volumen de la música", "Efectos de sonido", "Volumen de los efectos", "Noche", "Arcade", "Lluvia", "Apagada", "Solo con la app delante", "Siempre menos al jugar", "Silenciada", "Juegos", "No encontrado", "Cambiar carpeta", "Mostrar en el selector", "Buscar el archivo", "Quitar del selector", "Tiene que quedar al menos un juego.", "Retraso", "Cierra sesión y vuelve a entrar para completar los cambios.", "Reinicia el juego para completar los cambios.", "x: activado. Reinicia Chrome para que haga efecto.", "Recomendada, 200 Hz", "Se crea al usarla, 200 Hz", "Valorant solo estira desde 1,45:1. Con 1080 de alto, el mínimo de ancho es 1566.", "Valorant solo estira con una relación de aspecto de 1,45:1 o más: las más cuadradas, como 4:3, no funcionan.", "La pantalla se estira al pulsar Jugar y vuelve al cerrar el juego. No hace falta crear nada en el panel de la gráfica: se usan los Hz más altos de cada resolución.", "Abre Fortnite con la resolución elegida en Stretched Resolution. Al cerrarlo, la pantalla y la configuración se restauran.", "Se ponen al abrir Valorant y se quitan al cerrarlo, sin reiniciar. Cada juego guarda los suyos.", "Activos ahora: 3", "Ninguno elegido.", "1 elegido.", "4 elegidos.", "No se pudo aplicar: Índice de búsqueda en pausa", "Jugar", "Jugando", "Pantalla completa en la GPU.", "En el panel de NVIDIA, Ajustar tamaño y posición: Pantalla completa, escalar en la GPU.", "Anular el modo de los juegos", "En el panel de NVIDIA, Ajustar tamaño y posición: marca Anular el modo de escalado de juegos y programas.", "Abrir panel", "En AMD Software, Pantalla: activa Escalado de GPU y elige Panel completo.", "Abrir AMD Software", "Arreglar", "La gráfica no aceptó el cambio de escala.", "Cierra Valorant antes de cambiar sus ajustes.", "No toca la memoria del juego.", "El controlador NVIDIA devolvió el error 5.", "No se pudo cambiar: x" }) L.T(x);
                     foreach (ColorProfile x in Vivid.All) { L.T(x.Name); L.T(x.Note); }
                     foreach (Check c in Valorant.Checks(null, 2).Concat(Valorant.Checks(new Dictionary<string, string>(), 0)).Concat(Valorant.Checks(new Dictionary<string, string> { { "FullscreenMode", "1" }, { "bShouldLetterbox", "False" } }, 0))) { L.T(c.Title); L.T(c.Text); }
+                    { Func<int> nvG = NvScale.Get; NvScale.Get = () => 0; foreach (string b in new[] { "nvidia", "amd", "intel" }) foreach (Check c in Valorant.Checks(new Dictionary<string, string>(), 0, b, Path.Combine(dir, "nv")).Concat(Cs2.Checks(new Dictionary<string, string>(), "-vulkan -allow_third_party_software", b, null))) { L.T(c.Title); L.T(c.Text); L.T(c.Detail); } NvScale.Get = nvG; }
                     L.T(NetTest.Home(new NetResult { Router = new PingStats(), Internet = new PingStats(), Epic = new PingStats() }));
                     foreach (string x in FpsLog.ValMaps.Values.Where(x => x == "Campo de tiro")) L.T(x);
                     foreach (Game g in Game.All) foreach (string x in new[] { "Cierra {0} antes de cambiar de juego.", "Cierra {0} y vuelve a intentarlo.", "Cierra {0} primero: la resolución aún no se ha restaurado.", "Tweakeroo debe quedar abierto hasta cerrar {0} para restaurar la resolución.", "{0} cerrado: resolución restaurada.", "{0} no se abrió en 10 minutos: resolución restaurada.", "Abriendo {0}…", "Abrir {0}", "No se pudo abrir {0}: x", "No se pudieron leer los registros de {0}: x", "Se leen de los registros de {0}, segundo a segundo, sin modificar el juego.", "No hay partidas de más de un minuto en los registros de {0}.", "Se aplica al abrir {0}.", "Cierra {0} antes de medir la velocidad: la prueba llena la conexión.", "{0} no está instalado o no se encontró", "Si está en otra carpeta, elige su archivo {1}.", "Ese no es el archivo de {0}. Se llama {1}.", "{0} encontrado. Los tweaks del juego se actualizan al volver a abrir Tweakeroo." }) L.T(string.Format(x, g.Name, g.ExeName));
                     foreach (string x in new[] { "Colores", "Color: Carmesí", "Carmesí", "Estirar ahora", "Jugando", "Media de 10 partidas", "FPS estimados", "Abre Valorant y, si está activado, estira la pantalla al cargar un mapa. Al cerrarlo, todo se restaura.", "Abre Fortnite con la resolución elegida. Al cerrarlo, la pantalla y la configuración se restauran.", "Abriendo Riot Client: pulsa Jugar allí. La pantalla se estira al cargar un mapa; Tweakeroo debe quedar abierto.", "Abriendo Riot Client: pulsa Jugar allí.", "Algún monitor no se pudo desactivar: Windows no cambió el monitor (código 5).", "Pantalla estirada. Se restaura al cerrar Valorant.", "Pantalla restaurada.", "Tweakeroo debe quedar abierto durante la partida. Si la pantalla no se estira sola, el botón Estirar ahora lo hace a mano.", "No se encontró Riot Client. Abre Valorant una vez e inténtalo de nuevo.", "Windows no encontró el monitor (código 5).", "La gráfica no aceptó el color (código 5).", "La intensidad necesita una gráfica NVIDIA. ", "Windows no permite cambiar brillo, contraste y gamma en esta pantalla. Pasa con HDR o con el monitor desactivado en el Administrador de dispositivos.", "Ahora", "Ahora, intensidad 100 %", "Probando. Vuelve solo en unos segundos.", "Sin perfil: la pantalla no cambia.", "Windows no aceptó ese brillo. Prueba valores más cercanos a 50.", "No se pudo cambiar el color: x", "Se activa al abrir el juego.", "Activo ahora." }) L.T(x);
                     foreach (string x in new[] { "Tweaks", "Apagados", "Activados", "Nada activado en esta sección.", "Todo activado en esta sección." }) L.T(x);
                     foreach (Look lk in Theme.Looks) { L.T(lk.Name); L.T("Temática: " + lk.Name); }
+                    foreach (Problem hp in Assistant.All) { L.T(hp.Name); L.T(hp.Why); L.T(hp.Chip); }
+                    foreach (string x in Ui.CrossWords.Concat(new[] { "Blanco", "Verde", "Amarillo verdoso", "Verde amarillento", "Amarillo", "Cian", "Rosa", "Rojo" })) L.T(x);
+                    foreach (string x in new[] { "No se reconoció el problema. Prueba con otras palabras o elige uno:", "¿Cuál se parece más?", "Abrir Mi PC", "Abrir Stretched Resolution", "Últimas partidas: 240 FPS de media", "Memoria libre: 3,5 GB", "Perfil de color: Vivo", "Fortnite instalado", "Intensidad de color: 50 %", "Activar", "No es este problema", "No se solucionó", "Otro problema: enviar reporte", "Qué pasa, desde cuándo y qué se probó", "Adjuntar imágenes", "Imágenes", "Quitar imagen", "Incluir datos de la PC", "El reporte es público en GitHub. No incluyas datos personales.", "Enviar reporte", "Se admiten hasta 4 imágenes.", "No se pudo abrir la imagen: captura.png", "No se pudo preparar el reporte: x", "Problema sin identificar", "(recortado)", "Se abrió GitHub con el reporte escrito. Arrastra las imágenes de la carpeta abierta al cuadro del reporte y pulsa Submit new issue. Hace falta una cuenta de GitHub.", "Se abrió GitHub con el reporte escrito. Pulsa Submit new issue. Hace falta una cuenta de GitHub.", "Correcto", "Abrir", "Arreglar" }) L.T(x);
                     string[] same = { "Tweakeroo", "Español", "English", "Fortnite", "Valorant", "CS2", "FPS", "Stretched" };
                     List<string> miss = L.Missing.Where(x => !same.Contains(x)).ToList();
                     Is(miss.Count == 0, "sin traducir (" + miss.Count + "):\n" + string.Join("\n", miss));
                 }
                 finally { L.En = false; }
+
+                // crosshair: whole pixels, mirrored around the centre (the middle of the centre pixel for odd thickness, its corner for even), outline grows each piece
+                foreach (int th in new[] { 1, 2, 3, 4 })
+                {
+                    Crosshair cx = new Crosshair { Dot = true, DotThickness = th, Outline = true, OutlineThickness = 2, OutlineOpacity = 1 };
+                    cx.Inner = new XLines { Show = true, Length = 5, Thickness = th, Offset = 3, Opacity = 1 };
+                    cx.Outer.Show = false;
+                    List<KeyValuePair<System.Windows.Rect, double>> fs = CrossShape.Fills(cx);
+                    double q = th % 2 == 1 ? 0.5 : 0;
+                    Is(fs.Count == 5 && fs.All(f => f.Key.X == Math.Round(f.Key.X) && f.Key.Y == Math.Round(f.Key.Y) && f.Key.Width == Math.Round(f.Key.Width) && f.Key.Height == Math.Round(f.Key.Height)), "crosshair en pixeles enteros " + th);
+                    System.Windows.Rect dot = fs[0].Key, rr = fs[1].Key, rl = fs[2].Key, rb = fs[3].Key, rt = fs[4].Key;
+                    Is(dot.Width == th && dot.Height == th && dot.Left - q == q - dot.Right && dot.Top - q == q - dot.Bottom, "punto central centrado " + th);
+                    Is(rr.Width == 5 && rr.Height == th && rr.Left - q == q - rl.Right && rr.Right - q == q - rl.Left && rr.Top - q == q - rr.Bottom && rl.Top == rr.Top && rl.Height == th, "brazos horizontales simetricos " + th);
+                    Is(rb.Height == 5 && rb.Width == th && rb.Top - q == q - rt.Bottom && rb.Bottom - q == q - rt.Top && rb.Left - q == q - rb.Right && rt.Left == rb.Left, "brazos verticales simetricos " + th);
+                    Is(th != 2 || (rr == new System.Windows.Rect(3, -1, 5, 2) && rl == new System.Windows.Rect(-8, -1, 5, 2)), "par: centrado en la esquina " + rr + " " + rl);
+                    Is(th != 1 || (rr == new System.Windows.Rect(3, 0, 5, 1) && rl == new System.Windows.Rect(-7, 0, 5, 1)), "impar: centrado en el pixel central " + rr + " " + rl);
+                    List<System.Windows.Rect> os = CrossShape.Outlines(cx);
+                    Is(os.Count == 5 && os.Zip(fs, (o, f) => o.Left == f.Key.Left - 2 && o.Top == f.Key.Top - 2 && o.Width == f.Key.Width + 4 && o.Height == f.Key.Height + 4).All(x => x), "el contorno crece 2 px cada pieza " + th);
+                }
+                {
+                    Crosshair cx = new Crosshair { Outline = false };
+                    Is(CrossShape.Outlines(cx).Count == 0, "crosshair sin contorno");
+                    Is(CrossShape.Fills(cx).Count(f => f.Key.Bottom <= 0) == 2, "dos lineas de arriba sin estilo T");
+                    cx.TStyle = true; Is(CrossShape.Fills(cx).Count == 6 && !CrossShape.Fills(cx).Any(f => f.Key.Bottom <= 0), "estilo T sin linea de arriba, interior ni exterior: " + CrossShape.Fills(cx).Count);
+                    cx.Inner.Show = false; cx.Outer.Show = false; cx.Dot = false; Is(CrossShape.Fills(cx).Count == 0, "crosshair vacio");
+                }
 
                 // catalog
                 List<Tweak> all = Catalog.Build();

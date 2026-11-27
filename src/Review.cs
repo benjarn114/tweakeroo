@@ -22,6 +22,37 @@ namespace Tablero
         public bool Todo { get { return !Ok; } }
         public bool HasUrl { get { return Url != null || Fix != null; } }
         public string Act { get { return Button ?? (Fix != null ? "Arreglar" : Url != null && Url.StartsWith("https:") ? "Abrir web" : "Abrir ajustes"); } }
+        public string Small { get { return Button ?? (Fix != null ? "Arreglar" : "Abrir"); } } // the short button of Help rows
+        public bool HasAct { get { return HasUrl && !Ok; } }
+        public string Detail { get; set; } // shown on hover: numbered sub-steps, one per line
+        public string Photo { get; set; }  // embedded jpg from src\pasos; it may be missing
+        public bool HasDetail { get { return !string.IsNullOrEmpty(Detail); } }
+        public System.Windows.Media.ImageSource Picture { get { return Pictures(Photo); } }
+        public bool HasPicture { get { return Picture != null; } }
+
+        static readonly Dictionary<string, System.Windows.Media.ImageSource> pictures = new Dictionary<string, System.Windows.Media.ImageSource>();
+        static System.Windows.Media.ImageSource Pictures(string name)
+        {
+            if (name == null) return null;
+            System.Windows.Media.ImageSource p;
+            lock (pictures)
+            {
+                if (pictures.TryGetValue(name, out p)) return p;
+                System.IO.Stream s = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream(name);
+                if (s != null)
+                {
+                    System.Windows.Media.Imaging.BitmapImage b = new System.Windows.Media.Imaging.BitmapImage();
+                    b.BeginInit();
+                    b.StreamSource = s;
+                    b.DecodePixelWidth = 720;
+                    b.CacheOption = System.Windows.Media.Imaging.BitmapCacheOption.OnLoad;
+                    b.EndInit();
+                    b.Freeze();
+                    p = b;
+                }
+                return pictures[name] = p;
+            }
+        }
     }
 
     // Reviews the PC and says what to improve: free things first, then what costs money.

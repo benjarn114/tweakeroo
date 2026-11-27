@@ -30,10 +30,34 @@ namespace Tablero
         public int SfxVolume { get; set; }    // 0-100
         public bool SoundSaved { get; set; }  // false = saved before sound existed: it gets the defaults
         public string Theme { get; set; }     // "noche", "lluvia", "arcade" or "simple" (palette per game, no background)
+        public bool CrossOn { get; set; }           // crosshair drawn over Fortnite
+        public string CrossNow { get; set; }        // Crosshair.Serialize() of the one being edited; null = default
+        public List<string> CrossSaved { get; set; } // saved crosshairs, Serialize() each
 
         public static Prefs Now = Default();
 
-        public static Prefs Default() { return new Prefs { Confirm = 15, AutoCheck = true, Game = Tablero.Game.Fortnite.Id, Colors = new Dictionary<string, ColorPick>(), Boosts = new Dictionary<string, List<string>>(), Paths = new Dictionary<string, string>(), Hidden = new List<string>(), Pinned = new List<string> { Tablero.Game.Fortnite.Id, Tablero.Game.Valorant.Id }, Music = Sound.Themes[0], MusicVolume = 30, Sfx = true, SfxVolume = 60, SoundSaved = true, Theme = "noche" }; }
+        // The crosshair being edited is always one of the saved ones (CrossNow is a copy of it), and edits go straight to it.
+        // Before, CrossNow could hold changes that were never saved: they become one more saved crosshair, so nothing is lost.
+        public static void CrossFix(Prefs p)
+        {
+            p.CrossSaved = (p.CrossSaved ?? new List<string>()).Where(x => !string.IsNullOrEmpty(x)).ToList();
+            if (string.IsNullOrEmpty(p.CrossNow) && p.CrossSaved.Count > 0) p.CrossNow = p.CrossSaved[0];
+            if (p.CrossSaved.Contains(p.CrossNow)) return;
+            Crosshair c = Crosshair.Deserialize(p.CrossNow);
+            c.Name = FreeName(c.Name, p.CrossSaved.Select(x => Crosshair.Deserialize(x).Name));
+            p.CrossNow = c.Serialize();
+            p.CrossSaved.Add(p.CrossNow);
+        }
+        // The name, or the name with the first free number after it.
+        public static string FreeName(string name, IEnumerable<string> taken)
+        {
+            HashSet<string> t = new HashSet<string>(taken.Select(x => (x ?? "").Trim()), StringComparer.CurrentCultureIgnoreCase);
+            string n = string.IsNullOrWhiteSpace(name) ? "Crosshair" : name.Trim();
+            if (!t.Contains(n)) return n;
+            for (int i = 2; ; i++) if (!t.Contains(n + " " + i)) return n + " " + i;
+        }
+        public static Prefs Default() { Prefs d = Default0(); CrossFix(d); return d; }
+        static Prefs Default0() { return new Prefs { Confirm = 15, AutoCheck = true, Game = Tablero.Game.Fortnite.Id, Colors = new Dictionary<string, ColorPick>(), Boosts = new Dictionary<string, List<string>>(), Paths = new Dictionary<string, string>(), Hidden = new List<string>(), Pinned = new List<string> { Tablero.Game.Fortnite.Id, Tablero.Game.Valorant.Id }, Music = Sound.Themes[0], MusicVolume = 30, Sfx = true, SfxVolume = 60, SoundSaved = true, Theme = "noche", CrossSaved = new List<string>() }; }
         static string FileOf(string dir) { return Path.Combine(dir, "ajustes.json"); }
         // Anything not understood goes back to its default value.
         public static Prefs Parse(string json)
@@ -53,6 +77,7 @@ namespace Tablero
             // Settings saved before themes existed, or not understood: Simple, the look the app already had.
             p.Theme = Tablero.Theme.LookOf(p.Theme).Id;
             p.Game = Tablero.Game.Of(p.Game).Id;
+            CrossFix(p);
             Dictionary<string, ColorPick> had = p.Colors ?? d.Colors;
             p.Colors = d.Colors;
             foreach (Game g in Tablero.Game.All) { ColorPick c; if (had.TryGetValue(g.Id, out c)) p.Colors[g.Id] = Vivid.Clean(c); }

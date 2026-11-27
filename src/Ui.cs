@@ -172,7 +172,7 @@ namespace Tablero
         List<Part> parts;
         Hw hw;
         bool working, ready;
-        static readonly string[] Pages = { "PcPage", "StretchPage", "ResPage", "BoostPage", "ColorPage", "FpsPage", "MacroPage", "NetPage", "SettingsPage", "UpgradePage", "ListPage" };
+        static readonly string[] Pages = { "PcPage", "StretchPage", "ResPage", "BoostPage", "ColorPage", "FpsPage", "MacroPage", "CrossPage", "NetPage", "SettingsPage", "UpgradePage", "HelpPage", "ListPage" };
         StretchSession stretch;
         DispatcherTimer watch;
         bool confirming, gameSeen;
@@ -470,10 +470,14 @@ namespace Tablero
             circuits.Add(new Circuit { Name = "Conexión", Icon = Ico("Net"), Page = "NetPage" });
             macroCircuit = new Circuit { Name = "Macros", Icon = Ico("Keys"), Page = "MacroPage" };
             if (game == Game.Fortnite) circuits.Add(macroCircuit);
+            crossCircuit = new Circuit { Name = "Crosshair", Icon = Ico("Cross"), Page = "CrossPage" };
+            if (game == Game.Fortnite) circuits.Add(crossCircuit);
             upgrades = new Circuit { Name = "Tweaks", Icon = Ico("Layers"), HasSubs = true, Pick = () => rows };
             review = new Circuit { Name = "Mejoras", Icon = Ico("Up"), Page = "UpgradePage" };
             circuits.Add(upgrades);
             circuits.Add(review);
+            help = new Circuit { Name = "Ayuda", Icon = Ico("Chat"), Page = "HelpPage" };
+            circuits.Add(help);
             shorts = new List<Circuit> { new Circuit { Name = "Apagados", Icon = Ico("Power"), Quick = true, Pick = () => rows.Where(r => r.State != State.On).ToList() },
                 new Circuit { Name = "Activados", Icon = Ico("Check"), Quick = true, Pick = () => rows.Where(r => r.State == State.On).ToList() }, new Circuit { Name = "", Quick = true, Rule = true } };
             BuildSubs();
@@ -549,6 +553,8 @@ namespace Tablero
             StartGames();
             StartColors();
             StartBoosts();
+            StartHelp();
+            StartCross();
             w.Closed += (s, e) => Macros.Stop();
 
             await Refresh();
@@ -1158,6 +1164,7 @@ namespace Tablero
             if (c.Page == "ColorPage") ShowColors();
             if (c.Page == "BoostPage") ShowBoosts();
             if (c.Page == "NetPage") { Task t = OpenNet(); }
+            if (c.Page == "CrossPage") ShowCross();
             if (c.Page == "MacroPage" && macros != null && Macros.Sync(macros)) { ShowMacros(); Macros.Use(macros); }
             // The list is taken on entering: a switched row does not jump away under the mouse.
             if (c.Pick != null) c.Rows = c.Pick();
@@ -1230,13 +1237,14 @@ namespace Tablero
         void Totals()
         {
             foreach (Circuit c in subs.Concat(shorts)) c.Refresh();
-            // BuildSubs appends the categories at the end; Upgrades goes back below them.
+            // BuildSubs appends the categories at the end; Upgrades and then Help go back below them.
             int u = circuits.IndexOf(review);
-            if (u >= 0 && u < circuits.Count - 1)
+            if (u >= 0 && (u != circuits.Count - 2 || circuits[circuits.Count - 1] != help))
             {
                 ListBox l = F<ListBox>("Circuits");
                 object at = l.SelectedItem;
                 circuits.Move(u, circuits.Count - 1);
+                circuits.Move(circuits.IndexOf(help), circuits.Count - 1);
                 l.SelectedItem = at;
                 MoveMark();
             }

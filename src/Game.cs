@@ -318,7 +318,7 @@ namespace Tablero
             catch (Exception) { return false; }
         }
 
-        // gpu: "nvidia", "amd" or null. dir: app data folder, to record the previous scaling.
+        // gpu: brand wired to the main display, "nvidia", "amd", "intel" or null. dir: app data folder, to record the previous scaling.
         public static List<Check> Checks(Dictionary<string, string> ini, int monitors, string gpu = null, string dir = null)
         {
             List<Check> r = new List<Check>();
@@ -328,15 +328,37 @@ namespace Tablero
             {
                 bool full = ini.TryGetValue("FullscreenMode", out v) && v == "1", fill = ini.TryGetValue("bShouldLetterbox", out v) && v == "False";
                 Action fix = () => { string f = SettingsFile(); if (f == null) throw new InvalidOperationException("Ajustes de Valorant sin leer"); Fix(f); };
-                r.Add(new Check { Title = "Modo de pantalla", Text = full ? "Ventana a pantalla completa." : "En Valorant, Vídeo, General: elige Ventana a pantalla completa.", Kind = full ? Kind.Bien : Kind.Gratis, Fix = full ? null : fix });
-                r.Add(new Check { Title = "Relación de aspecto", Text = fill ? "Rellenar." : "En Valorant, Vídeo, General: elige Rellenar en vez de Bandas negras.", Kind = fill ? Kind.Bien : Kind.Gratis, Fix = fill ? null : fix });
+                r.Add(new Check { Title = "Modo de pantalla", Text = full ? "Ventana a pantalla completa." : "En Valorant, Vídeo, General: elige Ventana a pantalla completa.", Kind = full ? Kind.Bien : Kind.Gratis, Fix = full ? null : fix,
+                    Detail = "1. En Valorant, pulsa Esc y abre Ajustes.\n2. Entra en Vídeo y después en General.\n3. En Modo de pantalla, elige Ventana a pantalla completa.\n4. Cierra los ajustes: el cambio se guarda al momento.\nCon el juego cerrado, Arreglar lo escribe en sus ajustes sin abrirlo.\nQueda bien cuando el juego ocupa toda la pantalla y Alt + Tab cambia de ventana al instante." });
+                r.Add(new Check { Title = "Relación de aspecto", Text = fill ? "Rellenar." : "En Valorant, Vídeo, General: elige Rellenar en vez de Bandas negras.", Kind = fill ? Kind.Bien : Kind.Gratis, Fix = fill ? null : fix,
+                    Detail = "1. En Valorant, pulsa Esc y abre Ajustes.\n2. Entra en Vídeo y después en General.\n3. En Método de relación de aspecto, elige Rellenar en vez de Bandas negras.\n4. Cierra los ajustes: el cambio se guarda al momento.\nCon el juego cerrado, Arreglar lo escribe en sus ajustes sin abrirlo.\nQueda bien cuando, con la resolución estirada, no quedan bandas negras a los lados." });
             }
             r.Add(new Check { Title = "Monitores", Text = monitors == 0 ? "Ya están desactivados en el Administrador de dispositivos; se dejan como están." : "Se desactivan en el Administrador de dispositivos al pulsar Jugar y se reactivan al cerrar el juego.", Kind = Kind.Bien });
             Scale(r, gpu, dir);
             return r;
         }
 
-        // How the GPU scales: the same for every game that stretches.
+        // Hover detail of each scaling step. Panel wording changes a little between driver versions.
+        const string NvOpen = "1. Abre Panel de control de NVIDIA desde el menú Inicio o con clic derecho en el escritorio (en Windows 11, Mostrar más opciones).\n2. En la columna izquierda, en Pantalla, entra en Ajustar el tamaño y la posición del escritorio y abre la pestaña Escala.\n";
+        const string Filled = "Queda bien cuando, al estirar, la imagen llena toda la pantalla sin bandas negras.";
+        const string NvDetail = NvOpen + "3. En Seleccione un modo de escala, elige Pantalla completa.\n4. En Realizar escala en, elige GPU.\n5. Pulsa Aplicar. La pantalla puede parpadear un momento.\nArreglar hace los pasos 3 y 4 sin abrir el panel.\nSi esa página no aparece, la pantalla va conectada a otra gráfica y la escala se ajusta en su panel.\n" + Filled;
+        const string NvOverride = NvOpen + "3. Marca Anular el modo de escalado establecido por juegos y programas.\n4. Pulsa Aplicar.\nQueda bien cuando la casilla sigue marcada al volver a abrir el panel.";
+        const string AmdDetail = "1. Abre AMD Software: Adrenalin Edition con el botón o con clic derecho en el escritorio.\n2. Pulsa la rueda dentada de arriba a la derecha y abre la pestaña Pantalla.\n3. Activa Escalado de GPU. La pantalla puede quedarse en negro unos segundos.\n4. En Modo de escalado, elige Panel completo.\n5. Deja Escalado de enteros apagado.\n" + Filled;
+        const string IntelDetail = "1. Abre Intel Graphics Command Center desde el menú Inicio. En equipos recientes se llama Intel Graphics Software.\n2. Entra en Pantalla y, si hay varias, elige la principal.\n3. En la pestaña General, busca Escala.\n4. Elige Estirar. Según la versión se llama Pantalla completa o Escalar a pantalla completa.\n5. Si aparece la casilla Anular la configuración de la aplicación, márcala.\nSi Escala está en gris, elige antes una resolución menor, cambia la escala y vuelve a la resolución normal.\n" + Filled;
+
+        // Brand whose panel sets the scaling: the card wired to the display. On hybrid laptops that is not the NVIDIA one, so h.Nvidia only counts when the adapter is unknown.
+        public static string ScaleBrand(Hw h)
+        {
+            string wired = null;
+            try { wired = Display.Brand(); } catch (Exception) { }
+            if (wired != null) return wired;
+            if (h != null && h.Gpu != null) return h.Nvidia ? "nvidia" : h.Gpu.Contains("Radeon") ? "amd" : null;
+            // No scan either: NVIDIA vibrance gives away the brand.
+            try { if (Vivid.GetVib() != null) return "nvidia"; } catch (Exception) { }
+            return null;
+        }
+
+        // How the GPU wired to the main display scales: the same for every game that stretches.
         public static void Scale(List<Check> r, string gpu, string dir)
         {
             if (gpu == "nvidia")
@@ -344,12 +366,14 @@ namespace Tablero
                 int s = -1;
                 try { s = NvScale.Get(); } catch (Exception) { }
                 bool gpuFull = s == NvScale.GpuFull;
-                r.Add(gpuFull ? new Check { Title = "Escala de la gráfica", Text = "Pantalla completa en la GPU.", Kind = Kind.Bien }
-                    : new Check { Title = "Escala de la gráfica", Text = "En el panel de NVIDIA, Ajustar tamaño y posición: Pantalla completa, escalar en la GPU.", Kind = Kind.Gratis, Fix = () => NvScale.Fix(dir) });
-                r.Add(new Check { Title = "Anular el modo de los juegos", Text = "En el panel de NVIDIA, Ajustar tamaño y posición: marca Anular el modo de escalado de juegos y programas.", Kind = Kind.Gratis, Url = @"shell:AppsFolder\NVIDIACorp.NVIDIAControlPanel_56jybvy8sckqj!NVIDIACorp.NVIDIAControlPanel", Button = "Abrir panel" });
+                r.Add(gpuFull ? new Check { Title = "Escala de la gráfica", Text = "Pantalla completa en la GPU.", Kind = Kind.Bien, Detail = NvDetail, Photo = "paso-nvidia-escala.jpg" }
+                    : new Check { Title = "Escala de la gráfica", Text = "En el panel de NVIDIA, Ajustar tamaño y posición: Pantalla completa, escalar en la GPU.", Kind = Kind.Gratis, Fix = () => NvScale.Fix(dir), Detail = NvDetail, Photo = "paso-nvidia-escala.jpg" });
+                r.Add(new Check { Title = "Anular el modo de los juegos", Text = "En el panel de NVIDIA, Ajustar tamaño y posición: marca Anular el modo de escalado de juegos y programas.", Kind = Kind.Gratis, Url = @"shell:AppsFolder\NVIDIACorp.NVIDIAControlPanel_56jybvy8sckqj!NVIDIACorp.NVIDIAControlPanel", Button = "Abrir panel", Detail = NvOverride, Photo = "paso-nvidia-anular.jpg" });
             }
             else if (gpu == "amd")
-                r.Add(new Check { Title = "Escala de la gráfica", Text = "En AMD Software, Pantalla: activa Escalado de GPU y elige Panel completo.", Kind = Kind.Gratis, Url = AmdApp() ? @"shell:AppsFolder\AdvancedMicroDevicesInc-RSXCM_fhmx3h6dzfmvj!App" : "https://www.amd.com/en/support/download/drivers.html", Button = "Abrir AMD Software" });
+                r.Add(new Check { Title = "Escala de la gráfica", Text = "En AMD Software, Pantalla: activa Escalado de GPU y elige Panel completo.", Kind = Kind.Gratis, Url = AmdApp() ? @"shell:AppsFolder\AdvancedMicroDevicesInc-RSXCM_fhmx3h6dzfmvj!App" : "https://www.amd.com/en/support/download/drivers.html", Button = "Abrir AMD Software", Detail = AmdDetail, Photo = "paso-amd-escala.jpg" });
+            else if (gpu == "intel")
+                r.Add(new Check { Title = "Escala de la gráfica", Text = "En Intel Graphics Command Center, Pantalla: en Escala, elige Estirar.", Kind = Kind.Gratis, Detail = IntelDetail, Photo = "paso-intel-escala.jpg" });
             else r.Add(new Check { Title = "Escala de la gráfica", Text = "En el panel de NVIDIA, Ajustar tamaño y posición: Pantalla completa, escalar en la GPU y anular el modo del juego.", Kind = Kind.Gratis });
         }
     }

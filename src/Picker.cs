@@ -440,7 +440,8 @@ namespace Tablero
         protected override void OnPreviewKeyDown(KeyEventArgs e)
         {
             base.OnPreviewKeyDown(e);
-            if (e.Key == Key.Escape && IsOpen) { Close(); e.Handled = true; }
+            // In a text field inside, Esc only leaves the field.
+            if (e.Key == Key.Escape && IsOpen && !(e.OriginalSource is TextBox)) { Close(); e.Handled = true; }
         }
 #if SHOT
         // Screenshots only see the window: the popup is drawn on top at its place.

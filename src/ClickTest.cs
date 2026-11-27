@@ -33,6 +33,17 @@ namespace Tablero
         static Tweak M(string id, Level l, Op o) { return new Tweak { Id = id, Cat = "Prueba", Name = id, Desc = id, Effect = "Bajo", Restart = "", Level = l, Ops = new List<Op> { o } }; }
         static string V(string n) { return RegOp.ReadValue(Root, n); }
         static void Is(bool ok, string what) { if (!ok) throw new Exception("FALLA: " + what); }
+        // Also finds what is not drawn yet (collapsed or out of view).
+        static IEnumerable<T> Logical<T>(object o) where T : DependencyObject
+        {
+            DependencyObject d = o as DependencyObject;
+            if (d == null) yield break;
+            foreach (object c in LogicalTreeHelper.GetChildren(d))
+            {
+                if (c is T) yield return (T)c;
+                foreach (T x in Logical<T>(c)) yield return x;
+            }
+        }
         static IEnumerable<Button> Buttons(DependencyObject o)
         {
             for (int i = 0; i < VisualTreeHelper.GetChildrenCount(o); i++)
@@ -62,7 +73,7 @@ namespace Tablero
         static List<string> mons = new List<string> { "A", "B" };
         static string vlog, undo, vini;
         static int boosted;
-        static int opened, tries, saved, reverts;
+        static int opened, tries, saved, reverts, revealed;
         const string ini = "[/Script/FortniteGame.FortGameUserSettings]\r\nFullscreenMode=0\r\nResolutionSizeX=2560\r\nResolutionSizeY=1440\r\n";
         static void Fakes(string dir)
         {
@@ -71,7 +82,9 @@ namespace Tablero
             Res native = screen;
             Display.Modes = () => new List<Res> { native, new Res { W = 1440, H = 1080, Hz = 60 }, new Res { W = 1440, H = 1080, Hz = 200 }, new Res { W = 1720, H = 1080, Hz = 200 }, new Res { W = 1920, H = 1080, Hz = 200 } };
             Display.Current = () => screen; Display.Saved = () => native; Display.Set = r => screen = r; Display.Reset = () => screen = native;
+            Display.Brand = () => "amd"; // a hybrid laptop's display on the AMD card
             StretchSession.Open = u => opened++;
+            Issue.Reveal = f => revealed++;
             Display.Accepts = r => true;
             Custom.Available = () => true; Custom.Try = r => { tries++; screen = r; }; Custom.Save = () => saved++; Custom.Revert = () => { reverts++; screen = native; };
             FpsLog.Folder = Path.Combine(dir, "sin-registros");
@@ -109,7 +122,7 @@ namespace Tablero
             try
             {
                 ListBox nav = (ListBox)w.FindName("Circuits");
-                Is(string.Join(",", nav.Items.Cast<Circuit>().Select(c => c.Name)) == "Jugar,Stretched Resolution,Colores,Al jugar,Mi PC,Mis FPS,Conexión,Macros,Tweaks,Mejoras", "menu corto al abrir");
+                Is(string.Join(",", nav.Items.Cast<Circuit>().Select(c => c.Name)) == "Jugar,Stretched Resolution,Colores,Al jugar,Mi PC,Mis FPS,Conexión,Macros,Crosshair,Tweaks,Mejoras,Ayuda", "menu corto al abrir");
                 await Task.Delay(400);
                 Is(((UIElement)w.FindName("SkelPage")).Visibility != Visibility.Visible && ((UIElement)w.FindName("SkelSaves")).Visibility != Visibility.Visible, "los skeletons se van");
                 // On some PCs WPF freezes the shine brush once used; showing the skeletons again must not touch it.
@@ -119,14 +132,14 @@ namespace Tablero
                 await ui.HideSkeletons();
                 // a disabled list must not get the Windows white background
                 foreach (string n in new[] { "Saves", "Rows", "Resolutions" }) Is(((ListBox)w.FindName(n)).Template == w.Resources["PlainList"], "plantilla de " + n);
-                Go(w, "Mejoras"); Key(nav, System.Windows.Input.Key.Right); Is(nav.Items.Count == 10, "Mejoras ya no se despliega");
-                Go(w, "Tweaks"); Key(nav, System.Windows.Input.Key.Right); Is(nav.Items.Count > 10, "Tweaks se despliega");
-                Key(nav, System.Windows.Input.Key.Left); await Task.Delay(500); Is(nav.Items.Count == 10, "Tweaks se pliega");
+                Go(w, "Mejoras"); Key(nav, System.Windows.Input.Key.Right); Is(nav.Items.Count == 12, "Mejoras ya no se despliega");
+                Go(w, "Tweaks"); Key(nav, System.Windows.Input.Key.Right); Is(nav.Items.Count > 12, "Tweaks se despliega");
+                Key(nav, System.Windows.Input.Key.Left); await Task.Delay(500); Is(nav.Items.Count == 12, "Tweaks se pliega");
                 Key(nav, System.Windows.Input.Key.Enter); Key(nav, System.Windows.Input.Key.Enter); Key(nav, System.Windows.Input.Key.Enter); await Task.Delay(500);
                 // Off, On, the line, All and the one category
-                Is(nav.Items.Count == 10 + 5 && nav.Items.Cast<Circuit>().Distinct().Count() == nav.Items.Count, "abrir y cerrar rapido no duplica");
-                Func<string> order = () => string.Join(",", nav.Items.Cast<Circuit>().Skip(8).Select(c => c.Name));
-                Is(order() == "Tweaks,Apagados,Activados,,Todos,Prueba,Mejoras", "orden bajo Tweaks: " + order());
+                Is(nav.Items.Count == 12 + 5 && nav.Items.Cast<Circuit>().Distinct().Count() == nav.Items.Count, "abrir y cerrar rapido no duplica");
+                Func<string> order = () => string.Join(",", nav.Items.Cast<Circuit>().Skip(9).Select(c => c.Name));
+                Is(order() == "Tweaks,Apagados,Activados,,Todos,Prueba,Mejoras,Ayuda", "orden bajo Tweaks: " + order());
                 // Off: a switched row stays until leaving, the counts move at once
                 Circuit offC = nav.Items.Cast<Circuit>().First(c => c.Name == "Apagados"), onC = nav.Items.Cast<Circuit>().First(c => c.Name == "Activados");
                 ListBox rowsL = (ListBox)w.FindName("Rows");
@@ -157,7 +170,7 @@ namespace Tablero
                 // scanner: enables the safe ones and leaves the advanced and risky ones
                 await Click(w, (Button)w.FindName("Scan"));
                 Is(nav.Items.Cast<Circuit>().Any(c => c.Name == "Recomendados"), "aparece Recomendados");
-                Is(order() == "Tweaks,Apagados,Activados,,Recomendados,Todos,Prueba,Mejoras", "Recomendados bajo Tweaks: " + order());
+                Is(order() == "Tweaks,Apagados,Activados,,Recomendados,Todos,Prueba,Mejoras,Ayuda", "Recomendados bajo Tweaks: " + order());
                 Is(Scanner.Load(Path.Combine(Path.GetTempPath(), "tablero-clics")) != null, "el escaneo queda guardado");
                 await Click(w, (Button)w.FindName("Scan"));
                 Is(V("a") == "d:1" && V("b") == Op.None && V("r") == Op.None, "optimizar activa solo lo recomendado");
@@ -235,6 +248,56 @@ namespace Tablero
                 Press(ks); live.Captured(Macros.WheelUp); Is((string)ks.Content == "Clic izquierdo", "la rueda no sirve para seleccionar");
                 Press(kb(ed)); live.Captured(Macros.WheelUp); Is(!ed.On, "la rueda no sirve para lanzar macros");
                 ac.IsChecked = false; ac.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent)); Is(Macros.Status == "Apagadas" && !body.IsEnabled, "sin aceptar se apagan");
+                // crosshair (Fortnite): a slider redraws the preview and is saved, a Valorant code imports; the real overlay never shows in tests
+                Go(w, "Crosshair"); await Task.Delay(400);
+                FrameworkElement cbox = (FrameworkElement)w.FindName("CrossBox");
+                // Through a VisualBrush: RenderTargetBitmap.Render(cbox) draws the box at its offset inside its parent, which put it outside the bitmap.
+                Func<byte[]> cshot = () => { cbox.UpdateLayout(); int xw = (int)cbox.ActualWidth, xh = (int)cbox.ActualHeight; DrawingVisual dv = new DrawingVisual(); using (DrawingContext dc = dv.RenderOpen()) dc.DrawRectangle(new VisualBrush(cbox), null, new Rect(0, 0, xw, xh)); System.Windows.Media.Imaging.RenderTargetBitmap rb = new System.Windows.Media.Imaging.RenderTargetBitmap(xw, xh, 96, 96, PixelFormats.Pbgra32); rb.Render(dv); byte[] px = new byte[xw * xh * 4]; rb.CopyPixels(px, xw * 4, 0); return px; };
+                ListBox ctabs = (ListBox)w.FindName("CrossTabs");
+                Func<Panel> cpanel = () => new[] { "CrossOutline", "CrossDot", "CrossInner", "CrossOuter" }.Select(n => (Panel)w.FindName(n)).Single(p => p.IsVisible);
+                List<Slider> csl = Logical<Slider>(w.FindName("CrossInner")).ToList();
+                Is(cbox.IsVisible && ctabs.SelectedIndex == 2 && cpanel().Name == "CrossInner" && Logical<Slider>(cpanel()).Count() == 4, "crosshair: abre en lineas interiores, 4 deslizadores: " + Logical<Slider>(cpanel()).Count());
+                ctabs.SelectedIndex = 0; await Task.Delay(100);
+                Is(cpanel().Name == "CrossOutline" && Logical<Slider>(cpanel()).Count() == 2, "crosshair: pestana contornos, 2 deslizadores");
+                ctabs.SelectedIndex = 3; await Task.Delay(100);
+                Is(cpanel().Name == "CrossOuter" && Logical<Slider>(cpanel()).Count() == 4, "crosshair: pestana lineas exteriores");
+                ctabs.SelectedIndex = 2; await Task.Delay(100);
+                byte[] cpx0 = cshot(); csl[1].Value = 12; byte[] cpx1 = cshot();
+                Is(cpx0.Any(b => b != 0) && !cpx0.SequenceEqual(cpx1), "crosshair: la longitud cambia la vista previa");
+                await Task.Delay(900);
+                Prefs cpf = Prefs.Parse(File.ReadAllText(Path.Combine(Path.GetTempPath(), "tablero-clics", "ajustes.json")));
+                Is(Crosshair.Deserialize(cpf.CrossNow).Inner.Length == 12 && cpf.CrossSaved.Count == 1 && cpf.CrossSaved[0] == cpf.CrossNow, "crosshair: se guarda al rato en el elegido");
+                TextBox ccode = (TextBox)w.FindName("CrossCode"); TextBlock cerr = (TextBlock)w.FindName("CrossError");
+                ccode.Text = "hola"; Press((Button)w.FindName("CrossImport"));
+                Is(cerr.IsVisible && cerr.Text.Length > 0 && ccode.Text == "hola", "crosshair: codigo malo avisa");
+                ccode.Text = "0;P;c;5;h;0;0l;4;0o;2;0a;1;0f;0;1b;0"; Press((Button)w.FindName("CrossImport")); byte[] cpx2 = cshot();
+                Is(!cerr.IsVisible && ((TextBox)w.FindName("CrossHex")).Text == "#00FFFF" && csl[1].Value == 4 && !cpx2.SequenceEqual(cpx1), "crosshair: codigo de Valorant importado en cian: " + ((TextBox)w.FindName("CrossHex")).Text + " " + csl[1].Value);
+                // saved crosshairs: the dropdown makes a copy, goes back to the old one, renames and deletes; edits land on the chosen one
+                Drop cpick = (Drop)w.FindName("CrossPick"); StackPanel clist = (StackPanel)cpick.Panel; TextBlock cbad = clist.Children.OfType<TextBlock>().Last();
+                Func<string> cnow = () => ((TextBlock)cpick.Content).Text;
+                Func<List<Button>> crows = () => clist.Children.OfType<Button>().ToList();
+                Action<string> ctype = s => { TextBox t = clist.Children.OfType<TextBox>().FirstOrDefault(); Is(t != null, "crosshair: caja de nombre para " + s + ": " + string.Join(",", clist.Children.Cast<object>().Select(o => o.GetType().Name)) + " abierto=" + cpick.IsOpen); t.Text = s; t.RaiseEvent(new System.Windows.Input.KeyEventArgs(System.Windows.Input.Keyboard.PrimaryDevice, PresentationSource.FromVisual(w), 0, System.Windows.Input.Key.Enter) { RoutedEvent = System.Windows.Input.Keyboard.KeyDownEvent }); };
+                Press(cpick); await Task.Delay(300);
+                Is(cpick.IsOpen && crows().Count == 2 && cnow() == "Crosshair" && Logical<Btn>(clist).Count() == 0, "crosshair: lista con uno, sin borrar el ultimo");
+                Press(crows().Last()); await Task.Delay(100);
+                ctype("  "); Is(cbad.IsVisible && Prefs.Now.CrossSaved.Count == 1, "crosshair: nombre vacio avisa");
+                ctype("crosshair"); Is(cbad.IsVisible && Prefs.Now.CrossSaved.Count == 1, "crosshair: nombre repetido avisa");
+                ctype("Mi cruz"); await Task.Delay(100);
+                Is(!cpick.IsOpen && Prefs.Now.CrossSaved.Count == 2 && cnow() == "Mi cruz" && Crosshair.Deserialize(Prefs.Now.CrossNow).Name == "Mi cruz" && csl[1].Value == 4, "crosshair: nuevo, copia del actual y elegido");
+                csl[1].Value = 9;
+                Press(cpick); await Task.Delay(300); Press(crows()[0]); await Task.Delay(100);
+                Is(cnow() == "Crosshair" && csl[1].Value == 4 && Crosshair.Deserialize(Prefs.Now.CrossSaved[1]).Inner.Length == 9 && Crosshair.Deserialize(Prefs.Now.CrossSaved[0]).Inner.Length == 4, "crosshair: volver al viejo; el cambio quedo en el nuevo");
+                await Task.Delay(900); Is(!cpick.IsOpen, "crosshair: la lista se cierra tras elegir");
+                Press(cpick); await Task.Delay(300);
+                crows()[1].RaiseEvent(new System.Windows.Input.MouseButtonEventArgs(System.Windows.Input.Mouse.PrimaryDevice, 0, System.Windows.Input.MouseButton.Left) { RoutedEvent = Control.MouseDoubleClickEvent });
+                ctype("Cruz 2"); Is(Crosshair.Deserialize(Prefs.Now.CrossSaved[1]).Name == "Cruz 2" && cnow() == "Crosshair" && clist.Children.OfType<TextBox>().Count() == 0, "crosshair: doble clic renombra");
+                Press(Logical<Btn>(crows()[1]).Single()); await Task.Delay(100);
+                Is(Prefs.Now.CrossSaved.Count == 1 && crows().Count == 2 && Logical<Btn>(clist).Count() == 0 && cnow() == "Crosshair", "crosshair: borrar uno");
+                Press(cpick);
+                Switch cson = (Switch)w.FindName("CrossOn"); Is(cson != null && cson.State == false && !Prefs.Now.CrossOn, "crosshair: interruptor apagado");
+                Press(cson); await Task.Delay(700);
+                Is(cson.State == true && Prefs.Now.CrossOn && typeof(Ui).GetField("overlay", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(live) == null, "crosshair: encendido, sin ventana real en la prueba");
+                Press(cson); Is(cson.State == false && !Prefs.Now.CrossOn, "crosshair: apagado");
                 // connection: measures, says where the problem is and saves it
                 Go(w, "Conexión"); await Task.Delay(400);
                 Button nr = (Button)w.FindName("NetRun"); Press(nr); Is(!nr.IsEnabled, "midiendo"); for (int i = 0; i < 60 && !nr.IsEnabled; i++) await Task.Delay(100);
@@ -254,7 +317,7 @@ namespace Tablero
                 RoutedEventArgs ck = new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent);
                 TextBlock pn = (TextBlock)w.FindName("PaletteName"); string fortPal = pn.Text;
                 Go(w, "Jugar"); ((ListBox)w.FindName("Games")).SelectedItem = Game.Valorant; await Task.Delay(1400);
-                Is(nav.Items.Cast<Circuit>().Last().Name == "Mejoras" && nav.Items.Cast<Circuit>().Count(c => c.Name == "Apagados") == 1, "Valorant: Mejoras al final: " + string.Join(",", nav.Items.Cast<Circuit>().Select(c => c.Name)));
+                Is(string.Join(",", nav.Items.Cast<Circuit>().Reverse().Take(2).Select(c => c.Name)) == "Ayuda,Mejoras" && nav.Items.Cast<Circuit>().Count(c => c.Name == "Apagados") == 1, "Valorant: Mejoras y Ayuda al final: " + string.Join(",", nav.Items.Cast<Circuit>().Select(c => c.Name)));
                 Is(pn.Text == "Color: Carmesí" && !nav.Items.Cast<Circuit>().Any(c => c.Name == "Macros") && ((UIElement)w.FindName("Limits")).Visibility != Visibility.Visible && Prefs.Now.Game == "valorant", "todo pasa a Valorant");
                 Is((string)play.Content == "Jugar" && ((UIElement)w.FindName("ResBox")).Visibility != Visibility.Visible, "estirar viene apagado: " + play.Content);
                 int was = opened; Press(play); Is(opened == was + 1 && screen.W == 2560 && mons.Count == 2, "abrir sin estirar no toca nada");
@@ -274,7 +337,17 @@ namespace Tablero
                 Is(fixMode != null, "fila de modo de pantalla: " + string.Join(", ", vc.Items.Cast<Check>().Select(c => c.Title + " " + c.Act + " " + c.HasUrl)) + " visible " + vc.IsVisible);
                 Is(fixMode.Visibility == Visibility.Visible && (string)fixMode.Content == "Arreglar" && !((Check)fixMode.DataContext).Ok, "modo de pantalla con boton Arreglar");
                 Press(fixMode); await Task.Delay(800);
-                Is(File.ReadAllText(vini).Contains("\r\nFullscreenMode=1\r\n") && File.Exists(vini + ".tweakeroo") && vc.Items.Cast<Check>().First(c => c.Title == "Modo de pantalla").Ok, "arreglar lo deja en 1 y pasa a Correcto"); Go(w, "Jugar");
+                Is(File.ReadAllText(vini).Contains("\r\nFullscreenMode=1\r\n") && File.Exists(vini + ".tweakeroo") && vc.Items.Cast<Check>().First(c => c.Title == "Modo de pantalla").Ok, "arreglar lo deja en 1 y pasa a Correcto");
+                {
+                    // the AMD row's hover detail: on, with the card background and no photo yet; rows without detail have it off
+                    Check amd = vc.Items.Cast<Check>().First(c => c.Act == "Abrir AMD Software"), mon = vc.Items.Cast<Check>().First(c => c.Title == "Monitores");
+                    FrameworkElement row = (FrameworkElement)VisualTreeHelper.GetChild(vc.ItemContainerGenerator.ContainerFromItem(amd), 0), monRow = (FrameworkElement)VisualTreeHelper.GetChild(vc.ItemContainerGenerator.ContainerFromItem(mon), 0);
+                    ToolTip tip = (ToolTip)row.ToolTip; tip.PlacementTarget = row; tip.IsOpen = true; await Task.Delay(400);
+                    Border tb = (Border)VisualTreeHelper.GetChild(tip, 0); TextBlock tt = (TextBlock)((StackPanel)tb.Child).Children[2];
+                    Is(ToolTipService.GetIsEnabled(row) && !ToolTipService.GetIsEnabled(monRow) && tb.Background.ToString() == w.FindResource("Card").ToString() && tb.ActualWidth > 100 && tb.ActualWidth <= 360 && tt.Text.StartsWith("1. Abre AMD Software") && !amd.HasPicture && ToolTipService.GetPlacement(row) == System.Windows.Controls.Primitives.PlacementMode.Right, "detalle al pasar el raton: " + tb.ActualWidth + " " + tt.Text);
+                    tip.IsOpen = false;
+                }
+                Go(w, "Jugar");
                 cw.Text = "1440"; ch.Text = "1080"; Press(cg); Is(((TextBlock)w.FindName("CustomHint")).Text.StartsWith("Valorant solo estira"), "4:3 no vale en Valorant"); Is(red(), "en rojo tambien en Valorant"); rl.SelectedIndex = 1;
                 Press(play); Is(screen.W == 1720 && mons.Count == 0 && ((string)play.Content).StartsWith("Conservar"), "prueba la resolucion");
                 Press(back); Is(screen.W == 2560 && mons.Count == 2, "sin confirmar vuelve todo");
@@ -327,6 +400,7 @@ namespace Tablero
                     List<Check> c2 = null;
                     for (int i = 0; i < 30 && (c2 == null || c2.Count == 0); i++) { await Task.Delay(100); c2 = ((ItemsControl)w.FindName("ValChecks")).Items.Cast<Check>().ToList(); }
                     Is(c2.Any(c => c.Text.StartsWith("CS2 está en otro monitor")) && c2.Any(c => c.Text.StartsWith("Con -vulkan")) && !c2.Any(c => c.Title == "Modo de pantalla" || c.Title == "Relación de aspecto"), "avisos de CS2: " + string.Join(", ", c2.Select(c => c.Title)));
+                    Is(c2.Count(c => c.Act == "Abrir AMD Software" && !string.IsNullOrEmpty(c.Detail)) == 1 && !c2.Any(c => c.Title == "Anular el modo de los juegos"), "pantalla en AMD: paso de AMD con detalle: " + string.Join(", ", c2.Select(c => c.Title + " " + c.Act)));
                     // Play with the fake display: 4:3 written in its video file and the screen stretched
                     rl.SelectedItem = rl.Items.Cast<Res>().First(r => r.W == 1440 && r.H == 1080);
                     // Play on CS2's card from another game: switches to CS2 and does what the main Play does
@@ -494,6 +568,32 @@ namespace Tablero
                 Button rs = (Button)w.FindName("ResetSet"); Press(rs); Press(rs);
                 Is(!Prefs.Now.Tray && Prefs.Now.Confirm == 15 && tr.IsChecked == false && cwh.Value == 15 && (string)cfd.Content == "15 s" && mo.Value == 0 && Fx.Level == 0, "restablecer Ajustes");
                 Go(w, "Jugar"); Is(((UIElement)w.FindName("NavMark")).Visibility == Visibility.Visible && !((UIElement)w.FindName("SettingsPage")).IsVisible, "vuelve a las secciones");
+                {
+                    // Help as a chat: the player on the right, the reply on the left with compact rows and two follow-ups
+                    Go(w, "Ayuda"); StackPanel hl = (StackPanel)w.FindName("HelpLog"); TextBox hi = (TextBox)w.FindName("HelpInput"); Button hb = (Button)w.FindName("HelpSend");
+                    hi.Text = "   "; Press(hb); Is(hl.Children.Count == 0, "ayuda: vacio no envia");
+                    hi.Text = "me bajan mucho los fps"; Press(hb);
+                    ItemsControl ha = null;
+                    for (int hn = 0; hn < 60 && (ha == null || ha.Items.Count == 0 || !ha.IsVisible); hn++) { await Task.Delay(100); ha = Logical<ItemsControl>(hl).LastOrDefault(); }
+                    Border hsaid = (Border)hl.Children[0], hreply = (Border)hl.Children[1];
+                    Is(hl.Children.Count == 2 && hsaid.HorizontalAlignment == HorizontalAlignment.Right && hreply.HorizontalAlignment == HorizontalAlignment.Left && ha != null && ha.Items.Count >= 1 && hi.Text == "", "ayuda: respuesta con revisiones: " + (ha == null ? -1 : ha.Items.Count));
+                    await Task.Delay(200); ha.UpdateLayout();
+                    List<double> hh = Enumerable.Range(0, ha.Items.Count).Select(i => ((FrameworkElement)ha.ItemContainerGenerator.ContainerFromIndex(i)).ActualHeight).ToList();
+                    Is(hh.All(x => x > 20 && x <= 52) && ha.Items.Cast<Check>().SkipWhile(c => !c.Ok).All(c => c.Ok) && hreply.ActualWidth <= 560, "ayuda: filas compactas, pendientes primero: " + string.Join(",", hh));
+                    Button hnot = Buttons(hreply).First(b => (string)b.Content == "No es este problema"), hfix = Buttons(hreply).First(b => (string)b.Content == "No se solucionó");
+                    Press(hnot);
+                    WrapPanel hw1 = Logical<WrapPanel>(hl.Children[3]).FirstOrDefault();
+                    Is(hl.Children.Count == 4 && hw1 != null && hw1.Children.Count == Assistant.All.Count, "ayuda: no es este problema ofrece los otros y el reporte");
+                    Press(hfix);
+                    TextBox rmsg = Logical<TextBox>(hl.Children[5]).FirstOrDefault(); Button rsend = Logical<Btn>(hl.Children[5]).FirstOrDefault(b => (string)b.Content == "Enviar reporte");
+                    Is(hl.Children.Count == 6 && Logical<TextBlock>(hl.Children[4]).Any(t => t.Text == "No se solucionó") && rmsg != null && rsend != null && !rsend.IsEnabled, "ayuda: formulario de reporte, enviar apagado si esta vacio");
+                    int op0 = opened; rmsg.Text = "Se traba al saltar"; Is(rsend.IsEnabled, "ayuda: con texto se puede enviar");
+                    Press(rsend); await Task.Delay(100);
+                    Is(opened == op0 + 1 && revealed == 0 && hl.Children.Count == 7 && Logical<TextBlock>(hl.Children[6]).Any(t => t.Text.StartsWith("Se abrió GitHub") && !t.Text.Contains("Arrastra")), "ayuda: enviar abre GitHub, sin imagenes no abre la carpeta");
+                    hi.Text = "asdfgh"; Press(hb);
+                    WrapPanel hw2 = Logical<WrapPanel>(hl.Children[8]).FirstOrDefault();
+                    Is(hl.Children.Count == 9 && hw2 != null && hw2.Children.Count == Assistant.All.Count + 1, "ayuda: no reconocido ofrece todos y el reporte");
+                }
                 return "OK clics";
             }
             finally { Microsoft.Win32.Registry.CurrentUser.DeleteSubKeyTree(Root.Substring(5), false); }

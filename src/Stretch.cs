@@ -82,6 +82,21 @@ namespace Tablero
         public static Func<List<Res>> Modes = All;
         public static Func<Res> Current = () => Get(Now);
         public static Func<Res> Saved = () => Get(Registry);
+        // Brand of the adapter wired to the main display: "nvidia", "amd", "intel" or null. On hybrid laptops it is not always the strongest card.
+        public static Func<string> Brand = () =>
+        {
+            Custom.Device d = new Custom.Device { Size = Marshal.SizeOf(typeof(Custom.Device)) };
+            for (int i = 0; Custom.EnumDisplayDevicesW(null, i, ref d, 0); i++)
+                if ((d.Flags & 4) != 0) return BrandOf(d.Text); // DISPLAY_DEVICE_PRIMARY_DEVICE
+            return null;
+        };
+        public static string BrandOf(string adapter)
+        {
+            if (adapter == null) return null;
+            if (Regex.IsMatch(adapter, "NVIDIA|GeForce", RegexOptions.IgnoreCase)) return "nvidia";
+            if (Regex.IsMatch(adapter, @"\bAMD\b|Radeon", RegexOptions.IgnoreCase)) return "amd";
+            return Regex.IsMatch(adapter, @"\bIntel\b", RegexOptions.IgnoreCase) ? "intel" : null;
+        }
         public static Action<Res> Set = RealSet;
         public static Action Reset = RealReset;
 
@@ -104,9 +119,9 @@ namespace Tablero
     {
         const int CdSize = 144, TimingIn = 32;
         [DllImport("nvapi64.dll", EntryPoint = "nvapi_QueryInterface", CallingConvention = CallingConvention.Cdecl)] static extern IntPtr Query(uint id);
-        [DllImport("user32.dll", CharSet = CharSet.Unicode)] static extern bool EnumDisplayDevicesW(string device, int i, ref Device d, int flags);
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)] internal static extern bool EnumDisplayDevicesW(string device, int i, ref Device d, int flags);
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-        struct Device
+        internal struct Device
         {
             public int Size;
             [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)] public string Name;

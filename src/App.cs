@@ -13,7 +13,7 @@ using System.Windows.Media.Imaging;
 
 [assembly: AssemblyTitle("Tweakeroo")]
 [assembly: AssemblyProduct("Tweakeroo")]
-[assembly: AssemblyVersion("1.1.0.0")]
+[assembly: AssemblyVersion("1.2.0.0")]
 
 namespace Tablero
 {
@@ -207,6 +207,11 @@ namespace Tablero
                     if (Array.IndexOf(args, "fin") >= 0) foreach (string n in new[] { "SettingsPage", "MacroPage", "NetPage", "ResPage", "BoostPage" }) ((ScrollViewer)w.FindName(n)).ScrollToEnd();
                     if (Array.IndexOf(args, "medir") >= 0) { Btn run = (Btn)w.FindName("NetRun"); run.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent)); while (!run.IsEnabled) await Task.Delay(200); }
                     if (Array.IndexOf(args, "vivo") >= 0) ((ListBox)w.FindName("ColorProfiles")).SelectedIndex = 3;
+                    // "preguntar texto": Help with one answer (Assistant.cs).
+                    int ask = Array.IndexOf(args, "preguntar");
+                    if (ask >= 0) await ui.Ask(args[ask + 1]);
+                    // "reporte": and then "No se solucionó", with the report form open.
+                    if (Array.IndexOf(args, "reporte") >= 0) ui.Unsolved();
                     // "fotograma N": the background as it is N frames later (the test window is never active, so it does not move).
                     int fr = Array.IndexOf(args, "fotograma");
                     if (fr >= 0) ui.SkipScene(int.Parse(args[fr + 1]));
