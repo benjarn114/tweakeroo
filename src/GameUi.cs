@@ -61,7 +61,9 @@ namespace Tablero
             ShowGame();
             // CS2's FPS are counted while it runs (opened from Play or from Steam). Its ETW session outlives the app: stopped on close.
             Cs2Fps cs2Fps = new Cs2Fps(dir);
-            w.Closed += (s, e) => cs2Fps.Dispose();
+            // The match data engine (Tracker.cs) rides on this same check: it samples only while a game is open.
+            Tracker.Start(dir);
+            w.Closed += (s, e) => { cs2Fps.Dispose(); Tracker.Stop(); };
             // Listing processes takes a few ms each time: off the UI thread, which keeps drawing the background meanwhile.
             DispatcherTimer t = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
             t.Tick += async (s, e) =>
@@ -70,7 +72,7 @@ namespace Tablero
                 Game open = null;
                 bool val = false;
                 List<Match> cs2 = null;
-                await Task.Run(() => { open = Game.Open; val = ValOpen(open); cs2 = cs2Fps.Tick(); });
+                await Task.Run(() => { open = Game.Open; val = ValOpen(open); cs2 = cs2Fps.Tick(); Tracker.Seen(open); });
                 GameTick(open, val);
                 // CS2 closed and its matches were saved.
                 if (cs2 != null) { played[Game.Cs2.Id] = cs2; if (game == Game.Cs2 && F<FrameworkElement>("FpsPage").IsVisible) ShowFps(); }
@@ -325,6 +327,7 @@ namespace Tablero
             else if (valClosed && ready) valClosed = !Join();
             MusicNow(open);
             BoostTick(open);
+            HeavyTick(open);
             if (colors == null) return;
             try
             {

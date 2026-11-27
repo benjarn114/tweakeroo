@@ -161,8 +161,8 @@ namespace Tablero
         public static bool Mode(string line, bool was) { return Creative(World(line, was ? "/VKPlay/" : null)); }
         public static bool InCreative() { return Creative(Read()); }
         public static bool InMatch() { return Match(Read()); }
-        // Reads only what is new in the log. If it cannot be read, there is no world (no macros, no crosshair in a match).
-        static string Read()
+        // Reads only what is new in the log. If it cannot be read, there is no world (no macros, no crosshair in a match). Tracker reads it too.
+        internal static string Read()
         {
             lock (gate)
             {

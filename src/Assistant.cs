@@ -36,7 +36,10 @@ namespace Tablero
             new Problem { Id = "mouse", Chip = "Sensibilidad rara", Name = "Sensibilidad rara del ratón", Why = "Suele ser la aceleración de Windows (Mejorar precisión del puntero), un cambio de DPI o la resolución estirada.",
                 Keys = new[] { "sensi", "sensibilidad", "mouse", "raton", "aceleracion", "mejorar precision del puntero", "precision del puntero", "puntero", "dpi", "raw input", "apuntar", "sensitivity", "acceleration", "mouse acceleration", "enhance pointer precision", "aim" } },
             new Problem { Id = "launch", Chip = "El juego no abre", Name = "El juego no abre o se cierra", Why = "Suele ser el driver de la gráfica, archivos del juego dañados, el anticheat o un programa superpuesto.",
-                Keys = new[] { "no abre", "no me abre", "no se abre", "no inicia", "no arranca", "no carga", "se cierra", "se cierra solo", "crash", "crashea", "se crashea", "pantalla negra", "error al abrir", "anticheat", "vanguard", "wont launch", "wont start", "wont open", "doesnt launch", "doesnt open", "not launching", "launch", "crashes", "black screen" } },
+                Keys = new[] { "no abre", "no me abre", "no se abre", "no inicia", "no arranca", "no carga", "pantalla negra", "error al abrir", "anticheat", "vanguard", "wont launch", "wont start", "wont open", "doesnt launch", "doesnt open", "not launching", "launch", "black screen" } },
+            // Answered with the newest crash found by Crashes.cs.
+            new Problem { Id = "crash", Chip = "El juego se cierra", Name = "El juego se cierra solo", Why = "Se revisan los informes de cierre del juego y el registro de eventos de Windows de los últimos 30 días.",
+                Keys = new[] { "se cierra", "se cierra solo", "se me cierra", "se cuelga y se cierra", "crash", "crashea", "se crashea", "crashed", "crashes", "crashing", "closes", "keeps closing", "closes itself", "freezes and closes" } },
             new Problem { Id = "stretched", Chip = "Stretched no anda", Name = "Stretched no funciona o hay bandas negras", Why = "La gráfica tiene que escalar a pantalla completa y el juego tiene que rellenar la pantalla en vez de poner bandas negras.",
                 Keys = new[] { "stretched", "stretch", "estirada", "la estirada", "estirado", "estirar", "estrechada", "no estira", "no se estira", "bandas negras", "barras negras", "4 3", "resolucion", "black bars", "resolution", "stretched not working" } },
             new Problem { Id = "colors", Chip = "Colores apagados", Name = "Colores o brillo de la pantalla", Why = "La intensidad de color solo se cambia con NVIDIA. Con HDR de Windows activo, brillo, contraste y gamma quedan bloqueados.",
@@ -132,7 +135,7 @@ namespace Tablero
         void StartHelp()
         {
             WrapPanel chips = F<WrapPanel>("HelpChips");
-            foreach (Problem p in Assistant.All.Where(x => x.Id != "colors")) chips.Children.Add(Chip(p.Chip));
+            foreach (Problem p in Assistant.All.Where(x => x.Id != "colors" && x.Id != "crash")) chips.Children.Add(Chip(p.Chip));
             TextBox box = F<TextBox>("HelpInput");
             box.KeyDown += async (s, e) => { if (e.Key == Key.Enter) await Ask(box.Text); };
             F<Btn>("HelpSend").Click += async (s, e) => await Ask(box.Text);
@@ -212,6 +215,47 @@ namespace Tablero
             await Fill(pr, list, a);
         }
         internal void Unsolved() { if (unsolved != null) unsolved(); }
+
+        static string When(DateTime t) { return t.ToString("d MMM, HH:mm", new CultureInfo(L.En ? "en-US" : "es-ES")); }
+
+        // The "Cierres del juego" card: the last 5 crashes, read in the background on opening Help.
+        bool crashBusy;
+        internal async Task ShowCrashes()
+        {
+            if (crashBusy) return;
+            crashBusy = true;
+            List<Crash> cs = await Task.Run(() => Crashes.Recent());
+            crashBusy = false;
+            StackPanel list = F<StackPanel>("CrashList");
+            list.Children.Clear();
+            F<FrameworkElement>("CrashNone").Visibility = cs.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+            foreach (Crash c in cs.Take(5))
+            {
+                DockPanel row = new DockPanel { Margin = new Thickness(0, 12, 0, 0) };
+                if (c.Folder != null)
+                {
+                    string folder = c.Folder;
+                    Btn b = new Btn { Style = ((Btn)w.FindName("Rescan")).Style, Content = "Abrir carpeta", Height = 28, Padding = new Thickness(10, 0, 10, 0), FontSize = 12.5, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(10, 0, 0, 0) };
+                    b.Click += (s, e) => { try { StretchSession.Open(folder); } catch (Exception ex) { Say("No se pudo abrir: " + ex.Message, false); } };
+                    DockPanel.SetDock(b, Dock.Right);
+                    row.Children.Add(b);
+                }
+                StackPanel t = new StackPanel();
+                TextBlock head = new TextBlock { Text = When(c.When) + " · " + c.Game, FontSize = 12.5 };
+                head.SetResourceReference(TextBlock.ForegroundProperty, "Ink2");
+                t.Children.Add(head);
+                t.Children.Add(new Tb { Text = c.Cause, FontSize = 14, FontWeight = FontWeights.SemiBold, TextWrapping = TextWrapping.Wrap });
+                // Without a clear cause, the module and code as they were read.
+                TextBlock sub = c.Action != null ? new Tb { Text = c.Action } : new TextBlock { Text = c.Raw ?? "" };
+                sub.FontSize = 13;
+                sub.TextWrapping = TextWrapping.Wrap;
+                sub.SetResourceReference(TextBlock.ForegroundProperty, "Ink2");
+                if (sub.Text.Length > 0) t.Children.Add(sub);
+                row.Children.Add(t);
+                list.Children.Add(row);
+            }
+            F<FrameworkElement>("CrashCard").Visibility = Visibility.Visible;
+        }
 
         // A reply with problems to pick; report adds the chip that opens the report form.
         void Choose(string text, IEnumerable<Problem> ps, bool report)
@@ -456,6 +500,11 @@ namespace Tablero
                         tip(h.SecureBoot == true && h.Tpm2 == true ? "TPM 2.0 y Secure Boot activos" : "Vanguard: falta TPM 2.0 o Secure Boot", h.SecureBoot == true && h.Tpm2 == true ? Kind.Bien : Kind.Gratis, "En Windows 11, Vanguard los exige para abrir Valorant. Se activan en la BIOS.");
                     tip("Reparar los archivos del juego", Kind.Gratis, "Desde su launcher: Epic Games (Administrar, Verificar), Riot Client (Ajustes, Reparar) o Steam (Propiedades, Verificar integridad).");
                     tip("Programas superpuestos", Kind.Gratis, "Cerrar superposiciones como MSI Afterburner o RivaTuner antes de abrir el juego descarta que lo cierren.");
+                    break;
+                case "crash":
+                    Crash newest = Crashes.Recent().FirstOrDefault();
+                    if (newest == null) tip("Sin cierres inesperados en los últimos 30 días.", Kind.Bien, "Se revisaron los informes de cierre y el registro de eventos de Windows.");
+                    else r.Add(new Check { Kind = Kind.Gratis, Title = newest.Cause, Text = "Último cierre: " + newest.Game + ", " + When(newest.When) + ". " + (newest.Action ?? newest.Raw ?? ""), Url = newest.Folder, Button = newest.Folder == null ? null : "Abrir carpeta" });
                     break;
                 case "stretched":
                     Hw g = h ?? d.Quick;

@@ -39,7 +39,7 @@ namespace Tablero
             return v;
         }
 
-        static string MapName(string line)
+        internal static string MapName(string line)
         {
             foreach (string[] m in new[] { new[] { "VKPlay", "Creativo" }, new[] { "Figment", "Fortnite OG" }, new[] { "BlastBerry", "Recarga" }, new[] { "Juno", "LEGO" }, new[] { "DelMar", "Rocket Racing" }, new[] { "Pilgrim", "Festival" } })
                 if (line.IndexOf(m[0], StringComparison.OrdinalIgnoreCase) >= 0) return m[1];

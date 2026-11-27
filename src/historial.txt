@@ -1,3 +1,16 @@
+## 2.0.0 2026-11-27
+- Informe después de cada partida en Mis FPS: FPS, tirones, picos de ping y el programa que probablemente los causó.	A report after each match in My FPS: FPS, stutters, ping spikes and the program that likely caused them.
+- Marca de lag con una tecla en plena partida; el informe muestra qué pasaba en ese momento.	Mark a lag with a key mid-match; the report shows what was going on at that moment.
+- Overlay de rendimiento con atajo, tres estilos y cada dato activable aparte. Se ve en ventana o sin bordes.	Performance overlay with a shortcut, three styles and each value on or off. It shows in windowed or borderless mode.
+- Herramientas: calculadora de eDPI, test del ratón con polling rate y DPI medido, y tiempo de reacción con récord.	Tools: eDPI calculator, mouse test with polling rate and measured DPI, and reaction time with a record.
+- Aviso de servidor en Conexión cuando otra región de Fortnite tiene claramente mejor ping.	A server notice in Connection when another Fortnite region has clearly better ping.
+- Compartir la configuración como archivo .tweakeroo o como código, viendo qué cambia antes de aplicar.	Share the setup as a .tweakeroo file or as a code, seeing what changes before applying.
+- Limpieza en Mi PC: cachés y temporales que se pueden rehacer, con su tamaño y aviso. Nada se borra sin confirmar.	Cleanup in My PC: caches and temporary files that can be rebuilt, with their size and a warning. Nothing is deleted without confirming.
+- Listo para jugar: revisa en unos segundos programas pesados, RAM, temperaturas, ping, driver y plan de energía.	Ready to play: checks heavy programs, RAM, temperatures, ping, driver and power plan in a few seconds.
+- Ayuda explica por qué se cerró el juego a partir de sus informes de cierre, con qué hacer.	Help explains why the game closed from its crash reports, with what to do.
+- Resumen semanal: partidas, FPS medio frente a la semana anterior y mejor partida.	Weekly summary: matches, average FPS against the previous week and the best match.
+- Perfil para portátil: con batería pasa a ahorro y al enchufar vuelve a rendimiento. Activable.	Laptop profile: on battery it switches to saving and back to performance when plugged in. Optional.
+- Cerrar apps pesadas al jugar: pregunta antes de cerrar y ofrece volver a abrirlas al terminar.	Close heavy apps when playing: it asks before closing and offers to reopen them afterwards.
 ## 1.4.1 2026-11-27
 - Valorant: sin la casilla Estirar Valorant. Se usa siempre la resolución elegida; con la normal no se estira.	Valorant: no more Stretch Valorant checkbox. The chosen resolution is always used; the native one means no stretch.
 - Una resolución con la misma forma que la pantalla, como otra 16:9, ya no cuenta como estirada.	A resolution with the same shape as the screen, such as another 16:9, no longer counts as stretched.

@@ -54,6 +54,9 @@
     <Geometry x:Key="IcoChat">M6,4 H18 A3,3 0 0 1 21,7 V13 A3,3 0 0 1 18,16 H11 L6.5,20 V16 H6 A3,3 0 0 1 3,13 V7 A3,3 0 0 1 6,4 Z M8,10 V10.1 M12,10 V10.1 M16,10 V10.1</Geometry>
 
     <Geometry x:Key="IcoCross">M12,5 A7,7 0 1 1 11.99,5 Z M12,2 V8 M12,16 V22 M2,12 H8 M16,12 H22</Geometry>
+    <Geometry x:Key="IcoWarn">M12,3.5 L21.5,20 H2.5 Z M12,9.5 V14 M12,17 V17.1</Geometry>
+    <Geometry x:Key="IcoInfo">M12,3 A9,9 0 1 1 11.99,3 Z M12,11 V16.5 M12,7.5 V7.6</Geometry>
+    <Geometry x:Key="IcoRuler">M3,8 H21 V16 H3 Z M7,8 V11 M10.5,8 V12.5 M14,8 V11 M17.5,8 V12.5</Geometry>
 
     <Style x:Key="Ico" TargetType="Path">
       <Setter Property="Stroke" Value="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Control}}"/>
@@ -689,6 +692,44 @@
             <t:Btn x:Name="AllOn" Style="{StaticResource Btn}" Icon="{StaticResource IcoPower}" Content="Activar todo" ToolTip="Activa todos los tweaks menos los de riesgo" Margin="0,0,10,10"/>
             <t:Btn x:Name="AllOff" Style="{StaticResource Btn}" Icon="{StaticResource IcoUndo}" Content="Deshacer todo" ToolTip="Quita lo que activó Tweakeroo. Lo que ya estaba así antes no se toca" Margin="0,0,10,10"/>
           </WrapPanel>
+          <!-- Cleanup: regenerable caches and temp files, deleted only after confirming (CleanUi.cs, Cleanup.cs) -->
+          <Border Background="{DynamicResource Card}" CornerRadius="16" Padding="18,14" Margin="0,22,0,0">
+            <StackPanel>
+              <TextBlock Text="Limpieza" FontSize="16" FontWeight="Bold"/>
+              <TextBlock Text="Cachés y temporales que Windows y los drivers vuelven a crear solos. Nada se borra sin confirmar." Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,2,0,12"/>
+              <t:Btn x:Name="CleanFind" Style="{StaticResource Btn}" Icon="{StaticResource IcoSearch}" Content="Buscar qué limpiar" HorizontalAlignment="Left"/>
+              <TextBlock x:Name="CleanNone" Text="Nada que limpiar." Foreground="{DynamicResource Ink2}" Margin="0,12,0,0" Visibility="Collapsed"/>
+              <StackPanel x:Name="CleanBox" Margin="0,12,0,0" Visibility="Collapsed">
+                <ItemsControl x:Name="CleanList" Focusable="False">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                      <Border BorderBrush="{DynamicResource Line}" BorderThickness="0,1,0,0">
+                        <DockPanel>
+                          <TextBlock DockPanel.Dock="Right" Text="{Binding SizeText}" FontSize="15" FontWeight="Bold" Typography.NumeralAlignment="Tabular" VerticalAlignment="Center"/>
+                          <Border DockPanel.Dock="Right" Background="Transparent" Padding="4" Margin="0,0,12,0" VerticalAlignment="Center" ToolTip="{Binding Tip}" ToolTipService.InitialShowDelay="250">
+                            <Viewbox Width="18" Height="18">
+                              <Path Width="24" Height="24" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round">
+                                <Path.Style>
+                                  <Style TargetType="Path">
+                                    <Setter Property="Data" Value="{StaticResource IcoInfo}"/>
+                                    <Setter Property="Stroke" Value="{DynamicResource Ink2}"/>
+                                    <Style.Triggers><DataTrigger Binding="{Binding Warn}" Value="True"><Setter Property="Data" Value="{StaticResource IcoWarn}"/><Setter Property="Stroke" Value="{DynamicResource Cta}"/></DataTrigger></Style.Triggers>
+                                  </Style>
+                                </Path.Style>
+                              </Path>
+                            </Viewbox>
+                          </Border>
+                          <CheckBox Style="{StaticResource Check}" IsChecked="{Binding On, Mode=TwoWay}" AutomationProperties.Name="{Binding Name}" VerticalAlignment="Center"><TextBlock Text="{Binding Name}" FontSize="15"/></CheckBox>
+                        </DockPanel>
+                      </Border>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <TextBlock x:Name="CleanTotal" FontSize="15" FontWeight="SemiBold" Typography.NumeralAlignment="Tabular" Margin="0,12,0,12"/>
+                <t:Btn x:Name="CleanGo" Style="{StaticResource Btn}" Icon="{StaticResource IcoTrash}" Content="Limpiar" HorizontalAlignment="Left"/>
+              </StackPanel>
+            </StackPanel>
+          </Border>
         </StackPanel>
       </ScrollViewer>
 
@@ -700,11 +741,43 @@
           <WrapPanel Margin="0,0,0,12">
             <t:Btn x:Name="Play" Style="{StaticResource BtnCta}" Icon="{StaticResource IcoGame}" Margin="0,0,14,10"/>
             <t:Btn x:Name="Back" Style="{StaticResource Btn}" Icon="{StaticResource IcoUndo}" Content="Restaurar resolución" Margin="0,0,10,10" Visibility="Collapsed"/>
+            <t:Btn x:Name="ReadyGo" Style="{StaticResource Btn}" Icon="{StaticResource IcoCheck}" Content="¿Listo para jugar?" Margin="0,0,10,10"/>
             <t:Btn x:Name="AllGames" Style="{StaticResource Btn}" Margin="0,0,10,10" AutomationProperties.Name="Todos los juegos"><StackPanel Orientation="Horizontal"><TextBlock Text="Todos los juegos"/><Viewbox Width="14" Height="14" Margin="9,0,0,0"><Path x:Name="AllGamesChev" Data="M5,9 L12,16 L19,9" Style="{StaticResource Ico}" StrokeThickness="3" RenderTransformOrigin="0.5,0.5"/></Viewbox></StackPanel></t:Btn>
           </WrapPanel>
           <!-- Every game: opens inside the page and pushes the rest down -->
           <Border x:Name="AllGamesBox" ClipToBounds="True" Visibility="Collapsed">
             <UniformGrid x:Name="AllGamesGrid" Columns="3" VerticalAlignment="Top" Margin="0,0,-12,24"/>
+          </Border>
+          <!-- Ready to play: result of the check (Ready.cs) -->
+          <Border x:Name="ReadyBox" Background="{DynamicResource Card}" CornerRadius="18" Padding="18,14" Margin="0,0,0,24" Visibility="Collapsed">
+            <StackPanel>
+              <DockPanel>
+                <Grid DockPanel.Dock="Left" Width="30" Height="30" VerticalAlignment="Center" Margin="0,0,14,0">
+                  <Border x:Name="ReadyOk" CornerRadius="15" Background="{DynamicResource On}"><Viewbox Width="15" Height="15"><Path Data="{StaticResource IcoCheck}" Stroke="{DynamicResource OnInk}" StrokeThickness="4" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" Width="24" Height="24"/></Viewbox></Border>
+                  <Viewbox x:Name="ReadyWarn" Width="26" Height="26"><Path Data="{StaticResource IcoWarn}" Stroke="{DynamicResource Ink}" StrokeThickness="2.2" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" Width="24" Height="24"/></Viewbox>
+                </Grid>
+                <StackPanel VerticalAlignment="Center">
+                  <TextBlock x:Name="ReadyTitle" FontSize="16.5" FontWeight="Bold" TextWrapping="Wrap"/>
+                  <TextBlock x:Name="ReadySum" Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                </StackPanel>
+              </DockPanel>
+              <ItemsControl x:Name="ReadyRows" Focusable="False" Margin="0,10,0,0">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <Border BorderBrush="{DynamicResource Line}" BorderThickness="0,1,0,0" Padding="0,8">
+                      <DockPanel>
+                        <Grid DockPanel.Dock="Left" Width="18" Height="18" VerticalAlignment="Center" Margin="6,0,20,0">
+                          <Border CornerRadius="9" Background="{DynamicResource On}" Visibility="{Binding Ok, Converter={StaticResource Vis}}"><Viewbox Width="10" Height="10"><Path Data="{StaticResource IcoCheck}" Stroke="{DynamicResource OnInk}" StrokeThickness="4" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" Width="24" Height="24"/></Viewbox></Border>
+                          <Viewbox Visibility="{Binding Bad, Converter={StaticResource Vis}}"><Path Data="{StaticResource IcoWarn}" Stroke="{DynamicResource Ink}" StrokeThickness="2.4" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" Width="24" Height="24"/></Viewbox>
+                        </Grid>
+                        <t:Btn DockPanel.Dock="Right" Style="{StaticResource Btn}" Content="{Binding Fix}" Height="28" Padding="10,0" FontSize="12.5" VerticalAlignment="Center" Margin="10,0,0,0" Visibility="{Binding HasFix, Converter={StaticResource Vis}}"/>
+                        <TextBlock Text="{Binding Text}" FontSize="14" VerticalAlignment="Center" TextWrapping="Wrap"/>
+                      </DockPanel>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
           </Border>
           <UniformGrid Rows="1" Margin="0,0,-8,24">
             <Border Background="{DynamicResource Card}" CornerRadius="18" Padding="18,12" Margin="0,0,8,0"><StackPanel><TextBlock x:Name="PlayEstLabel" Text="FPS estimados" Visibility="Collapsed"/><Label Style="{StaticResource Head}" Content="{Binding Text, ElementName=PlayEstLabel}"/><TextBlock x:Name="PlayEst" Text="…" FontSize="24" FontWeight="Bold"/></StackPanel></Border>
@@ -766,6 +839,29 @@
           <ItemsControl x:Name="Boosts" Focusable="False">
             <ItemsControl.ItemTemplate><DataTemplate><Border Background="{DynamicResource Card}" CornerRadius="16" Padding="18,10" Margin="0,0,0,8"><DockPanel><CheckBox DockPanel.Dock="Right" Style="{StaticResource Check}" IsChecked="{Binding On, Mode=TwoWay}" AutomationProperties.Name="{Binding Name}" Margin="16,0,0,0" VerticalAlignment="Center"/><StackPanel VerticalAlignment="Center"><TextBlock Text="{Binding Name}" FontSize="16" FontWeight="Bold"/><TextBlock Text="{Binding Desc}" Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,2,0,0"/></StackPanel></DockPanel></Border></DataTemplate></ItemsControl.ItemTemplate>
           </ItemsControl>
+          <!-- Performance overlay (OverlayUi.cs): folded until the header is pressed -->
+          <Button x:Name="PerfHead" Margin="0,16,0,8" Cursor="Hand" FocusVisualStyle="{StaticResource Focus}" Foreground="{DynamicResource Ink}" AutomationProperties.Name="Overlay de rendimiento">
+            <Button.Template><ControlTemplate TargetType="Button"><Border x:Name="b" Background="{DynamicResource Card}" CornerRadius="16" Padding="18,14"><ContentPresenter/></Border><ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="b" Property="Background" Value="{DynamicResource CardHover}"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Button.Template>
+            <DockPanel><Viewbox DockPanel.Dock="Right" Width="16" Height="16" VerticalAlignment="Center" Margin="16,0,0,0"><Path x:Name="PerfChev" Data="M5,9 L12,16 L19,9" Style="{StaticResource Ico}" StrokeThickness="3" RenderTransformOrigin="0.5,0.5"/></Viewbox><TextBlock Text="Overlay de rendimiento" FontSize="16" FontWeight="Bold" VerticalAlignment="Center"/></DockPanel>
+          </Button>
+          <Border x:Name="PerfBox" ClipToBounds="True" Visibility="Collapsed">
+            <StackPanel VerticalAlignment="Top">
+              <Border Background="{DynamicResource Card}" CornerRadius="16" Padding="18,10" Margin="0,0,0,8"><DockPanel><CheckBox x:Name="PerfOn" DockPanel.Dock="Right" Style="{StaticResource Check}" AutomationProperties.Name="Mostrar overlay" Margin="16,0,0,0" VerticalAlignment="Center"/><StackPanel VerticalAlignment="Center"><TextBlock Text="Mostrar overlay" FontSize="16" FontWeight="Bold"/></StackPanel></DockPanel></Border>
+              <Border Background="{DynamicResource Card}" CornerRadius="16" Padding="18,12" Margin="0,0,0,8"><DockPanel><t:HotkeyBox x:Name="PerfKey" DockPanel.Dock="Right" Style="{StaticResource Btn}" MinWidth="150" Margin="16,0,0,0" VerticalAlignment="Center" AutomationProperties.Name="Atajo"/><StackPanel VerticalAlignment="Center"><TextBlock Text="Atajo" FontSize="16" FontWeight="Bold"/><TextBlock x:Name="PerfKeyNote" Foreground="{DynamicResource Danger}" TextWrapping="Wrap" Margin="0,4,0,0" Visibility="Collapsed"/></StackPanel></DockPanel></Border>
+              <Border Background="{DynamicResource Card}" CornerRadius="16" Padding="18,12" Margin="0,0,0,8"><WrapPanel>
+                <StackPanel Margin="0,0,16,4"><TextBlock Text="Estilo" FontSize="16" FontWeight="Bold"/><t:Drop x:Name="PerfStyle" Style="{StaticResource Drop}" ContentTemplate="{StaticResource ResFace}" Margin="0,10,0,0" AutomationProperties.Name="Estilo"><t:Drop.Panel><ListBox x:Name="PerfStyles" Template="{StaticResource PlainList}" ItemContainerStyle="{StaticResource ResItem}" DisplayMemberPath="Name" Background="Transparent" BorderThickness="0" Padding="0" AutomationProperties.Name="Estilo"/></t:Drop.Panel></t:Drop></StackPanel>
+                <StackPanel Margin="0,0,0,4"><TextBlock Text="Esquina" FontSize="16" FontWeight="Bold"/><t:Drop x:Name="PerfCorner" Style="{StaticResource Drop}" ContentTemplate="{StaticResource ResFace}" Margin="0,10,0,0" AutomationProperties.Name="Esquina"><t:Drop.Panel><ListBox x:Name="PerfCorners" Template="{StaticResource PlainList}" ItemContainerStyle="{StaticResource ResItem}" DisplayMemberPath="Name" Background="Transparent" BorderThickness="0" Padding="0" AutomationProperties.Name="Esquina"/></t:Drop.Panel></t:Drop></StackPanel>
+              </WrapPanel></Border>
+              <!-- Live preview with sample data; the screenshot (crosshair-fondo.jpg) is set in code, this gradient stays if it is missing -->
+              <Border x:Name="PerfStage" Height="270" CornerRadius="16" Margin="0,0,0,8" ClipToBounds="True" RenderOptions.BitmapScalingMode="HighQuality">
+                <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#2B3440" Offset="0"/><GradientStop Color="#11161C" Offset="1"/></LinearGradientBrush></Border.Background>
+                <Grid x:Name="PerfStageGrid"/>
+              </Border>
+              <Label Style="{StaticResource Head}" Content="Qué mostrar" Margin="0,16,0,10"/>
+              <StackPanel x:Name="PerfShow"/>
+              <TextBlock Text="Funciona con el juego en ventana o sin bordes; en pantalla completa puede no verse." Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,8,0,0" MaxWidth="620" HorizontalAlignment="Left"/>
+            </StackPanel>
+          </Border>
         </StackPanel>
       </ScrollViewer>
 
@@ -811,6 +907,10 @@
           </ItemsControl>
           <TextBlock x:Name="NetVerdict" FontSize="16" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,14,0,0" MaxWidth="640" HorizontalAlignment="Left"/>
           <TextBlock x:Name="NetBefore" Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,4,0,0"/>
+          <DockPanel x:Name="NetRegion" Margin="0,10,0,0" MaxWidth="640" HorizontalAlignment="Left" Visibility="Collapsed">
+            <Viewbox DockPanel.Dock="Left" Width="18" Height="18" Margin="0,1,8,0" VerticalAlignment="Top"><Path Width="24" Height="24" Data="{StaticResource IcoInfo}" Stroke="{DynamicResource Ink2}" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/></Viewbox>
+            <TextBlock x:Name="NetRegionText" TextWrapping="Wrap"/>
+          </DockPanel>
           <Label Style="{StaticResource Head}" Content="Velocidad" Margin="0,22,0,10"/>
           <ItemsControl x:Name="SpeedTiles" Focusable="False">
             <ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Rows="1" Margin="0,0,-8,0"/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
@@ -944,16 +1044,23 @@
             <Label Style="{StaticResource Head}" Content="Juegos" Margin="0,0,0,10"/>
             <StackPanel x:Name="SetGames"/>
             <Border Background="{DynamicResource Card}" CornerRadius="16" Padding="18,12" Margin="0,0,0,8"><DockPanel><CheckBox x:Name="SetAutoGame" DockPanel.Dock="Right" Style="{StaticResource Check}" AutomationProperties.Name="Cambiar de juego solo" Margin="16,0,0,0" VerticalAlignment="Center"/><StackPanel VerticalAlignment="Center"><TextBlock Text="Cambiar de juego solo" FontSize="16" FontWeight="Bold"/><TextBlock Text="Al abrir un juego, Tweakeroo pasa a ese juego." Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,2,0,0"/></StackPanel></DockPanel></Border>
+            <!-- Heavy.cs -->
+            <Border x:Name="SetHeavyCard" Background="{DynamicResource Card}" CornerRadius="16" Padding="18,12" Margin="0,0,0,8"><StackPanel><DockPanel><CheckBox x:Name="SetHeavy" DockPanel.Dock="Right" Style="{StaticResource Check}" AutomationProperties.Name="Cerrar apps pesadas al jugar" Margin="16,0,0,0" VerticalAlignment="Center"/><StackPanel VerticalAlignment="Center"><TextBlock Text="Cerrar apps pesadas al jugar" FontSize="16" FontWeight="Bold"/><TextBlock Text="Al abrir un juego se pregunta antes de cerrar nada; al cerrarlo se ofrece volver a abrirlas." Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,2,0,0"/></StackPanel></DockPanel>
+              <StackPanel x:Name="SetHeavyBox" Visibility="Collapsed" Margin="0,6,0,0"><WrapPanel x:Name="SetHeavyApps"/><DockPanel x:Name="SetHeavyKeep" Visibility="Collapsed" Margin="0,6,0,4"><t:Btn x:Name="SetHeavyAsk" DockPanel.Dock="Right" Style="{StaticResource Btn}" Content="Volver a preguntar" Margin="12,0,0,0"/><TextBlock x:Name="SetHeavyKeepText" Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" VerticalAlignment="Center"/></DockPanel></StackPanel></StackPanel></Border>
             <Label Style="{StaticResource Head}" Content="General" Margin="0,18,0,10"/>
             <Border Background="{DynamicResource Card}" CornerRadius="16" Padding="18,12" Margin="0,0,0,8"><DockPanel><CheckBox x:Name="SetBoot" DockPanel.Dock="Right" Style="{StaticResource Check}" AutomationProperties.Name="Abrir al encender el PC" Margin="16,0,0,0" VerticalAlignment="Center"/><StackPanel VerticalAlignment="Center"><TextBlock Text="Abrir al encender el PC" FontSize="16" FontWeight="Bold"/><TextBlock Text="Solo con la app instalada. Usa una tarea de Windows, que se quita al apagar la opción." Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,2,0,0"/></StackPanel></DockPanel></Border>
             <Border Background="{DynamicResource Card}" CornerRadius="16" Padding="18,12" Margin="0,0,0,8"><DockPanel><CheckBox x:Name="SetMin" DockPanel.Dock="Right" Style="{StaticResource Check}" AutomationProperties.Name="Empezar minimizado" Margin="16,0,0,0" VerticalAlignment="Center"/><StackPanel VerticalAlignment="Center"><TextBlock Text="Empezar minimizado" FontSize="16" FontWeight="Bold"/><TextBlock Text="Solo cuando se abre con Windows." Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,2,0,0"/></StackPanel></DockPanel></Border>
             <Border Background="{DynamicResource Card}" CornerRadius="16" Padding="18,12" Margin="0,0,0,8"><DockPanel><CheckBox x:Name="SetTray" DockPanel.Dock="Right" Style="{StaticResource Check}" AutomationProperties.Name="Al cerrar, quedarse junto al reloj" Margin="16,0,0,0" VerticalAlignment="Center"/><StackPanel VerticalAlignment="Center"><TextBlock Text="Al cerrar, quedarse junto al reloj" FontSize="16" FontWeight="Bold"/><TextBlock Text="Las macros y la resolución siguen funcionando. Para salir, clic derecho en el icono." Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,2,0,0"/></StackPanel></DockPanel></Border>
+            <!-- Laptop.cs: only on laptops -->
+            <Border x:Name="SetLaptopBox" Visibility="Collapsed" Background="{DynamicResource Card}" CornerRadius="16" Padding="18,12" Margin="0,0,0,8"><DockPanel><CheckBox x:Name="SetLaptop" DockPanel.Dock="Right" Style="{StaticResource Check}" AutomationProperties.Name="Perfil para portátil" Margin="16,0,0,0" VerticalAlignment="Center"/><StackPanel VerticalAlignment="Center"><TextBlock Text="Perfil para portátil" FontSize="16" FontWeight="Bold"/><TextBlock Text="Con batería pasa a ahorro; enchufado vuelve a rendimiento." Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,2,0,0"/></StackPanel></DockPanel></Border>
+            <!-- HotkeyBox.cs, wired in OverlayUi.cs -->
+            <Border x:Name="SetMarkRow" Background="{DynamicResource Card}" CornerRadius="16" Padding="18,12" Margin="0,0,0,8"><DockPanel><t:HotkeyBox x:Name="SetMarkKey" DockPanel.Dock="Right" Style="{StaticResource Btn}" MinWidth="150" Margin="16,0,0,0" VerticalAlignment="Center" AutomationProperties.Name="Atajo para marcar un lag"/><StackPanel VerticalAlignment="Center"><TextBlock Text="Atajo para marcar un lag" FontSize="16" FontWeight="Bold"/><TextBlock Text="Guarda ese momento de la partida para verlo en el informe." Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,2,0,0"/><TextBlock x:Name="SetMarkKeyNote" Foreground="{DynamicResource Danger}" TextWrapping="Wrap" Margin="0,4,0,0" Visibility="Collapsed"/></StackPanel></DockPanel></Border>
             <Border Background="{DynamicResource Card}" CornerRadius="16" Padding="18,12" Margin="0,0,0,8"><StackPanel><TextBlock Text="Idioma" FontSize="16" FontWeight="Bold"/><TextBlock Text="La app se reinicia al cambiarlo." Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,2,0,0"/><ListBox x:Name="SetLang" Template="{StaticResource BareList}" ItemContainerStyle="{StaticResource ChipItem}" Background="Transparent" BorderThickness="0" Padding="0" Margin="0,8,0,0" AutomationProperties.Name="Idioma"><ListBox.ItemsPanel><ItemsPanelTemplate><UniformGrid Rows="1" Columns="2" Margin="0,0,-8,-8"/></ItemsPanelTemplate></ListBox.ItemsPanel></ListBox></StackPanel></Border>
             <Label Style="{StaticResource Head}" Content="Apariencia" Margin="0,18,0,10"/>
             <Border Background="{DynamicResource Card}" CornerRadius="16" Padding="18,12" Margin="0,0,0,8"><StackPanel><TextBlock Text="Animaciones" FontSize="16" FontWeight="Bold"/><t:Tri x:Name="SetMotion" Margin="0,10,0,4" AutomationProperties.Name="Animaciones"/></StackPanel></Border>
             <Label Style="{StaticResource Head}" Content="Sonido" Margin="0,18,0,10"/>
             <Border Background="{DynamicResource Card}" CornerRadius="16" Padding="18,12" Margin="0,0,0,8"><StackPanel><TextBlock Text="Música" FontSize="16" FontWeight="Bold"/><t:Drop x:Name="SetMusicDrop" Style="{StaticResource Drop}" ContentTemplate="{StaticResource IconFace}" Margin="0,10,0,4" AutomationProperties.Name="Música"><t:Drop.Panel><ListBox x:Name="SetMusic" Template="{StaticResource BareList}" ItemContainerStyle="{StaticResource DropItem}" ItemTemplate="{StaticResource IconFace}" Background="Transparent" BorderThickness="0" Padding="0" AutomationProperties.Name="Música"/></t:Drop.Panel></t:Drop></StackPanel></Border>
-            <Border Background="{DynamicResource Card}" CornerRadius="16" Padding="18,12" Margin="0,0,0,8"><StackPanel><TextBlock Text="Cuándo suena" FontSize="16" FontWeight="Bold"/><ListBox x:Name="SetMusicMode" Template="{StaticResource BareList}" ItemContainerStyle="{StaticResource ChipItem}" Background="Transparent" BorderThickness="0" Padding="0" Margin="0,8,0,0" AutomationProperties.Name="Cuándo suena"><ListBox.ItemsPanel><ItemsPanelTemplate><UniformGrid Rows="1" Columns="3" Margin="0,0,-8,-8"/></ItemsPanelTemplate></ListBox.ItemsPanel></ListBox></StackPanel></Border>
+            <Border Background="{DynamicResource Card}" CornerRadius="16" Padding="18,12" Margin="0,0,0,8"><StackPanel><TextBlock Text="Cuándo suena" FontSize="16" FontWeight="Bold"/><ListBox x:Name="SetMusicMode" Template="{StaticResource BareList}" ItemContainerStyle="{StaticResource ChipItem}" Background="Transparent" BorderThickness="0" Padding="0" Margin="0,8,0,0" AutomationProperties.Name="Cuándo suena"><ListBox.ItemsPanel><ItemsPanelTemplate><WrapPanel Margin="0,0,-8,-8"/></ItemsPanelTemplate></ListBox.ItemsPanel></ListBox></StackPanel></Border>
             <Border Background="{DynamicResource Card}" CornerRadius="16" Padding="18,12" Margin="0,0,0,8"><StackPanel><TextBlock Text="Volumen de la música" FontSize="16" FontWeight="Bold"/><DockPanel Margin="0,4,0,0"><TextBlock x:Name="SetMusicVolText" DockPanel.Dock="Right" Width="64" TextAlignment="Right" FontSize="15" FontWeight="Bold" VerticalAlignment="Center" Typography.NumeralAlignment="Tabular"/><Slider x:Name="SetMusicVol" Style="{StaticResource Sld}" Minimum="0" Maximum="100" SmallChange="1" LargeChange="5" TickFrequency="1" IsSnapToTickEnabled="True" AutomationProperties.Name="Volumen de la música" VerticalAlignment="Center"/></DockPanel></StackPanel></Border>
             <Border Background="{DynamicResource Card}" CornerRadius="16" Padding="18,12" Margin="0,0,0,8"><DockPanel><CheckBox x:Name="SetSfx" DockPanel.Dock="Right" Style="{StaticResource Check}" AutomationProperties.Name="Efectos de sonido" Margin="16,0,0,0" VerticalAlignment="Center"/><StackPanel VerticalAlignment="Center"><TextBlock Text="Efectos de sonido" FontSize="16" FontWeight="Bold"/></StackPanel></DockPanel></Border>
             <Border Background="{DynamicResource Card}" CornerRadius="16" Padding="18,12" Margin="0,0,0,8"><StackPanel><TextBlock Text="Volumen de los efectos" FontSize="16" FontWeight="Bold"/><DockPanel Margin="0,4,0,0"><TextBlock x:Name="SetSfxVolText" DockPanel.Dock="Right" Width="64" TextAlignment="Right" FontSize="15" FontWeight="Bold" VerticalAlignment="Center" Typography.NumeralAlignment="Tabular"/><Slider x:Name="SetSfxVol" Style="{StaticResource Sld}" Minimum="0" Maximum="100" SmallChange="1" LargeChange="5" TickFrequency="1" IsSnapToTickEnabled="True" AutomationProperties.Name="Volumen de los efectos" VerticalAlignment="Center"/></DockPanel></StackPanel></Border>
@@ -967,10 +1074,67 @@
             <Border Background="{DynamicResource Card}" CornerRadius="16" Padding="18,12" Margin="0,0,0,8"><DockPanel><CheckBox x:Name="SetAuto" DockPanel.Dock="Right" Style="{StaticResource Check}" AutomationProperties.Name="Buscar al abrir" Margin="16,0,0,0" VerticalAlignment="Center"/><StackPanel VerticalAlignment="Center"><TextBlock Text="Buscar al abrir" FontSize="16" FontWeight="Bold"/></StackPanel></DockPanel></Border>
             <WrapPanel Margin="0,4,0,0"><t:Btn x:Name="CheckNow" Style="{StaticResource Btn}" Content="Buscar ahora" Margin="0,0,10,10"/></WrapPanel>
             <Label Style="{StaticResource Head}" Content="Datos" Margin="0,18,0,10"/>
-            <WrapPanel><t:Btn x:Name="OpenData" Style="{StaticResource Btn}" Content="Abrir carpeta de datos" Margin="0,0,10,10"/><t:Btn x:Name="ExportSet" Style="{StaticResource Btn}" Content="Exportar ajustes" Margin="0,0,10,10"/><t:Btn x:Name="ImportSet" Style="{StaticResource Btn}" Content="Importar ajustes" Margin="0,0,10,10"/><t:Btn x:Name="ClearFps" Style="{StaticResource Btn}" Margin="0,0,10,10"/><t:Btn x:Name="ClearScan" Style="{StaticResource Btn}" Margin="0,0,10,10"/><t:Btn x:Name="RestoreOrig" Style="{StaticResource Btn}" Margin="0,0,10,10"/></WrapPanel>
+            <!-- Share.cs -->
+            <Border Background="{DynamicResource Card}" CornerRadius="16" Padding="18,12,18,2" Margin="0,0,0,12"><StackPanel><TextBlock Text="Compartir configuración" FontSize="16" FontWeight="Bold"/><TextBlock Text="Tweaks, crosshair, stretched y colores, en un archivo o en un código." Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,2,0,0"/><WrapPanel Margin="0,10,0,0"><t:Btn x:Name="ShareExport" Style="{StaticResource Btn}" Content="Exportar archivo" Margin="0,0,10,10"/><t:Btn x:Name="ShareImport" Style="{StaticResource Btn}" Content="Importar archivo" Margin="0,0,10,10"/><t:Btn x:Name="ShareCopy" Style="{StaticResource Btn}" Content="Copiar código" Margin="0,0,10,10"/><t:Btn x:Name="SharePaste" Style="{StaticResource Btn}" Content="Pegar código" Margin="0,0,10,10"/></WrapPanel></StackPanel></Border>
+            <WrapPanel><t:Btn x:Name="OpenData" Style="{StaticResource Btn}" Content="Abrir carpeta de datos" Margin="0,0,10,10"/><t:Btn x:Name="ExportSet" Style="{StaticResource Btn}" Content="Copia de seguridad de la app" ToolTip="Guarda en un archivo las preferencias, macros, paletas e idioma de la app. No incluye los tweaks" Margin="0,0,10,10"/><t:Btn x:Name="ImportSet" Style="{StaticResource Btn}" Content="Restaurar copia de la app" ToolTip="Carga una copia de seguridad de la app guardada antes" Margin="0,0,10,10"/><t:Btn x:Name="ClearFps" Style="{StaticResource Btn}" Margin="0,0,10,10"/><t:Btn x:Name="ClearScan" Style="{StaticResource Btn}" Margin="0,0,10,10"/><t:Btn x:Name="RestoreOrig" Style="{StaticResource Btn}" Margin="0,0,10,10"/></WrapPanel>
             <Label Style="{StaticResource Head}" Content="Ayuda" Margin="0,18,0,10"/>
             <WrapPanel><t:Btn x:Name="LinkGit" Style="{StaticResource Btn}" Content="GitHub" Margin="0,0,10,10"/><t:Btn x:Name="LinkBug" Style="{StaticResource Btn}" Content="Informar de un fallo" Margin="0,0,10,10"/><t:Btn x:Name="CopySupport" Style="{StaticResource Btn}" Content="Copiar datos para soporte" Margin="0,0,10,10"/><t:Btn x:Name="ShowTerms" Style="{StaticResource Btn}" Content="Términos y privacidad" Margin="0,0,10,10"/><t:Btn x:Name="ResetSet" Style="{StaticResource Btn}" Margin="0,0,10,10"/></WrapPanel>
             <StackPanel Orientation="Horizontal" Margin="0,22,0,0"><TextBlock x:Name="SetVersion" Foreground="{DynamicResource Ink2}" FontSize="13" VerticalAlignment="Center" Margin="0,0,14,0"/><t:Btn x:Name="ShowVersions" Style="{StaticResource LinkBtn}" Content="Ver historial de versiones"/></StackPanel>
+        </StackPanel>
+      </ScrollViewer>
+
+      <!-- Tools (Tools.cs) -->
+      <ScrollViewer x:Name="ToolsPage" Grid.Column="1" VerticalScrollBarVisibility="Auto" Focusable="False" Visibility="Collapsed">
+        <StackPanel Margin="28,24,28,110">
+          <TextBlock Text="Herramientas" FontSize="32" FontWeight="Bold"/>
+          <TextBlock Text="Medidas rápidas del ratón y de los reflejos." Foreground="{DynamicResource Ink2}" FontSize="15" TextWrapping="Wrap" Margin="0,6,0,16" MaxWidth="600" HorizontalAlignment="Left"/>
+          <Border Background="{DynamicResource Card}" CornerRadius="18" Padding="22,18" Margin="0,0,0,16">
+            <StackPanel>
+              <TextBlock Text="eDPI" FontSize="17" FontWeight="Bold"/>
+              <TextBlock Text="Sensibilidad del juego multiplicada por el DPI del ratón: la sensibilidad real, comparable entre jugadores." Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,2,0,12"/>
+              <WrapPanel>
+                <StackPanel Margin="0,0,14,8"><TextBlock Text="Juego" Foreground="{DynamicResource Ink2}" Margin="2,0,0,4"/>
+                  <t:Drop x:Name="EdpiGame" Style="{StaticResource Drop}" Height="42" MinWidth="180" Width="180" AutomationProperties.Name="Juego"><t:Drop.Panel><ListBox x:Name="EdpiGames" Template="{StaticResource PlainList}" ItemContainerStyle="{StaticResource DropItem}" Background="Transparent" BorderThickness="0" Padding="0" AutomationProperties.Name="Juego"><ListBoxItem Content="Fortnite"/><ListBoxItem Content="Valorant"/><ListBoxItem Content="CS2"/></ListBox></t:Drop.Panel></t:Drop></StackPanel>
+                <StackPanel Margin="0,0,14,8"><TextBlock x:Name="EdpiSensLabel" Text="Sensibilidad" Foreground="{DynamicResource Ink2}" Margin="2,0,0,4"/><TextBox x:Name="EdpiSens" Style="{StaticResource Field}" Background="{DynamicResource Rail}" Width="130" MaxLength="8" Tag="Ej.: 0,35" AutomationProperties.Name="Sensibilidad"/></StackPanel>
+                <StackPanel Margin="0,0,0,8"><TextBlock Text="DPI" Foreground="{DynamicResource Ink2}" Margin="2,0,0,4"/><TextBox x:Name="EdpiDpi" Style="{StaticResource Field}" Background="{DynamicResource Rail}" Width="130" MaxLength="6" AutomationProperties.Name="DPI"/></StackPanel>
+              </WrapPanel>
+              <TextBlock x:Name="EdpiValue" FontSize="40" FontWeight="Bold" Typography.NumeralAlignment="Tabular" Margin="0,6,0,0"/>
+              <TextBlock x:Name="EdpiVerdict" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap"/>
+              <!-- Approximate ranges (ToolMath.ProRange), only an orientation -->
+              <TextBlock x:Name="EdpiRef" Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,4,0,0"/>
+            </StackPanel>
+          </Border>
+          <Border Background="{DynamicResource Card}" CornerRadius="18" Padding="22,18" Margin="0,0,0,16">
+            <StackPanel>
+              <TextBlock Text="Test del ratón" FontSize="17" FontWeight="Bold"/>
+              <Label Style="{StaticResource Head}" Content="Polling rate" Margin="0,14,0,2"/>
+              <TextBlock Text="Al pulsar, mueve el ratón en círculos rápidos durante 3 segundos." Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,0,0,10"/>
+              <WrapPanel><t:Btn x:Name="PollRun" Style="{StaticResource Btn}" Icon="{StaticResource IcoMouse}" Content="Medir polling rate" Margin="0,0,16,0"/><TextBlock x:Name="PollResult" FontSize="17" FontWeight="SemiBold" Typography.NumeralAlignment="Tabular" TextWrapping="Wrap" VerticalAlignment="Center"/></WrapPanel>
+              <Label Style="{StaticResource Head}" Content="DPI medido" Margin="0,20,0,2"/>
+              <TextBlock Text="Con una regla junto al ratón: mantén pulsado el botón izquierdo en la zona de abajo, arrastra la distancia indicada en horizontal y suelta." Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,0,0,10"/>
+              <WrapPanel>
+                <StackPanel Margin="0,0,14,8"><TextBlock Text="Distancia (cm)" Foreground="{DynamicResource Ink2}" Margin="2,0,0,4"/><TextBox x:Name="DpiCm" Style="{StaticResource Field}" Background="{DynamicResource Rail}" Width="130" MaxLength="5" Text="10" AutomationProperties.Name="Distancia en centímetros"/></StackPanel>
+                <StackPanel Margin="0,0,0,8"><TextBlock Text="DPI declarado" Foreground="{DynamicResource Ink2}" Margin="2,0,0,4"/><TextBox x:Name="DpiSaid" Style="{StaticResource Field}" Background="{DynamicResource Rail}" Width="130" MaxLength="6" AutomationProperties.Name="DPI declarado"/></StackPanel>
+              </WrapPanel>
+              <Border x:Name="DpiPad" Background="{DynamicResource Rail}" CornerRadius="14" Height="110" Margin="0,4,0,0" Cursor="SizeWE">
+                <TextBlock x:Name="DpiPadText" Text="Mantén pulsado aquí y arrastra" Foreground="{DynamicResource Ink2}" FontSize="15" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+              </Border>
+              <TextBlock x:Name="DpiResult" FontSize="17" FontWeight="SemiBold" Typography.NumeralAlignment="Tabular" TextWrapping="Wrap" Margin="0,10,0,0"/>
+              <TextBlock x:Name="DpiDiff" Foreground="{DynamicResource Ink2}" Typography.NumeralAlignment="Tabular" Margin="0,2,0,0"/>
+            </StackPanel>
+          </Border>
+          <Border Background="{DynamicResource Card}" CornerRadius="18" Padding="22,18">
+            <StackPanel>
+              <DockPanel><TextBlock x:Name="ReactBest" DockPanel.Dock="Right" FontSize="15" FontWeight="SemiBold" Typography.NumeralAlignment="Tabular" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5"/><TextBlock Text="Tiempo de reacción" FontSize="17" FontWeight="Bold"/></DockPanel>
+              <TextBlock Text="Cinco intentos: clic en cuanto cambie el color. Al final, la media." Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,2,0,12"/>
+              <Border x:Name="ReactPad" Background="{DynamicResource Rail}" CornerRadius="18" Height="220" Cursor="Hand">
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                  <TextBlock x:Name="ReactMain" Text="Clic para empezar" FontSize="30" FontWeight="Bold" Typography.NumeralAlignment="Tabular" HorizontalAlignment="Center"/>
+                  <TextBlock x:Name="ReactSub" Foreground="{DynamicResource Ink2}" FontSize="15" HorizontalAlignment="Center" Margin="0,6,0,0" Visibility="Collapsed"/>
+                </StackPanel>
+              </Border>
+            </StackPanel>
+          </Border>
         </StackPanel>
       </ScrollViewer>
 
@@ -979,6 +1143,8 @@
         <StackPanel Margin="28,24,28,110">
           <TextBlock Text="FPS reales" FontSize="32" FontWeight="Bold"/>
           <TextBlock x:Name="FpsText" Foreground="{DynamicResource Ink2}" FontSize="15" TextWrapping="Wrap" Margin="0,6,0,18" MaxWidth="580" HorizontalAlignment="Left"/>
+          <!-- The report of the last match (ReportUi.cs fills it) -->
+          <Border x:Name="ReportCard" Background="{DynamicResource Card}" CornerRadius="18" Padding="22,18" Margin="0,0,0,18" Visibility="Collapsed"/>
           <!-- Before and after the last change to the tweaks (Since.cs) -->
           <Border x:Name="SinceCard" Background="{DynamicResource Card}" CornerRadius="18" Padding="22,18" Margin="0,0,0,18">
             <StackPanel>
@@ -1115,6 +1281,14 @@
         <StackPanel Margin="28,24,20,110">
           <TextBlock Text="Describe el problema" FontSize="32" FontWeight="Bold" TextWrapping="Wrap"/>
           <TextBlock Text="Se revisa la PC y se proponen arreglos. Funciona sin internet." Foreground="{DynamicResource Ink2}" FontSize="15" TextWrapping="Wrap" Margin="0,6,0,18" MaxWidth="560" HorizontalAlignment="Left"/>
+          <!-- Game crashes of the last 30 days, read on opening Help (Crashes.cs, Assistant.cs) -->
+          <Border x:Name="CrashCard" Background="{DynamicResource Card}" CornerRadius="16" Padding="18,14" Margin="0,0,0,18" Visibility="Collapsed">
+            <StackPanel>
+              <TextBlock Text="Cierres del juego" FontSize="16" FontWeight="Bold"/>
+              <TextBlock x:Name="CrashNone" Text="Sin cierres inesperados en los últimos 30 días." Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+              <StackPanel x:Name="CrashList"/>
+            </StackPanel>
+          </Border>
           <WrapPanel x:Name="HelpChips" Margin="0,0,0,16"/>
           <StackPanel x:Name="HelpLog"/>
           <DockPanel Margin="0,8,0,0">
@@ -1367,6 +1541,23 @@
             </StackPanel>
           </ScrollViewer>
         </DockPanel>
+      </Border>
+    </Grid>
+    <!-- Import preview (Share.cs) -->
+    <Grid x:Name="ShareBox" Visibility="Collapsed" KeyboardNavigation.TabNavigation="Cycle" KeyboardNavigation.DirectionalNavigation="Contained">
+      <Border x:Name="ShareShade" Background="{DynamicResource Rail}" Opacity="0.8"/>
+      <Border x:Name="ShareCard" Background="{DynamicResource Card}" CornerRadius="24" Padding="36,32" Width="560" Margin="0,40" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <StackPanel>
+          <TextBlock Text="Importar configuración" FontSize="27" FontWeight="Bold" TextWrapping="Wrap"/>
+          <TextBlock Text="Qué cambia" FontSize="15" Foreground="{DynamicResource Ink2}" Margin="0,12,0,10"/>
+          <ScrollViewer MaxHeight="360" VerticalScrollBarVisibility="Auto" Focusable="False">
+            <StackPanel x:Name="ShareLines" Margin="0,0,10,0"/>
+          </ScrollViewer>
+          <WrapPanel Margin="0,22,0,0">
+            <t:Btn x:Name="ShareApply" Style="{StaticResource BtnCta}" Content="Aplicar" Margin="0,0,10,0"/>
+            <t:Btn x:Name="ShareCancel" Style="{StaticResource Btn}" Content="Cancelar"/>
+          </WrapPanel>
+        </StackPanel>
       </Border>
     </Grid>
     <Image x:Name="Wipe" Stretch="Fill" IsHitTestVisible="False" Visibility="Collapsed"/>

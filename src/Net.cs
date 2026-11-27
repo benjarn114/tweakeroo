@@ -82,20 +82,7 @@ namespace Tablero
         };
 
         // The region with the lowest ping among those that answer; null if none.
-        public static async Task<string> Nearest()
-        {
-            string best = null;
-            int low = int.MaxValue;
-            List<string> ids = Enumerable.Range(0, Regions.GetLength(0)).Select(i => Regions[i, 0]).ToList();
-            Task<int>[] t = ids.Select(async id =>
-            {
-                int a = await Ping(Host(id), 1000), b = await Ping(Host(id), 1000);
-                return a < 0 ? b : b < 0 ? a : Math.Min(a, b);
-            }).ToArray();
-            int[] ms = await Task.WhenAll(t);
-            for (int i = 0; i < ms.Length; i++) if (ms[i] >= 0 && ms[i] < low) { low = ms[i]; best = ids[i]; }
-            return best;
-        }
+        public static async Task<string> Nearest() { return Region.Lowest(await Region.Measure()); }
         public static string Name(string region)
         {
             for (int i = 0; i < Regions.GetLength(0); i++) if (Regions[i, 0] == region) return Regions[i, 1];
@@ -145,7 +132,7 @@ namespace Tablero
             if (old == null) return "";
             return "Prueba anterior (" + old.Date.Substring(0, 16) + "): " + old.Epic.Median + " ms, variación " + Num(old.Epic.Jitter) + " ms, pérdida " + Num(old.Epic.Loss) + " %.";
         }
-        public static string Num(double v) { return v.ToString("0.#", CultureInfo.InvariantCulture); }
+        public static string Num(double v) { return v.ToString("0.#", L.En ? CultureInfo.InvariantCulture : new CultureInfo("es-ES")); }
 
         static string FileOf(string dir) { return Path.Combine(dir, "red.json"); }
         public static NetResult Load(string dir)

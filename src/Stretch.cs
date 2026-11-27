@@ -43,6 +43,7 @@ namespace Tablero
 
         [StructLayout(LayoutKind.Sequential)] struct MemStatus { public int Size; public uint Load; public ulong Total, Free, A, B, C, D, E; }
         [DllImport("kernel32.dll")] static extern bool GlobalMemoryStatusEx(ref MemStatus m);
+        public static double TotalRamGb() { MemStatus m = new MemStatus { Size = Marshal.SizeOf(typeof(MemStatus)) }; GlobalMemoryStatusEx(ref m); return m.Total / (double)(1L << 30); }
         public static double FreeRamGb() { MemStatus m = new MemStatus { Size = Marshal.SizeOf(typeof(MemStatus)) }; GlobalMemoryStatusEx(ref m); return m.Free / (double)(1L << 30); }
 
         static DevMode Blank() { DevMode d = new DevMode(); d.Size = (short)Marshal.SizeOf(typeof(DevMode)); return d; }

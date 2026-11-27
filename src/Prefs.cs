@@ -34,6 +34,23 @@ namespace Tablero
         public bool CrossAlways { get; set; }       // also in the lobby and while loading; false = "Solo en partida" (the default)
         public string CrossNow { get; set; }        // Crosshair.Serialize() of the one being edited; null = default
         public List<string> CrossSaved { get; set; } // saved crosshairs, Serialize() each
+        public string OverlayKey { get; set; }      // shortcut that shows and hides the overlay, Hotkeys.Text; "" = none
+        public string MarkKey { get; set; }         // shortcut that marks a lag in the match (Tracker.Mark); "" = none
+        public bool OverlayOn { get; set; }         // performance overlay over the game (Overlay.cs); OverlayKey also switches it
+        public int OverlayStyle { get; set; }       // 0 one line, 1 column, 2 numbers only
+        public int OverlayCorner { get; set; }      // main screen: 0 top left, 1 top right, 2 bottom left, 3 bottom right
+        public List<string> OverlayShow { get; set; } // OverlayModel.Ids shown; null = the defaults
+        public string ToolGame { get; set; }        // Tools > eDPI: "Fortnite", "Valorant" or "CS2"; null = the game on screen
+        public double ToolSens { get; set; }        // last sensitivity typed (Fortnite in %), 0 = none
+        public int ToolDpi { get; set; }            // last DPI typed, 0 = none
+        public int ReactBest { get; set; }          // best average of 5 reaction tries in ms, 0 = none
+        public string RegionDay { get; set; }       // day (yyyy-MM-dd) the server notice was last shown as a toast; null = never
+        public string WeekDay { get; set; }         // day (yyyy-MM-dd) the weekly summary was last shown; null = never
+        public bool LaptopMode { get; set; }        // laptop profile (Laptop.cs): Balanced on battery, the previous plan plugged in
+        public string LaptopPlan { get; set; }      // plan active before unplugging, to go back to; null = none
+        public bool HeavyOn { get; set; }           // ask to close heavy apps when a game opens (Heavy.cs)
+        public List<string> HeavyApps { get; set; } // process names chosen; null = Heavy.Defaults
+        public int HeavyKeep { get; set; }          // remembered answer: 0 ask, 1 close without asking, 2 do not ask
 
         public static Prefs Now = Default();
 
@@ -58,7 +75,7 @@ namespace Tablero
             for (int i = 2; ; i++) if (!t.Contains(n + " " + i)) return n + " " + i;
         }
         public static Prefs Default() { Prefs d = Default0(); CrossFix(d); return d; }
-        static Prefs Default0() { return new Prefs { Confirm = 15, AutoCheck = true, Game = Tablero.Game.Fortnite.Id, Colors = new Dictionary<string, ColorPick>(), Boosts = new Dictionary<string, List<string>>(), Paths = new Dictionary<string, string>(), Hidden = new List<string>(), Pinned = new List<string> { Tablero.Game.Fortnite.Id, Tablero.Game.Valorant.Id }, Music = Sound.Themes[0], MusicVolume = 30, Sfx = true, SfxVolume = 60, SoundSaved = true, Theme = "noche", CrossSaved = new List<string>() }; }
+        static Prefs Default0() { return new Prefs { Confirm = 15, AutoCheck = true, Game = Tablero.Game.Fortnite.Id, Colors = new Dictionary<string, ColorPick>(), Boosts = new Dictionary<string, List<string>>(), Paths = new Dictionary<string, string>(), Hidden = new List<string>(), Pinned = new List<string> { Tablero.Game.Fortnite.Id, Tablero.Game.Valorant.Id }, Music = Sound.Themes[0], MusicVolume = 30, Sfx = true, SfxVolume = 60, SoundSaved = true, Theme = "noche", CrossSaved = new List<string>(), OverlayKey = "Ctrl+Shift+O", MarkKey = "Ctrl+Shift+M", OverlayShow = OverlayModel.Defaults() }; }
         static string FileOf(string dir) { return Path.Combine(dir, "ajustes.json"); }
         // Anything not understood goes back to its default value.
         public static Prefs Parse(string json)
@@ -70,6 +87,8 @@ namespace Tablero
             if (p == null) return d;
             if (p.Confirm < 5 || p.Confirm > 30) p.Confirm = d.Confirm; // an old "Page" is simply ignored
             if (p.Motion < 0 || p.Motion > 2) p.Motion = d.Motion;
+            if (p.HeavyKeep < 0 || p.HeavyKeep > 2) p.HeavyKeep = 0;
+            if (p.HeavyApps != null) p.HeavyApps = p.HeavyApps.Where(x => !string.IsNullOrWhiteSpace(x)).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
             if (!p.SoundSaved) { p.Music = d.Music; p.MusicMode = d.MusicMode; p.MusicVolume = d.MusicVolume; p.Sfx = d.Sfx; p.SfxVolume = d.SfxVolume; p.SoundSaved = true; }
             if (p.Music != "" && !Sound.Themes.Contains(p.Music)) p.Music = d.Music;
             if (p.MusicMode < 0 || p.MusicMode > 2) p.MusicMode = d.MusicMode;
@@ -79,6 +98,11 @@ namespace Tablero
             p.Theme = Tablero.Theme.LookOf(p.Theme).Id;
             p.Game = Tablero.Game.Of(p.Game).Id;
             CrossFix(p);
+            p.OverlayKey = Hotkeys.Clean(p.OverlayKey, d.OverlayKey);
+            p.MarkKey = Hotkeys.Clean(p.MarkKey, d.MarkKey);
+            if (p.OverlayStyle < 0 || p.OverlayStyle > 2) p.OverlayStyle = d.OverlayStyle;
+            if (p.OverlayCorner < 0 || p.OverlayCorner > 3) p.OverlayCorner = d.OverlayCorner;
+            p.OverlayShow = p.OverlayShow == null ? d.OverlayShow : p.OverlayShow.Where(x => OverlayModel.Ids.Contains(x)).Distinct().ToList();
             Dictionary<string, ColorPick> had = p.Colors ?? d.Colors;
             p.Colors = d.Colors;
             foreach (Game g in Tablero.Game.All) { ColorPick c; if (had.TryGetValue(g.Id, out c)) p.Colors[g.Id] = Vivid.Clean(c); }

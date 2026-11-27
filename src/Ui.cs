@@ -164,6 +164,7 @@ namespace Tablero
         readonly Window w;
         readonly string dir;
         readonly DispatcherTimer hide = new DispatcherTimer { Interval = TimeSpan.FromSeconds(8) };
+        int toastNo; // goes up with every Say: a clickable notice keeps its number, so a later message does not open it
         Engine engine;
         List<Row> rows;
         ObservableCollection<Circuit> circuits;
@@ -179,7 +180,7 @@ namespace Tablero
         List<Part> parts;
         Hw hw;
         bool working, ready;
-        static readonly string[] Pages = { "PcPage", "StretchPage", "ResPage", "BoostPage", "ColorPage", "FpsPage", "MacroPage", "CrossPage", "NetPage", "SettingsPage", "UpgradePage", "HelpPage", "ListPage" };
+        static readonly string[] Pages = { "PcPage", "StretchPage", "ResPage", "BoostPage", "ColorPage", "FpsPage", "ToolsPage", "MacroPage", "CrossPage", "NetPage", "SettingsPage", "UpgradePage", "HelpPage", "ListPage" };
         StretchSession stretch;
         DispatcherTimer watch;
         bool confirming, gameSeen;
@@ -473,7 +474,7 @@ namespace Tablero
             catch (Exception ex) { Say("No se pudieron leer los datos de la app y no se hará ningún cambio. Revisa " + dir + ". Detalle: " + ex.Message, true); Task hid = HideSkeletons(); loaded.TrySetResult(true); return; }
             every = Listed(engine).Select(t => new Row(t)).ToList();
             circuits = new ObservableCollection<Circuit> { new Circuit { Name = "Jugar", Icon = Ico("Launch"), Page = "StretchPage" }, new Circuit { Name = "Stretched Resolution", Icon = Ico("Wide"), Page = "ResPage" }, new Circuit { Name = "Colores", Icon = Ico("Drop"), Page = "ColorPage" }, new Circuit { Name = "Al jugar", Icon = Ico("Bolt"), Page = "BoostPage" }, new Circuit { Name = "Mi PC", Icon = Ico("Pc"), Page = "PcPage" },
-                new Circuit { Name = "Mis FPS", Icon = Ico("Gauge"), Page = "FpsPage" } };
+                new Circuit { Name = "Mis FPS", Icon = Ico("Gauge"), Page = "FpsPage" }, new Circuit { Name = "Herramientas", Icon = Ico("Ruler"), Page = "ToolsPage" } };
             circuits.Add(new Circuit { Name = "Conexión", Icon = Ico("Net"), Page = "NetPage" });
             macroCircuit = new Circuit { Name = "Macros", Icon = Ico("Keys"), Page = "MacroPage" };
             if (game == Game.Fortnite) circuits.Add(macroCircuit);
@@ -557,12 +558,16 @@ namespace Tablero
             StartMacros();
             StartSettings();
             StartNet();
+            StartTools();
             F<Btn>("SinceMore").Click += (s, e) => { FrameworkElement x = F<FrameworkElement>("SinceWhat"); x.Visibility = x.Visibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible; };
             StartGames();
             StartColors();
             StartBoosts();
             StartHelp();
             StartCross();
+            StartClean();
+            StartReady();
+            StartReport();
             w.Closed += (s, e) => Macros.Stop();
 
             await Refresh();
@@ -582,6 +587,8 @@ namespace Tablero
             SetWorking(false, first ? "Estado actual guardado como Original. Se puede restaurar en cualquier momento." : "Listo. Los interruptores muestran el estado real del PC.");
             if (resume != null && SwitchGame(resume, false)) { gameSeen = true; watch.Start(); ShowStretch(); }
             if (saved != null) { Task again = Recheck(); }
+            Task region = RegionAtStart();
+            Task weekly = WeeklyAtStart(region);
         }
 
         // Reason not to restart the app now, or null.
@@ -722,14 +729,7 @@ namespace Tablero
             await LoadFps();
             ShowPlay();
             Dictionary<string, string> heavy = null;
-            await Task.Run(() =>
-            {
-                int session = Process.GetCurrentProcess().SessionId;
-                string[] skip = { "Tweakeroo", "explorer", "dwm", "Memory Compression", "FortniteClient-Win64-Shipping", "VALORANT-Win64-Shipping", "cs2", "SearchHost", "StartMenuExperienceHost", "ShellExperienceHost", "svchost" };
-                try { heavy = Process.GetProcesses().Where(p => p.SessionId == session && !skip.Contains(p.ProcessName)).GroupBy(p => p.ProcessName).Select(g => new { g.Key, Mb = g.Sum(p => p.WorkingSet64) / (1 << 20) }).Where(x => x.Mb >= 300).OrderByDescending(x => x.Mb).Take(5).ToDictionary(x => x.Key, x => x.Mb >= 1024 ? (x.Mb / 1024.0).ToString("0.0") + " GB" : x.Mb + " MB"); }
-                catch (InvalidOperationException) { heavy = new Dictionary<string, string>(); }
-                catch (Win32Exception) { heavy = new Dictionary<string, string>(); }
-            });
+            await Task.Run(() => heavy = Ready.Memory().ToDictionary(x => x.Key, x => x.Value >= 1024 ? (x.Value / 1024.0).ToString("0.0") + " GB" : x.Value + " MB"));
             F<ItemsControl>("Heavy").ItemsSource = heavy;
         }
 
@@ -1058,6 +1058,7 @@ namespace Tablero
 
         void ShowFps()
         {
+            ShowReport();
             ShowSince();
             bool any = matches.Count > 0;
             F<FrameworkElement>("FpsNow").Visibility = any ? Visibility.Visible : Visibility.Collapsed;
@@ -1140,6 +1141,7 @@ namespace Tablero
         {
             Border t = F<Border>("Toast");
             F<TextBlock>("Status").Text = msg;
+            toastNo++;
             TransformGroup g = t.RenderTransform as TransformGroup;
             if (g == null)
             {
@@ -1163,6 +1165,7 @@ namespace Tablero
         void HideToast()
         {
             Border t = F<Border>("Toast");
+            t.IsHitTestVisible = false;
             TransformGroup g = t.RenderTransform as TransformGroup;
             if (g == null) return;
             Fx.To(g.Children[1], TranslateTransform.YProperty, 36, 200, Fx.In);
@@ -1201,6 +1204,7 @@ namespace Tablero
             if (c.Page == "BoostPage") ShowBoosts();
             if (c.Page == "NetPage") { Task t = OpenNet(); }
             if (c.Page == "CrossPage") ShowCross();
+            if (c.Page == "HelpPage") { Task t = ShowCrashes(); }
             if (c.Page == "MacroPage" && macros != null && Macros.Sync(macros)) { ShowMacros(); Macros.Use(macros); }
             // The list is taken on entering: a switched row does not jump away under the mouse.
             if (c.Pick != null) c.Rows = c.Pick();

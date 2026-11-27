@@ -17,7 +17,7 @@ namespace Tablero
         public void Show(PingStats s)
         {
             Main = s.Sent == 0 ? "…" : s.Silent ? "Sin respuesta" : s.Median + " ms";
-            Sub = s.Sent == 0 ? "" : s.Silent ? "" : "Variación " + NetTest.Num(s.Jitter) + " ms, pérdida " + NetTest.Num(s.Loss) + " %, peor " + s.Max + " ms";
+            Sub = s.Sent == 0 ? "" : s.Silent ? "" : "Variación " + NetTest.Num(s.Jitter) + " ms, pérdida " + NetTest.Num(s.Loss) + " %, peor " + s.Max + " ms";
             Raise("Main"); Raise("Sub");
         }
     }
@@ -94,7 +94,12 @@ namespace Tablero
             string router = null;
             await Task.Run(() => { router = NetTest.Router(); r.Wifi = Wifi.Info(out signal, out channel); });
             bool epic = game == Game.Fortnite;
-            if (epic) r.Region = await NetTest.Nearest();
+            if (epic)
+            {
+                Dictionary<string, PingStats> regions = await Region.Measure();
+                r.Region = Region.Lowest(regions);
+                ShowRegion(Region.Notice(await Task.Run(() => Region.Chosen(IniOp.File)), regions));
+            }
             if (r.Region != null) { netTiles[2].Label = "Servidores de Epic: " + NetTest.Name(r.Region); RefreshTiles(); }
             Task<PingStats> a = NetTest.Run(router, NetTries, NetPause, netTiles[0].Show), c = NetTest.Run(NetTest.Internet, NetTries, NetPause, netTiles[1].Show),
                 d = NetTest.Run(r.Region == null ? null : NetTest.Host(r.Region), NetTries, NetPause, netTiles[2].Show);
@@ -138,6 +143,46 @@ namespace Tablero
             F<TextBlock>("SpeedVerdict").Text = SpeedTest.Verdict(r);
             F<TextBlock>("SpeedBefore").Text = old == null ? "" : "Prueba anterior (" + old.Date.Substring(0, 16) + "): descarga " + Mbps(old.Down) + ", subida " + Mbps(old.Up) + ".";
         }
+
+        // Server notice: one line in Connection; null hides it.
+        void ShowRegion(string msg)
+        {
+            F<TextBlock>("NetRegionText").Text = msg ?? "";
+            F<FrameworkElement>("NetRegion").Visibility = msg == null ? Visibility.Collapsed : Visibility.Visible;
+        }
+
+        // Once when the app opens, in the background: only with Fortnite on screen, a region chosen in the game and no game open.
+        // The toast at most once a day.
+        internal async Task RegionAtStart()
+        {
+#if !SHOT
+            try
+            {
+                if (game != Game.Fortnite || Game.Open != null) return;
+                string chosen = await Task.Run(() => Region.Chosen(IniOp.File));
+                if (chosen == null) return;
+                string msg = Region.Notice(chosen, await Region.Measure());
+                if (testing) return; // a test in progress shows its own result
+                ShowRegion(msg);
+                string today = DateTime.Now.ToString("yyyy-MM-dd");
+                if (msg == null || Prefs.Now.RegionDay == today) return;
+                Prefs.Now.RegionDay = today;
+                SavePrefs();
+                Say(msg, false);
+            }
+            catch (Exception) { }
+#else
+            await Task.Yield();
+#endif
+        }
+#if SHOT
+        // "servidor": Connection with the notice from sample data.
+        internal void RegionShot()
+        {
+            Dictionary<string, PingStats> ms = new Dictionary<string, PingStats> { { "nae", PingStats.Of(new[] { 98, 97, 99 }) }, { "eu", PingStats.Of(new[] { 22, 22, 23 }) }, { "br", PingStats.Of(new[] { 180, 181, 179 }) } };
+            ShowRegion(Region.Notice("nae", ms));
+        }
+#endif
 
         void RefreshTiles() { F<ItemsControl>("NetTiles").ItemsSource = null; ShowNetGame(); }
 

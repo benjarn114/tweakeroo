@@ -35,6 +35,10 @@ namespace Tablero
         DateTime from;
         bool heard;    // a post with the token arrived
         public string Phase { get; private set; } // map.phase of the last post: warmup, live, intermission, gameover
+        public static Cs2Gsi Now; // the one of the CS2 session in progress (Cs2Fps), for Tracker; null without one
+
+        // Where the player is now: the map's name, "" in the menu, null until the game posts.
+        public string Map { get { lock (gate) return !heard ? null : map == null ? "" : Pretty(map); } }
 
         // Only on 127.0.0.1. Throws SocketException if the port is taken: the session then goes on without maps.
         public Cs2Gsi(string token, int port = Port)
@@ -237,7 +241,7 @@ namespace Tablero
             ensured = false;
             rec = Real ? FpsRecorder.Live() : new FpsRecorder();
             if (!Real) return;
-            try { gsi = new Cs2Gsi(Cs2Gsi.Token(dir)); }
+            try { Cs2Gsi.Now = gsi = new Cs2Gsi(Cs2Gsi.Token(dir)); }
             catch (SocketException) { }       // port taken: the session is one "Partida"
             catch (IOException) { }
             catch (UnauthorizedAccessException) { }
@@ -249,6 +253,7 @@ namespace Tablero
             rec.Dispose(); // first: ETW stops and delivers what is left
             List<MapSpan> maps = gsi == null ? null : gsi.Spans(end);
             if (gsi != null) gsi.Dispose();
+            Cs2Gsi.Now = null;
             List<Match> got = rec.Matches(start, maps, Cs2.FpsMax()), all = null;
             rec = null;
             gsi = null;

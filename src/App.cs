@@ -13,7 +13,7 @@ using System.Windows.Media.Imaging;
 
 [assembly: AssemblyTitle("Tweakeroo")]
 [assembly: AssemblyProduct("Tweakeroo")]
-[assembly: AssemblyVersion("1.4.1.0")]
+[assembly: AssemblyVersion("2.0.0.0")]
 
 namespace Tablero
 {
@@ -139,6 +139,20 @@ namespace Tablero
                 if (Array.IndexOf(args, "cs2") >= 0) Prefs.Now.Game = "cs2";
                 if (Array.IndexOf(args, "fijar") >= 0) Prefs.Now.Pinned = new System.Collections.Generic.List<string> { "fortnite", "cs2" };
                 if (Array.IndexOf(args, "noinst") >= 0) Game.Valorant.Installed = () => false;
+                // "portatil": shows the laptop profile on a desktop PC (the real plan is never touched).
+                if (Array.IndexOf(args, "portatil") >= 0) Laptop.Force = true;
+                // "pesadas-ajustes": the Settings card of Heavy.cs on, with sample apps (nothing is listed or closed).
+                if (Array.IndexOf(args, "pesadas-ajustes") >= 0) { Prefs.Now.HeavyOn = true; Prefs.Now.HeavyKeep = 1; Prefs.Now.HeavyApps = null; Heavy.Offer = () => new System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<string, string>> {
+                    new System.Collections.Generic.KeyValuePair<string, string>("chrome", "Chrome · 1,4 GB"), new System.Collections.Generic.KeyValuePair<string, string>("msedge", "Edge"), new System.Collections.Generic.KeyValuePair<string, string>("Spotify", "Spotify · 650 MB"),
+                    new System.Collections.Generic.KeyValuePair<string, string>("steam", "Steam"), new System.Collections.Generic.KeyValuePair<string, string>("OneDrive", "OneDrive"), new System.Collections.Generic.KeyValuePair<string, string>("Discord", "Discord · 420 MB") }; }
+                // "cierres": sample crashes for the Help card instead of the real ones.
+                if (Array.IndexOf(args, "cierres") >= 0) { string cdir = dir; Crashes.Source = () => Crashes.Merge(new System.Collections.Generic.List<Crash> {
+                    new Crash { When = DateTime.Now.AddHours(-3), Game = "Fortnite", Folder = cdir, Evidence = "DXGI_ERROR_DEVICE_REMOVED" },
+                    new Crash { When = DateTime.Now.AddDays(-2), Game = "Valorant", Evidence = "Unhandled Exception", Top = "DiscordHook64.dll" },
+                    new Crash { When = DateTime.Now.AddDays(-9), Game = "Counter-Strike 2", Evidence = "c0000409", Top = "foo.dll", Raw = "0xc0000409" } },
+                    new System.Collections.Generic.List<Crash>(), new System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<DateTime, string>>()); }
+                // "informe [detalle]": sample match reports in My FPS (ReportUi.cs), nothing written to disk.
+                if (Array.IndexOf(args, "informe") >= 0) Ui.ReportSample = Ui.SampleReports();
                 // "tema noche|lluvia|arcade|simple"; without it, what the test folder has saved.
                 int theme = Array.IndexOf(args, "tema");
                 if (theme >= 0) Prefs.Now.Theme = Theme.LookOf(args[theme + 1]).Id;
@@ -200,11 +214,22 @@ namespace Tablero
                         while (!scan.IsEnabled) await Task.Delay(100);
                     }
                     if (!still) ui.Open(args[3]);
+                    // "listo" / "listo-mal": the Ready to play card with sample results (Ready.cs), all fine or 3 things to look at.
+                    if (Array.IndexOf(args, "listo") >= 0 || Array.IndexOf(args, "listo-mal") >= 0) ui.ShowReady(Ready.Example(Array.IndexOf(args, "listo-mal") >= 0));
+                    if (Array.IndexOf(args, "detalle") >= 0) ui.ShowReportDetail();
                     if (Array.IndexOf(args, "juegos") >= 0) ((Btn)w.FindName("AllGames")).RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
                     if (Array.IndexOf(args, "abierto") >= 0) { ((ScrollViewer)w.FindName("UpgradePage")).ScrollToEnd(); }
                     if (Array.IndexOf(args, "versiones") >= 0) ((Btn)w.FindName("ShowVersions")).RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
+                    // "compartir": the import preview with a sample (Share.cs); nothing is applied.
+                    if (Array.IndexOf(args, "compartir") >= 0) await ui.SharePreviewShot();
                     if (Array.IndexOf(args, "fin") >= 0) foreach (string n in new[] { "SettingsPage", "MacroPage", "NetPage", "ResPage", "BoostPage" }) ((ScrollViewer)w.FindName(n)).ScrollToEnd();
+                    // "limpieza": My PC with the Cleanup search done (read only) and scrolled to it.
+                    if (Array.IndexOf(args, "limpieza") >= 0) { await ui.FindClean(); await Task.Delay(300); ((ScrollViewer)w.FindName("PcPage")).ScrollToEnd(); }
                     if (Array.IndexOf(args, "medir") >= 0) { Btn run = (Btn)w.FindName("NetRun"); run.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent)); while (!run.IsEnabled) await Task.Delay(200); }
+                    // "servidor": the Fortnite server notice in Connection, with sample pings.
+                    if (Array.IndexOf(args, "servidor") >= 0) ui.RegionShot();
+                    // "semana": the weekly summary toast with sample matches (Weekly.cs).
+                    if (Array.IndexOf(args, "semana") >= 0) ui.WeeklyShot();
                     if (Array.IndexOf(args, "vivo") >= 0) ((ListBox)w.FindName("ColorProfiles")).SelectedIndex = 3;
                     // "preguntar texto": Help with one answer (Assistant.cs).
                     int ask = Array.IndexOf(args, "preguntar");
@@ -235,7 +260,27 @@ namespace Tablero
                     // "abrir Name" captures with that dropdown open (the popup is drawn over the window).
                     int dd = Array.IndexOf(args, "abrir");
                     if (dd >= 0) { Drop d = (Drop)w.FindName(args[dd + 1]); d.BringIntoView(); await Task.Delay(300); d.Open(); await Task.Delay(600); }
+                    if (Array.IndexOf(args, "portatil") >= 0) { ((ScrollViewer)w.FindName("SettingsPage")).ScrollToVerticalOffset(480); await Task.Delay(300); }
+                    // "ver Name": scrolled until that element is in view.
+                    int see = Array.IndexOf(args, "ver");
+                    if (see >= 0) { ((FrameworkElement)w.FindName(args[see + 1])).BringIntoView(); await Task.Delay(400); }
                     if (Array.IndexOf(args, "limpio") >= 0) ((UIElement)w.FindName("Toast")).Visibility = Visibility.Collapsed;
+                    if (Array.IndexOf(args, "pesadas-ajustes") >= 0) { ((FrameworkElement)w.FindName("SetHeavyCard")).BringIntoView(); await Task.Delay(400); }
+                    // "pesadas" / "reabrir": only the notice of Heavy.cs, with sample apps.
+                    if (Array.IndexOf(args, "pesadas") >= 0 || Array.IndexOf(args, "reabrir") >= 0)
+                    {
+                        System.Collections.Generic.List<HeavyApp> two = new System.Collections.Generic.List<HeavyApp> { new HeavyApp { Name = "Chrome", Mb = 1500 }, new HeavyApp { Name = "Spotify", Mb = 650 } };
+                        bool asking = Array.IndexOf(args, "pesadas") >= 0;
+                        Window pop = ui.HeavyPop(asking ? Heavy.AskText(two) : Heavy.ReopenText(two), asking, (yes, r) => { });
+                        await Task.Delay(1200);
+                        FrameworkElement pc = (FrameworkElement)pop.Content;
+                        RenderTargetBitmap pb = new RenderTargetBitmap((int)pc.ActualWidth, (int)pc.ActualHeight, 96, 96, PixelFormats.Pbgra32);
+                        pb.Render(pc);
+                        PngBitmapEncoder pe = new PngBitmapEncoder(); pe.Frames.Add(BitmapFrame.Create(pb));
+                        using (FileStream f = File.Create(args[0])) pe.Save(f);
+                        app.Shutdown();
+                        return;
+                    }
                     FrameworkElement root = (FrameworkElement)w.Content;
                     RenderTargetBitmap bmp = new RenderTargetBitmap((int)root.ActualWidth, (int)root.ActualHeight, 96, 96, PixelFormats.Pbgra32);
                     bmp.Render(root);

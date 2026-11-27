@@ -387,6 +387,30 @@ namespace Tablero
                         NetTest.Ping = (h, ms2) => System.Threading.Tasks.Task.FromResult(-1); Is(System.Threading.Tasks.Task.Run(() => NetTest.Nearest()).Result == null, "ninguna region contesta");
                     }
                     finally { NetTest.Ping = png; }
+                    // weekly summary (Weekly.cs) with synthetic matches
+                    {
+                        DateTime wn = new DateTime(2026, 11, 26, 20, 0, 0); // a Thursday
+                        Func<double, int, Match> wm = (daysAgo, fps) => new Match { Start = wn.AddDays(-daysAgo).ToString("yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture), Median = fps };
+                        Is(Weekly.Text(new Dictionary<string, List<Match>> { { "Fortnite", new List<Match> { wm(9, 200) } } }, wn) == null && Weekly.Text(new Dictionary<string, List<Match>>(), wn) == null, "semana sin partidas: sin aviso");
+                        Is(Weekly.Text(new Dictionary<string, List<Match>> { { "Fortnite", new List<Match> { wm(1, 240) } } }, wn) == "Fortnite esta semana: 1 partida, 240 FPS de media. Mejor partida: 240 FPS, miércoles.", "sin semana anterior");
+                        string wt = Weekly.Text(new Dictionary<string, List<Match>> { { "Valorant", new List<Match> { wm(2, 300) } }, { "Fortnite", new List<Match> { wm(2, 212), wm(1, 200), wm(0.5, 241), wm(8, 200), wm(10, 200) } } }, wn);
+                        Is(wt == "Fortnite esta semana: 3 partidas, 218 FPS de media (+9 % frente a la anterior). Mejor partida: 241 FPS, jueves.", "comparacion, mejor partida y juego con mas partidas: " + wt);
+                        Is(Weekly.Due(null, wn) && !Weekly.Due("2026-11-20", wn) && Weekly.Due("2026-11-19", wn) && Weekly.Due("roto", wn), "regla de 7 dias");
+                    }
+                    // server notice: region chosen in a throwaway ini and the threshold rule with sample pings
+                    {
+                        string ri = Path.Combine(dir, "region.ini");
+                        Func<string, string> chosen = body => { File.WriteAllText(ri, "[/Script/FortniteGame.FortGameUserSettings]\r\nLastSelectedRegionId=EU\r\n" + body + "\r\n"); return Region.Chosen(ri); };
+                        Is(chosen("SelectedRegionId=NAE") == "nae" && chosen("SelectedRegionId=EU") == "eu" && chosen("SelectedRegionId=asia") == "asia", "region del ini");
+                        Is(chosen("SelectedRegionId=") == null && chosen("SelectedRegionId=NONE") == null && chosen("SelectedRegionId=Auto") == null && chosen("x=1") == null && Region.Chosen(Path.Combine(dir, "no-existe.ini")) == null, "region automatica o ilegible");
+                        Is(chosen("Island={\"Matchmaking:Region\":\"BR\"}") == "br" && chosen("SelectedRegionId=EU\r\nIsland={\"Matchmaking:Region\":\"BR\"}") == "eu" && chosen("SelectedRegionId=Auto\r\nIsland={\"Matchmaking:Region\":\"BR\"}") == null, "region de la ultima partida");
+                        Func<int[], int[], Dictionary<string, PingStats>> two = (nae, eu) => new Dictionary<string, PingStats> { { "nae", PingStats.Of(nae) }, { "eu", PingStats.Of(eu) }, { "br", PingStats.Of(new[] { -1, -1, -1 }) } };
+                        Is(Region.Better("eu", two(new[] { 98, 97, 99 }, new[] { 22, 22, 23 })) == null, "ya en la mejor region");
+                        Is(Region.Better("nae", two(new[] { 40, 40, 41 }, new[] { 30, 31, 30 })) == null && Region.Better("nae", two(new[] { 200, 200, 200 }, new[] { 180, 180, 180 })) == null, "diferencia pequena: sin aviso");
+                        Is(Region.Better("nae", two(new[] { 98, 97, 99 }, new[] { 22, 22, 23 })) == "eu" && Region.Notice("nae", two(new[] { 98, 97, 99 }, new[] { 22, 22, 23 })).StartsWith("Europa da 22 ms; la región elegida en Fortnite (Norteamérica este) da 98 ms."), "diferencia clara: aviso");
+                        Is(Region.Better(null, two(new[] { 98, 97, 99 }, new[] { 22, 22, 23 })) == null && Region.Notice(null, two(new[] { 98, 97, 99 }, new[] { 22, 22, 23 })) == null, "region automatica: sin aviso");
+                        Is(Region.Better("nae", two(new[] { 98, -1, 99 }, new[] { 22, 22, 23 })) == null && Region.Better("nae", two(new[] { 98, 97, 99 }, new[] { 22, -1, 23 })) == null, "menos de 3 respuestas: sin aviso");
+                    }
                     Is(Wifi.Advice(true, 50, 6, new List<string> { "steam" }).Count(c => c.Kind == Kind.Gratis) == 4 && Wifi.Advice(false, 0, 0, new List<string>()).All(c => c.Kind == Kind.Bien), "consejos de red");
                     NetResult nr = new NetResult { Date = "2026-11-22 20:00:00", Router = ok, Internet = ok, Epic = far, Region = "br" }; NetTest.Save(dir, nr); Is(NetTest.Load(dir).Epic.Median == 140, "medicion guardada"); File.WriteAllText(Path.Combine(dir, "red.json"), "{x"); Is(NetTest.Load(dir) == null, "medicion ilegible");
                 }
@@ -426,10 +450,46 @@ namespace Tablero
                     Prefs.Import(a2, "{\"App\":\"Tweakeroo\",\"Prefs\":{},\"Palette\":\"..\\\\x\"}"); Is(File.ReadAllText(Path.Combine(a2, "paleta.txt")) == "Ciruela" && Macros.Load(a2).On.Count == 0, "importar sin macros ni paleta valida");
                 }
                 finally { Prefs.Now = wasP; Fx.Level = wasL; L.En = lang; }
+                // share (Share.cs): file and code round trip, broken code, file over 1 MB, unknown tweak, Riesgo by hand, shNo differences. Only in memory and the temp folder.
+                {
+                    Tweak shA = new Tweak { Id = "shA", Name = "A", Ops = new List<Op>() }, shB = new Tweak { Id = "shB", Name = "B", Level = Level.Riesgo, Ops = new List<Op>() }, shC = new Tweak { Id = "shC", Name = "C", Ops = new List<Op>() };
+                    List<Tweak> shHere = new List<Tweak> { shA, shB, shC };
+                    string shCr = new Crosshair { Name = "Mío" }.Serialize();
+                    ShareData shD = new ShareData { Tweaks = new List<string> { "shA", "shB", "zz" }, CrossNow = shCr, CrossSaved = new List<string> { shCr }, Stretch = new Dictionary<string, Res> { { "fortnite", new Res { W = 1720, H = 1080 } } }, Theme = "arcade", Palettes = new Dictionary<string, string> { { "fortnite", "Ciruela" } }, Colors = new Dictionary<string, ColorPick> { { "fortnite", Vivid.All[2].Pick } } };
+                    string shF = Path.Combine(dir, "a.tweakeroo");
+                    File.WriteAllText(shF, Share.Json(shD));
+                    Is(Share.Code(shD).StartsWith("TWK1:") && !Share.Json(shD).Contains(dir), "compartir: código con prefijo y sin rutas");
+                    foreach (ShareData shBack in new[] { Share.ReadFile(shF), Share.Read(Share.Code(shD)) })
+                    {
+                        Is(shBack.Tweaks.SequenceEqual(shD.Tweaks) && shBack.CrossNow == shCr && shBack.Stretch["fortnite"].Same(shD.Stretch["fortnite"]) && shBack.Theme == "arcade" && shBack.Palettes["fortnite"] == "Ciruela" && shBack.Colors["fortnite"].Vib == 70, "compartir: ida y vuelta");
+                        SharePlan shSame = Share.Diff(shD, shBack, shHere, t => t != shC, t => false);
+                        Is(shSame.Empty && shSame.Manual.Count == 0 && shSame.Skipped == 1, "compartir: sin diferencias");
+                    }
+                    SharePlan shP = Share.Diff(new ShareData(), Share.Read(Share.Json(shD)), shHere, t => t == shC, t => t == shC);
+                    Is(shP.On.SequenceEqual(new[] { shA }) && shP.Manual.SequenceEqual(new[] { shB }) && shP.Off.SequenceEqual(new[] { shC }) && shP.Skipped == 1 && shP.CrossNow == shCr && shP.Theme == "arcade" && shP.Stretch.Count == 1 && shP.Colors.Count == 1, "compartir: Riesgo a mano, desconocido saltado, lo que shNo viene se apaga");
+                    foreach (string shBad in new[] { "TWK1:abc!!", "TWK1:" + Convert.ToBase64String(Encoding.UTF8.GetBytes("hola")), Share.Code(shD).Substring(0, 30), "{\"v\":2}", "{\"v\":\"1\"}", "{\"v\":1,\"tweaks\":\"shA\"}", "{\"v\":1,\"tweaks\":[1]}", "{\"v\":1,\"stretched\":{\"fortnite\":{\"w\":1,\"h\":1}}}", "{\"v\":1,\"crosshair\":{\"now\":\"basura\"}}", "x", "", null })
+                    {
+                        bool shNo = false;
+                        try { Share.Read(shBad); } catch (InvalidDataException ex) { shNo = ex.Message == Share.Unknown; }
+                        Is(shNo, "compartir: shNo reconoce " + shBad);
+                    }
+                    Is(Share.Read("{\"v\":1,\"otro\":5,\"colors\":{\"theme\":\"rock\",\"palettes\":{\"marte\":\"Ciruela\"}}}").Theme == null, "compartir: campos y valores desconocidos se ignoran");
+                    File.WriteAllText(shF, "{\"v\":1}" + new string(' ', Share.Max));
+                    bool shBig = false;
+                    try { Share.ReadFile(shF); } catch (InvalidDataException) { shBig = true; }
+                    Is(shBig, "compartir: archivo de más de 1 MB");
+                    // the incoming crosshair is used; one with a taken name is renamed and nothing saved is lost
+                    Prefs shPr = Prefs.Default();
+                    string shHad = shPr.CrossNow;
+                    Crosshair shImp = Crosshair.Deserialize(shHad); shImp.TStyle = !shImp.TStyle;
+                    SharePlan shCp = Share.Diff(new ShareData { CrossNow = shHad, CrossSaved = shPr.CrossSaved.ToList() }, new ShareData { CrossNow = shImp.Serialize(), CrossSaved = new List<string>() }, shHere, t => false, t => false);
+                    Share.PutCross(shPr, shCp);
+                    Is(shCp.CrossNow != null && shPr.CrossSaved.Count == 2 && shPr.CrossSaved.Contains(shHad) && shPr.CrossSaved.Contains(shPr.CrossNow) && Crosshair.Deserialize(shPr.CrossNow).TStyle == shImp.TStyle && Crosshair.Deserialize(shPr.CrossNow).Name != Crosshair.Deserialize(shHad).Name, "compartir: crosshair importado sin perder los guardados");
+                }
                 // version history: the installed one appears once and everything is in both languages
                 List<VersionRow> vr = VersionRow.All();
                 Is(vr.Count(v => v.Current) == 1 && vr.All(v => v.Missing == 0 && v.Notes.Count > 0 && v.Date.Length == 10) && vr.Select(v => Version.Parse(v.Version)).SequenceEqual(vr.Select(v => Version.Parse(v.Version)).OrderByDescending(v => v)), "historial de versiones");
-                // clearing the FPS does not let them come back from the logs
+                // clearing the FPS does not let them come shBack from the logs
                 string fl = FpsLog.Folder, fd = Path.Combine(dir, "fps-borrar");
                 try
                 {
@@ -714,6 +774,12 @@ namespace Tablero
                 finally { Cs2.Steam = realSteam; }
                 // CS2's FPS (ETW) and maps (GSI): FramesTest.cs
                 FramesTest.Run(dir);
+                // Match engine and shortcuts: TrackerTest.cs
+                TrackerTest.Run(dir);
+                // Closing heavy apps while playing: Heavy.cs
+                HeavyTest.Run();
+                OverlayTest.Run(); // Overlay.cs
+                ReportText.Test(); // the after-match report texts: ReportUi.cs
 
                 // Crosshair codes (Crosshair.cs): Valorant and CS2, export, prefs line
                 {
@@ -1117,6 +1183,47 @@ namespace Tablero
                 foreach (string[] hq in new[] { new[] { "me bajan mucho los fps", "fps" }, new[] { "tirones", "fps" }, new[] { "tengo input lag", "delay" }, new[] { "lagggg y ping alto", "network" }, new[] { "la sensi del mouse esta rara", "mouse" }, new[] { "no me abre el juego", "launch" }, new[] { "el streched no anda", "stretched" }, new[] { "won't launch", "launch" }, new[] { "asdfgh", "" }, new[] { "tengo lag", "fps+network" }, new[] { "Se me traba el juego cada tanto", "fps" }, new[] { "high ping and packet loss", "network" }, new[] { "colores lavados", "colors" }, new[] { "BANDAS NEGRAS en Valorant", "stretched" }, new[] { "", "" } })
                     Is(helpAsk(hq[0]) == hq[1], "ayuda: \"" + hq[0] + "\" da " + helpAsk(hq[0]));
                 foreach (Problem hp in Assistant.All) Is(helpAsk(hp.Chip) == hp.Id, "ayuda: la etiqueta " + hp.Chip + " da " + helpAsk(hp.Chip));
+                foreach (string hx in new[] { "se me cierra el juego", "fortnite crashea", "my game crashes", "se cuelga y se cierra" }) Is(helpAsk(hx) == "crash", "ayuda: \"" + hx + "\" da " + helpAsk(hx));
+
+                // Why the game closed: synthetic Unreal crash folders and event texts (Crashes.cs)
+                {
+                    string croot = Path.Combine(dir, "crashes");
+                    string fexe = "FortniteClient-Win64-Shipping.exe";
+                    Action<string, string, int, string> mk = (cn, cxml, cdays, extra) =>
+                    {
+                        string cd = Path.Combine(croot, cn); Directory.CreateDirectory(cd);
+                        File.WriteAllText(Path.Combine(cd, "CrashContext.runtime-xml"), cxml);
+                        if (extra != null) File.WriteAllText(Path.Combine(cd, extra), "x");
+                        Directory.SetLastWriteTime(cd, DateTime.Now.AddDays(-cdays));
+                    };
+                    Func<string, string, string, string> ctx = (ct, cm, cs) => "<FGenericCrashContext><RuntimeProperties><CrashType>" + ct + "</CrashType><ErrorMessage>" + cm + "</ErrorMessage><CallStack>" + cs + "</CallStack><MemoryStats.bIsOOM>0</MemoryStats.bIsOOM></RuntimeProperties><Modules>DiscordHook64.dll nvwgf2umx.dll</Modules></FGenericCrashContext>";
+                    mk("gpu", ctx("Crash", "LowLevelFatalError [File:D3D12Util.cpp] Unreal Engine is exiting due to D3D device being lost. (Error: 0x887A0006 - 'HUNG') DXGI_ERROR_DEVICE_HUNG", ""), 1, null);
+                    mk("vram", ctx("Crash", "Out of video memory trying to allocate a rendering resource", ""), 2, null);
+                    mk("ram", ctx("Crash", "Ran out of memory allocating 1048576 bytes", "").Replace("<MemoryStats.bIsOOM>0", "<MemoryStats.bIsOOM>1"), 3, null);
+                    mk("av", ctx("Crash", "Unhandled Exception: EXCEPTION_ACCESS_VIOLATION reading address 0x0000000000000010", "ntdll.dll!UnknownFunction []\n" + fexe + "!UnknownFunction []"), 4, null);
+                    mk("disc", ctx("Crash", "Unhandled Exception: EXCEPTION_ACCESS_VIOLATION reading address 0x0", "DiscordHook64.dll!UnknownFunction []\n" + fexe + "!UnknownFunction []"), 5, null);
+                    mk("eac", ctx("Crash", "Fatal error: EasyAntiCheat_EOS integrity violation", ""), 6, null);
+                    mk("zero", new string('\0', 64), 7, "UEAftermathD3D12.nv-gpudmp");
+                    mk("hang", ctx("Hang", "Hang detected on GameThread: 0x1 ntdll.dll!UnknownFunction []", "ntdll.dll!UnknownFunction []\nfoo.dll!UnknownFunction []"), 8, null);
+                    mk("ensure", ctx("Ensure", "Ensure condition failed", "").Replace("<CrashType>", "<IsEnsure>true</IsEnsure><CrashType>"), 1, null);
+                    mk("old", ctx("Crash", "DXGI_ERROR_DEVICE_REMOVED", ""), 40, null);
+                    List<Crash> cf = Crashes.Folders(croot, "Fortnite", fexe, DateTime.Now.AddDays(-Crashes.Days));
+                    Func<string, Crash> cby = cn => cf.FirstOrDefault(x => Path.GetFileName(x.Folder) == cn);
+                    Crashes.Merge(cf, new List<Crash>(), new List<KeyValuePair<DateTime, string>>());
+                    Is(cf.Count == 8 && cby("old") == null && cby("ensure") == null, "cierres: 30 días y sin ensures (" + cf.Count + ")");
+                    Is(cby("gpu").Cause == "El driver de la gráfica dejó de responder" && cby("zero").Cause == cby("gpu").Cause, "cierres: driver y volcado de la gráfica");
+                    Is(cby("vram").Cause == "Sin memoria de vídeo" && cby("ram").Cause == "Sin memoria del sistema" && cby("eac").Cause == "El anticheat cerró el juego", "cierres: memoria y anticheat");
+                    Is(cby("av").Cause == "Error de memoria dentro del juego" && cby("disc").Cause == "Fallo en el overlay de Discord" && cby("disc").Action == "Probar sin el overlay de Discord.", "cierres: acceso indebido y overlay (" + cby("av").Cause + ", " + cby("disc").Cause + ")");
+                    Is(cby("hang").Cause == Crashes.Unknown && cby("hang").Action == null && cby("hang").Raw == "Hang · foo.dll", "cierres: sin causa clara muestra el módulo (" + cby("hang").Raw + ")");
+                    // Event 1000 of the game exe: a driver reset just before makes it the driver; a folder 2 minutes away is the same closure.
+                    DateTime ct0 = DateTime.Now.AddDays(-1);
+                    Func<DateTime, Crash> app = at => new Crash { When = at, Game = "Valorant", Exe = "VALORANT-Win64-Shipping.exe", Top = "VALORANT-Win64-Shipping.exe", Evidence = "c0000005 VALORANT-Win64-Shipping.exe", Raw = "0xc0000005" };
+                    List<KeyValuePair<DateTime, string>> mark = new List<KeyValuePair<DateTime, string>> { new KeyValuePair<DateTime, string>(ct0.AddMinutes(-1), "display 4101") };
+                    List<Crash> cm2 = Crashes.Merge(new List<Crash> { new Crash { When = ct0.AddMinutes(2), Game = "Valorant", Folder = "x" } }, new List<Crash> { app(ct0), app(ct0.AddHours(-5)) }, mark);
+                    Is(cm2.Count == 2 && cm2[0].Folder == "x" && cm2[0].Cause == "El driver de la gráfica dejó de responder" && cm2[1].Cause == "Error de memoria dentro del juego", "cierres: evento, marca 4101 y unión con la carpeta");
+                    Crash cu = new Crash { Evidence = "c0000409 foo.dll", Top = "foo.dll", Exe = fexe, Raw = "0xc0000409" }; Crashes.Classify(cu);
+                    Is(cu.Cause == Crashes.Unknown && cu.Raw == "0xc0000409 · foo.dll", "cierres: código desconocido tal cual");
+                }
 
                 // Help report: compressed images and the GitHub link (Assistant.cs)
                 {
@@ -1199,13 +1306,27 @@ namespace Tablero
                         "3 activados. Fortnite está abierto: 2 ajustes del juego quedaron sin tocar. 4 no recomendados para este PC quedaron sin tocar.", "No queda nada por activar en esta sección. 4 no recomendados para este PC quedaron sin tocar.", "No se pudo leer la configuración de CS2.", "Cierra CS2 primero: el juego sobrescribe su configuración al salir.", "No se encontró la configuración de CS2. Abre el juego una vez e inténtalo de nuevo.", "La pantalla no aceptó 1920 × 1080 a 144 Hz (código -2)." }) L.T(x);
                     foreach (Look lk in Theme.Looks) { L.T(lk.Name); L.T("Temática: " + lk.Name); }
                     foreach (Problem hp in Assistant.All) { L.T(hp.Name); L.T(hp.Why); L.T(hp.Chip); }
+                    foreach (string x in Crashes.Texts().Concat(new[] { "Cierres del juego", "Sin cierres inesperados en los últimos 30 días.", "Abrir carpeta", "Se revisaron los informes de cierre y el registro de eventos de Windows.", "Último cierre: Valorant, 3 nov, 18:09. Bajar texturas o resolución." })) L.T(x);
+                    foreach (string x in Ui.ToolWords()) L.T(x);
+                    foreach (string x in Ui.OverlayWords()) L.T(x);
                     foreach (string x in Ui.CrossWords.Concat(new[] { "Blanco", "Verde", "Amarillo verdoso", "Verde amarillento", "Amarillo", "Cian", "Rosa", "Rojo" })) L.T(x);
                     foreach (string x in new[] { "No se reconoció el problema. Prueba con otras palabras o elige uno:", "¿Cuál se parece más?", "Abrir Mi PC", "Abrir Stretched Resolution", "Últimas partidas: 240 FPS de media", "Memoria libre: 3,5 GB", "Perfil de color: Vivo", "Fortnite instalado", "Intensidad de color: 50 %", "Activar", "No es este problema", "No se solucionó", "Otro problema: enviar reporte", "Qué pasa, desde cuándo y qué se probó", "Adjuntar imágenes", "Imágenes", "Quitar imagen", "Incluir datos de la PC", "El reporte es público en GitHub. No incluyas datos personales.", "Enviar reporte", "Se admiten hasta 4 imágenes.", "No se pudo abrir la imagen: captura.png", "No se pudo preparar el reporte: x", "Problema sin identificar", "(recortado)", "Se abrió GitHub con el reporte escrito. Arrastra las imágenes de la carpeta abierta al cuadro del reporte y pulsa Submit new issue. Hace falta una cuenta de GitHub.", "Se abrió GitHub con el reporte escrito. Pulsa Submit new issue. Hace falta una cuenta de GitHub.", "Correcto", "Abrir", "Arreglar" }) L.T(x);
+                    foreach (string x in Cleanup.Texts()) L.T(x);
+                    foreach (string x in Ready.Texts()) L.T(x);
+                    foreach (string x in Share.Texts()) L.T(x);
+                    foreach (string x in Heavy.Texts()) L.T(x);
                     string[] same = { "Tweakeroo", "Español", "English", "Fortnite", "Valorant", "CS2", "FPS", "Stretched" };
                     List<string> miss = L.Missing.Where(x => !same.Contains(x)).ToList();
                     Is(miss.Count == 0, "sin traducir (" + miss.Count + "):\n" + string.Join("\n", miss));
                 }
                 finally { L.En = false; }
+
+                // Tools: eDPI per game, polling rounded to the standard rates, DPI from a known distance
+                Is(Math.Round(ToolMath.Edpi("Valorant", 0.35, 800), 6) == 280 && ToolMath.Edpi("CS2", 1.5, 800) == 1200 && ToolMath.Edpi("Fortnite", 6.5, 800) == 52, "eDPI por juego");
+                Is(ToolMath.Where("Valorant", 280) == 0 && ToolMath.Where("CS2", 1300) == 1 && ToolMath.Where("Fortnite", 20) == -1, "eDPI frente al rango");
+                Is(ToolMath.StdRate(987) == 1000 && ToolMath.StdRate(498) == 500 && ToolMath.StdRate(7900) == 8000 && ToolMath.StdRate(130) == 125 && ToolMath.StdRate(3700) == 4000, "polling redondeado");
+                { List<double> ev = Enumerable.Range(0, 3000).Select(i => i / 1000.0).ToList(); ev.AddRange(Enumerable.Repeat(1.2, 40)); ev.Sort(); Is(Math.Abs(ToolMath.PollRate(ev) - 1080) <= 4 && ToolMath.PollRate(new List<double>()) == 0, "polling en ventana de 0,5 s " + ToolMath.PollRate(ev)); }
+                Is(Math.Round(ToolMath.Dpi(3150, 10)) == 800 && Math.Round(ToolMath.Dpi(-3150, 10)) == 800, "DPI medido");
 
                 // crosshair: whole pixels, mirrored around the centre (the middle of the centre pixel for odd thickness, its corner for even), outline grows each piece
                 foreach (int th in new[] { 1, 2, 3, 4 })
@@ -1233,6 +1354,9 @@ namespace Tablero
                     cx.Inner.Show = false; cx.Outer.Show = false; cx.Dot = false; Is(CrossShape.Fills(cx).Count == 0, "crosshair vacio");
                 }
 
+                Cleanup.Test(Is, dir);
+                Ready.Test(Is);
+
                 // catalog
                 List<Tweak> all = Catalog.Build();
                 Is(all.Select(x => x.Id).Distinct().Count() == all.Count, "ids unicos");
@@ -1250,6 +1374,20 @@ namespace Tablero
                     Row gr = new Row(all.First(x => x.Id == "cs2-reflex")), plain = new Row(all.First(x => x.Id == "tl-level"));
                     Is(gr.GainText == Gains.Table["cs2-reflex"].Text && gr.GainTip == "Fuente: nvidia.com" && plain.HasGain && plain.GainText == null && plain.GainTip == null, "fila con y sin estimación");
                     gr.SetHw(amd); Is(gr.GainText.StartsWith("Sin efecto") && gr.GainTip == "Fuente: nvidia.com", "la fila cambia con el escaneo");
+                }
+                {
+                    // Laptop profile (Laptop.cs): only the pure decision, with made-up plans. The real plan is never changed.
+                    Guid cortex = Guid.NewGuid(), gone = Guid.NewGuid(), k;
+                    List<Guid> plans = new List<Guid> { Laptop.Balanced, Laptop.High, cortex };
+                    Is(Laptop.Decide(false, true, cortex, Guid.Empty, plans, out k) == null && k == Guid.Empty, "portatil: apagado no hace nada");
+                    Is(Laptop.Decide(true, null, cortex, Guid.Empty, plans, out k) == null, "portatil: estado de la corriente desconocido");
+                    Is(Laptop.Decide(true, true, cortex, Guid.Empty, plans, out k) == Laptop.Balanced && k == cortex, "portatil: desenchufar guarda el plan y pasa a Equilibrado");
+                    Is(Laptop.Decide(true, true, Laptop.Balanced, cortex, plans, out k) == null && k == cortex, "portatil: ya en Equilibrado, se conserva el guardado");
+                    Is(Laptop.Decide(true, false, Laptop.Balanced, cortex, plans, out k) == cortex && k == Guid.Empty, "portatil: enchufar repone el plan guardado");
+                    Is(Laptop.Decide(true, false, Laptop.Balanced, gone, plans, out k) == Laptop.High && k == Guid.Empty, "portatil: plan guardado que ya no existe pasa a Alto rendimiento");
+                    Is(Laptop.Decide(true, false, Laptop.Balanced, gone, new List<Guid> { Laptop.Balanced }, out k) == null, "portatil: sin plan guardado ni Alto rendimiento");
+                    Is(Laptop.Decide(true, false, cortex, cortex, plans, out k) == null && k == Guid.Empty, "portatil: al abrir enchufado con el mismo plan, nada");
+                    Is(Laptop.Decide(true, false, cortex, Guid.Empty, plans, out k) == null, "portatil: enchufado sin plan guardado");
                 }
                 HashSet<string> keys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 foreach (Tweak t in all)

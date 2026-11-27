@@ -37,6 +37,15 @@ namespace Tablero
             Toggle("SetMin", () => Prefs.Now.StartMin, v => Prefs.Now.StartMin = v);
             Toggle("SetTray", () => Prefs.Now.Tray, v => { Prefs.Now.Tray = v; ShowTray(); });
             Toggle("SetAuto", () => Prefs.Now.AutoCheck, v => Prefs.Now.AutoCheck = v);
+            StartHeavy();
+            if (Laptop.Has())
+            {
+                F<FrameworkElement>("SetLaptopBox").Visibility = Visibility.Visible;
+                // Turning it off forgets the saved plan; turning it on applies the mode at once.
+                Toggle("SetLaptop", () => Prefs.Now.LaptopMode, v => { Prefs.Now.LaptopMode = v; if (!v) Prefs.Now.LaptopPlan = null; else if (!Laptop.Force) Laptop.Apply(dir); });
+                Laptop.Start(dir, w.Dispatcher, m => { if (Game.Open != null) Say(m, false); });
+                w.Closed += (s, e) => Laptop.Stop();
+            }
             Choice("SetLang", new[] { "English", "Español" }, new[] { "en", "es" }, () => L.En ? "en" : "es", v => ChangeLanguage(v == "en"));
             Tri motion = F<Tri>("SetMotion");
             motion.Labels(new[] { "Todas", "Sin rebote", "Ninguna" });
@@ -103,6 +112,8 @@ namespace Tablero
             F<Btn>("OpenData").Click += (s, e) => Attempt(() => Process.Start(new ProcessStartInfo("explorer.exe", "\"" + dir + "\"") { UseShellExecute = false }));
             F<Btn>("ExportSet").Click += (s, e) => Export();
             F<Btn>("ImportSet").Click += (s, e) => Import();
+            StartShare();
+            StartOverlay(); // OverlayUi.cs: its card is in "Al jugar"; the mark shortcut row is here
             Armed("ClearFps", "Borrar historial de FPS", ClearFps);
             Armed("ClearScan", "Borrar escaneo", () => { Attempt(() => Scanner.Delete(dir)); Say("Escaneo borrado. Se pedirá otra vez al volver a abrir.", false); });
             Armed("RestoreOrig", "Volver al estado Original", async () =>

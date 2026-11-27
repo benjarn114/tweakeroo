@@ -848,8 +848,10 @@ Buscar al abrir	Check when it opens
 Buscar ahora	Check now
 Datos	Data
 Abrir carpeta de datos	Open data folder
-Exportar ajustes	Export settings
-Importar ajustes	Import settings
+Copia de seguridad de la app	App backup
+Restaurar copia de la app	Restore app backup
+Guarda en un archivo las preferencias, macros, paletas e idioma de la app. No incluye los tweaks	Saves the app preferences, macros, palettes and language to a file. Tweaks are not included
+Carga una copia de seguridad de la app guardada antes	Loads an app backup saved earlier
 Ayuda	Help
 GitHub	GitHub
 Informar de un fallo	Report a problem
@@ -892,6 +894,8 @@ Router	Router
 Internet	Internet
 Servidores de Epic	Epic servers
 Servidores de Epic: {0}	Epic servers: {0}
+{0} da {1} ms; la región elegida en Fortnite ({2}) da {3} ms.	{0} gives {1} ms; the region chosen in Fortnite ({2}) gives {3} ms.
+Se cambia en Fortnite: Ajustes > Juego > Región de emparejamiento.	Change it in Fortnite: Settings > Game > Matchmaking Region.
 Brasil	Brazil
 Norteamérica este	North America East
 Norteamérica centro	North America Central
@@ -901,7 +905,7 @@ Oriente Medio	Middle East
 Asia	Asia
 Oceanía	Oceania
 Sin respuesta	No response
-Variación {0} ms, pérdida {1} %, peor {2} ms	Jitter {0} ms, loss {1}%, worst {2} ms
+Variación {0} ms, pérdida {1} %, peor {2} ms	Jitter {0} ms, loss {1}%, worst {2} ms
 Prueba anterior ({0}): {1} ms, variación {2} ms, pérdida {3} %.	Previous test ({0}): {1} ms, jitter {2} ms, loss {3}%.
 Mientras se juega	While playing
 Wi-Fi estable	Steady Wi-Fi
@@ -1525,3 +1529,250 @@ Abre Valorant y estira la pantalla cuando el juego termina de cargar. Al cerrarl
 Abriendo Riot Client: pulsa Jugar allí. La pantalla se estira cuando el juego termina de cargar; Tweakeroo debe quedar abierto.	Opening Riot Client: press Play there. The screen stretches once the game has finished loading; Tweakeroo must stay open.
 Valorant abierto: la pantalla se estira cuando el juego termina de cargar y vuelve al cerrarlo.	Valorant open: the screen stretches once the game has finished loading and goes back when it closes.
 Esperando el menú de Valorant…	Waiting for the Valorant menu…
+Herramientas	Tools
+Medidas rápidas del ratón y de los reflejos.	Quick measurements of the mouse and reflexes.
+eDPI	eDPI
+DPI	DPI
+Sensibilidad del juego multiplicada por el DPI del ratón: la sensibilidad real, comparable entre jugadores.	In-game sensitivity multiplied by the mouse DPI: the real sensitivity, comparable between players.
+Sensibilidad	Sensitivity
+Sensibilidad (%)	Sensitivity (%)
+Ej.: 0,35	E.g. 0.35
+Referencia aproximada de jugadores profesionales: {0}–{1}.	Approximate reference for pro players: {0}–{1}.
+Escribe la sensibilidad y el DPI.	Enter the sensitivity and DPI.
+Dentro del rango habitual	Within the usual range
+Más alto que el rango habitual	Higher than the usual range
+Más bajo que el rango habitual	Lower than the usual range
+Test del ratón	Mouse test
+Polling rate	Polling rate
+Al pulsar, mueve el ratón en círculos rápidos durante 3 segundos.	After pressing, move the mouse in fast circles for 3 seconds.
+Medir polling rate	Measure polling rate
+Midiendo… mueve el ratón en círculos rápidos	Measuring… move the mouse in fast circles
+Poco movimiento. Prueba otra vez moviendo el ratón sin parar.	Not enough movement. Try again, moving the mouse without stopping.
+Medido: {0} Hz (≈{1} Hz)	Measured: {0} Hz (≈{1} Hz)
+Windows no dio acceso al ratón.	Windows did not give access to the mouse.
+DPI medido	Measured DPI
+Con una regla junto al ratón: mantén pulsado el botón izquierdo en la zona de abajo, arrastra la distancia indicada en horizontal y suelta.	With a ruler next to the mouse: hold the left button on the area below, drag the given distance horizontally and release.
+Distancia (cm)	Distance (cm)
+Distancia en centímetros	Distance in centimeters
+DPI declarado	Stated DPI
+Mantén pulsado aquí y arrastra	Hold here and drag
+Arrastra la distancia y suelta	Drag the distance and release
+Escribe la distancia en centímetros.	Enter the distance in centimeters.
+Muy poco movimiento. Arrastra toda la distancia en horizontal.	Too little movement. Drag the whole distance horizontally.
+DPI medido: {0}	Measured DPI: {0}
+Igual que el declarado	Same as stated
+{0} % frente al declarado	{0}% compared with the stated value
+Tiempo de reacción	Reaction time
+Cinco intentos: clic en cuanto cambie el color. Al final, la media.	Five tries: click as soon as the color changes. The average comes at the end.
+Clic para empezar	Click to start
+Espera al color…	Wait for the color…
+¡Clic!	Click!
+Demasiado pronto	Too soon
+Clic para repetir el intento	Click to retry
+{0} ms	{0} ms
+Intento {0} de 5	Try {0} of 5
+Intento {0} de 5 · clic para seguir	Try {0} of 5 · click to continue
+Media: {0} ms	Average: {0} ms
+Clic para otra serie	Click for another round
+Récord: {0} ms	Best: {0} ms
+Sin récord todavía	No best yet
+Cachés y temporales que Windows y los drivers vuelven a crear solos. Nada se borra sin confirmar.	Caches and temp files that Windows and the drivers rebuild by themselves. Nothing is deleted without confirming.
+Buscar qué limpiar	Find what to clean
+Calculando…	Calculating…
+Limpiando…	Cleaning…
+Nada que limpiar.	Nothing to clean.
+Caché de sombreadores de DirectX	DirectX shader cache
+Caché de sombreadores de NVIDIA	NVIDIA shader cache
+Caché de sombreadores de AMD	AMD shader cache
+Caché de sombreadores de Intel	Intel shader cache
+Temporales del usuario	User temp files
+Temporales de Windows	Windows temp files
+La primera partida puede tener tirones mientras se rehace la caché.	The first match may stutter while the cache is rebuilt.
+Archivos temporales de más de un día. Se borra lo que no esté en uso.	Temp files older than a day. Only what is not in use is deleted.
+Limpiar	Clean
+Limpiar {0}	Clean {0}
+Total seleccionado: {0}	Selected total: {0}
+Total: {0}	Total: {0}
+Se borra, sin pasar por la Papelera:	To be deleted, without going to the Recycle Bin:
+¿Limpiar ahora?	Clean now?
+Cierra el juego antes de limpiar.	Close the game before cleaning.
+Liberados {0}.	Freed {0}.
+{0} archivo en uso se dejó.	{0} file in use was left.
+{0} archivos en uso se dejaron.	{0} files in use were left.
+Windows no da la temperatura de la CPU en este PC. Leerla exigiría un driver de kernel, que los anticheat pueden bloquear.	Windows does not provide the CPU temperature on this PC. Reading it would need a kernel driver, which anti-cheats may block.
+Cierres del juego	Game crashes
+Sin cierres inesperados en los últimos 30 días.	No unexpected crashes in the last 30 days.
+Abrir carpeta	Open folder
+El juego se cierra	The game closes
+El juego se cierra solo	The game closes by itself
+Se revisan los informes de cierre del juego y el registro de eventos de Windows de los últimos 30 días.	The game's crash reports and the Windows event log from the last 30 days are checked.
+Se revisaron los informes de cierre y el registro de eventos de Windows.	Crash reports and the Windows event log were checked.
+Último cierre: {0}	Last crash: {0}
+Sin memoria de vídeo	Out of video memory
+Bajar texturas o resolución.	Lower textures or resolution.
+Sin memoria del sistema	Out of system memory
+Cerrar programas pesados; no desactivar el archivo de paginación.	Close heavy programs; don't turn off the paging file.
+El anticheat cerró el juego	The anti-cheat closed the game
+Reinstalar el anticheat desde el launcher.	Reinstall the anti-cheat from the launcher.
+El driver de la gráfica dejó de responder	The graphics driver stopped responding
+Actualizar o reinstalar limpio el driver; quitar overclock de la gráfica si lo hay.	Update or clean-reinstall the driver; remove any graphics card overclock.
+Error de memoria dentro del juego	Memory error inside the game
+Verificar los archivos del juego en su launcher.	Verify the game files in its launcher.
+Sin causa clara	No clear cause
+Fallo en el overlay de {0}	Crash in the {0} overlay
+Probar sin el overlay de {0}.	Try without the {0} overlay.
+Compartir configuración	Share settings
+Tweaks, crosshair, stretched y colores, en un archivo o en un código.	Tweaks, crosshair, stretched and colors, in a file or in a code.
+Exportar archivo	Export file
+Importar archivo	Import file
+Copiar código	Copy code
+Pegar código	Paste code
+Importar configuración	Import settings
+Qué cambia	What changes
+Aplicar	Apply
+Cancelar	Cancel
+Se activa 1 tweak	1 tweak is turned on
+Se activan {0} tweaks	{0} tweaks are turned on
+Se apaga 1	1 is turned off
+Se apagan {0}	{0} are turned off
+Se activan a mano: {0}	Turned on by hand: {0}
+Crosshair: se reemplaza	Crosshair: replaced
+Crosshairs guardados nuevos: {0}	New saved crosshairs: {0}
+Stretched de {0}: {1}	{0} stretched: {1}
+Paleta de {0}: {1}	{0} palette: {1}
+Colores de {0}: {1}	{0} colors: {1}
+Se salta 1 tweak que no existe o no aplica a este PC	1 tweak that does not exist or does not apply to this PC is skipped
+Se saltan {0} tweaks que no existen o no aplican a este PC	{0} tweaks that do not exist or do not apply to this PC are skipped
+Stretched de {0}: {1} no está disponible en esta pantalla.	{0} stretched: {1} is not available on this screen.
+{0} está abierto: su stretched se salta.	{0} is open: its stretched is skipped.
+Fortnite está abierto: se saltan {0} ajustes del juego.	Fortnite is open: {0} game settings are skipped.
+Código no reconocido.	Code not recognized.
+No se pudo leer: {0}	Could not read: {0}
+Configuración exportada.	Settings exported.
+Configuración aplicada.	Settings applied.
+Ya coincide con esta configuración.	Already matches these settings.
+Ver nombres	Show names
+Ocultar nombres	Hide names
+Perfil para portátil	Laptop profile
+Con batería pasa a ahorro; enchufado vuelve a rendimiento.	On battery it switches to power saving; plugged in it goes back to performance.
+Con batería: plan de ahorro.	On battery: power saving plan.
+Enchufado: plan de rendimiento.	Plugged in: performance plan.
+{0} esta semana: {1} partidas, {2} FPS de media ({3} % frente a la anterior).	{0} this week: {1} matches, {2} FPS average ({3}% vs the week before).
+{0} esta semana: 1 partida, {1} FPS de media ({2} % frente a la anterior).	{0} this week: 1 match, {1} FPS average ({2}% vs the week before).
+{0} esta semana: {1} partidas, {2} FPS de media.	{0} this week: {1} matches, {2} FPS average.
+{0} esta semana: 1 partida, {1} FPS de media.	{0} this week: 1 match, {1} FPS average.
+Mejor partida: {0} FPS, lunes.	Best match: {0} FPS, Monday.
+Mejor partida: {0} FPS, martes.	Best match: {0} FPS, Tuesday.
+Mejor partida: {0} FPS, miércoles.	Best match: {0} FPS, Wednesday.
+Mejor partida: {0} FPS, jueves.	Best match: {0} FPS, Thursday.
+Mejor partida: {0} FPS, viernes.	Best match: {0} FPS, Friday.
+Mejor partida: {0} FPS, sábado.	Best match: {0} FPS, Saturday.
+Mejor partida: {0} FPS, domingo.	Best match: {0} FPS, Sunday.
+¿Listo para jugar?	Ready to play?
+Revisando…	Checking…
+Todo listo para jugar.	All set to play.
+1 cosa que revisar	1 thing to check
+{0} cosas que revisar	{0} things to check
+Programas pesados abiertos: {0}	Heavy programs open: {0}
+Sin programas pesados abiertos	No heavy programs open
+Poca memoria libre: {0} GB	Low free memory: {0} GB
+Gráfica caliente en reposo: {0} °C	GPU hot at idle: {0} °C
+Gráfica a {0} °C	GPU at {0} °C
+CPU caliente en reposo: {0} °C	CPU hot at idle: {0} °C
+CPU a {0} °C	CPU at {0} °C
+Ping alto: {0} ms	High ping: {0} ms
+Ping: {0} ms	Ping: {0} ms
+Pérdida de paquetes: {0} de {1}	Packet loss: {0} of {1}
+Sin respuesta al ping	No ping reply
+Driver de la gráfica: hay uno más nuevo ({0})	Graphics driver: a newer one is out ({0})
+Driver de la gráfica al día	Graphics driver up to date
+Plan de energía: {0}	Power plan: {0}
+Ahorro de energía	Power saver
+Equilibrado	Balanced
+Alto rendimiento	High performance
+Máximo rendimiento	Ultimate performance
+Plan de energía correcto	Power plan OK
+RAM libre {0} GB	Free RAM {0} GB
+GPU {0} °C	GPU {0} °C
+CPU {0} °C	CPU {0} °C
+ping {0} ms	ping {0} ms
+Ver conexión	View connection
+Ver driver	View driver
+Cambiar plan	Change plan
+hoy {0}	today {0}
+ayer {0}	yesterday {0}
+Sin datos de FPS.	No FPS data.
+Sin tirones.	No stutters.
+Sin un programa culpable claro.	No clear culprit program.
+{0} era el programa que más consumía en el tirón.	{0} was the program using the most during the stutter.
+{0} era el programa que más consumía en {1} de {2} tirones.	{0} was the program using the most in {1} of {2} stutters.
+ping perdido	ping lost
+{0} {1} % de CPU	{0} {1}% CPU
+{0} {1} MB/s de disco	{0} {1} MB/s disk
+Marca de {0}: sin datos.	Mark at {0}: no data.
+Marca de {0}: {1}.	Mark at {0}: {1}.
+Partida terminada: {0} FPS de media, 1 tirón.	Match over: {0} FPS average, 1 stutter.
+Partida terminada: {0} FPS de media, {1} tirones.	Match over: {0} FPS average, {1} stutters.
+Partida terminada. El informe está en Mis FPS.	Match over. The report is in My FPS.
+Partida anterior	Earlier match
+Partidas anteriores	Earlier matches
+FPS medio	Average FPS
+1 % bajo	1% low
+picos: {0}	spikes: {0}
+Probable culpable	Likely culprit
+Ver detalle	Show details
+Ocultar detalle	Hide details
+Tirón de {0} ms	{0} ms stutter
+Pico de ping de {0} ms	{0} ms ping spike
+Sin culpable claro	No clear culprit
+Se muestran 10 de {0}.	Showing 10 of {0}.
+Cerrar apps pesadas al jugar	Close heavy apps while playing
+Al abrir un juego se pregunta antes de cerrar nada; al cerrarlo se ofrece volver a abrirlas.	When a game opens, nothing closes without asking; when it closes, they can be opened again.
+Volver a preguntar	Ask again
+Recordar mi elección	Remember my choice
+Sí	Yes
+No	No
+Ninguna encontrada en este PC.	None found on this PC.
+Se cierran sin preguntar.	Closed without asking.
+No se pregunta al jugar.	Not asked when playing.
+¿Cerrar {0}? Liberan {1}.	Close {0}? Frees {1}.
+¿Cerrar {0}? Libera {1}.	Close {0}? Frees {1}.
+¿Volver a abrir {0}?	Open {0} again?
+Cerrado sin preguntar: {0}. Siguen abiertos: {1}.	Closed without asking: {0}. Still open: {1}.
+Cerrado sin preguntar: {0}.	Closed without asking: {0}.
+Siguen abiertos: {0}.	Still open: {0}.
+Overlay de rendimiento	Performance overlay
+Mostrar overlay	Show overlay
+Atajo	Shortcut
+Estilo	Style
+Esquina	Corner
+Qué mostrar	What to show
+Funciona con el juego en ventana o sin bordes; en pantalla completa puede no verse.	Works with the game windowed or borderless; in fullscreen it may not show.
+Atajo para marcar un lag	Shortcut to mark a lag
+Guarda ese momento de la partida para verlo en el informe.	Saves that moment of the match to see it in the report.
+1 % bajo	1% low
+Pérdida	Loss
+Temperatura GPU	GPU temperature
+Uso GPU	GPU usage
+Temperatura CPU	CPU temperature
+Uso CPU	CPU usage
+RAM	RAM
+VRAM	VRAM
+Gráfico de frametime	Frametime graph
+Hora	Time
+PING	PING
+PÉRD	LOSS
+GPU °C	GPU °C
+GPU	GPU
+CPU °C	CPU °C
+CPU	CPU
+Una línea	One line
+Columna	Column
+Solo números	Numbers only
+Arriba a la izquierda	Top left
+Arriba a la derecha	Top right
+Abajo a la izquierda	Bottom left
+Abajo a la derecha	Bottom right
+Pulsa la combinación…	Press the combination…
+Sin atajo	No shortcut
+Combinación ocupada por otro programa.	Combination taken by another program.
