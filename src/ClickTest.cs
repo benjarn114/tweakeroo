@@ -298,6 +298,10 @@ namespace Tablero
                 Press(cson); await Task.Delay(700);
                 Is(cson.State == true && Prefs.Now.CrossOn && typeof(Ui).GetField("overlay", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(live) == null, "crosshair: encendido, sin ventana real en la prueba");
                 Press(cson); Is(cson.State == false && !Prefs.Now.CrossOn, "crosshair: apagado");
+                Switch csm = (Switch)w.FindName("CrossMatch"); Func<Prefs> csaved = () => Prefs.Parse(File.ReadAllText(Path.Combine(Path.GetTempPath(), "tablero-clics", "ajustes.json")));
+                Is(csm != null && csm.State == true && !Prefs.Now.CrossAlways, "crosshair: solo en partida encendido de serie");
+                Press(csm); Is(csm.State == false && Prefs.Now.CrossAlways && csaved().CrossAlways, "crosshair: solo en partida apagado y guardado");
+                Press(csm); Is(csm.State == true && !Prefs.Now.CrossAlways && !csaved().CrossAlways, "crosshair: solo en partida encendido y guardado");
                 // connection: measures, says where the problem is and saves it
                 Go(w, "Conexión"); await Task.Delay(400);
                 Button nr = (Button)w.FindName("NetRun"); Press(nr); Is(!nr.IsEnabled, "midiendo"); for (int i = 0; i < 60 && !nr.IsEnabled; i++) await Task.Delay(100);

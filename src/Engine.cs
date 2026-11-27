@@ -14,6 +14,7 @@ namespace Tablero
     {
         public string Id, Cat, Name, Desc, Effect, Restart;
         public Level Level;
+        public bool Hidden; // retired for having no effect: listed only while applied, so it can still be undone
         public string Game { get { return Tablero.Game.OfTweak(Id); } }
         public List<Op> Ops;
         List<Op> usable;

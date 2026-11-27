@@ -271,7 +271,7 @@ namespace Tablero
     // Advanced network property, on every PCI card that has it.
     public class NicOp : Op
     {
-        const string Class = "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Class\\{4d36e972-e325-11ce-bfc1-08002be10318}";
+        internal const string Class = "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Class\\{4d36e972-e325-11ce-bfc1-08002be10318}";
         readonly string keyword;
         public NicOp(string keyword, string target) { this.keyword = keyword; Target = "s:" + target; }
         public override bool Available() { return CurrentKeys().Count > 0; }
@@ -297,6 +297,83 @@ namespace Tablero
             string d = RegOp.ReadValue(PathOf(key) + "\\Ndi\\Params\\" + keyword, "default");
             return d == None || d == Target ? "s:1" : d;
         }
+    }
+
+    // Like NicOp, for a vendor that does not document the internal name: the property is found by the name the driver shows
+    // (ParamDesc, or the known keyword on a translated driver) and the option by the start of its text, e.g. "1." = "1. Lowest".
+    public class NicDescOp : Op
+    {
+        readonly string cls, vendor, desc, keyword, choice;
+        public NicDescOp(string vendor, string desc, string keyword, string choice, string cls = NicOp.Class) { this.vendor = vendor; this.desc = desc; this.keyword = keyword; this.choice = choice; this.cls = cls; }
+        // adapter, keyword and the value of the option, for each PCI card of that vendor that has the property
+        List<string[]> Found()
+        {
+            List<string[]> r = new List<string[]>();
+            string sub;
+            using (RegistryKey h = RegOp.Hive(cls, out sub))
+            using (RegistryKey c = h.OpenSubKey(sub))
+            {
+                if (c == null) return r;
+                foreach (string n in c.GetSubKeyNames().Where(x => x.Length == 4))
+                {
+                    if (!RegOp.ReadValue(cls + "\\" + n, "ComponentId").StartsWith("s:PCI\\VEN_" + vendor, StringComparison.OrdinalIgnoreCase)) continue;
+                    using (RegistryKey ps = c.OpenSubKey(n + "\\Ndi\\Params"))
+                        foreach (string p in ps == null ? new string[0] : ps.GetSubKeyNames())
+                        {
+                            if (RegOp.ReadValue(cls + "\\" + n + "\\Ndi\\Params\\" + p, "ParamDesc") != "s:" + desc && !p.Equals(keyword, StringComparison.OrdinalIgnoreCase)) continue;
+                            using (RegistryKey en = ps.OpenSubKey(p + "\\Enum"))
+                            {
+                                string v = en == null ? null : en.GetValueNames().FirstOrDefault(x => (en.GetValue(x) as string ?? "").StartsWith(choice));
+                                if (v != null) r.Add(new[] { n, p, v });
+                            }
+                        }
+                }
+            }
+            return r;
+        }
+        // shortcut: one target for every card, the first one's; cards whose option has another value are left out.
+        public override bool Available()
+        {
+            List<string[]> f = Found();
+            if (f.Count == 0) return false;
+            Target = "s:" + f[0][2];
+            return true;
+        }
+        public override List<string> CurrentKeys() { return Found().Where(x => "s:" + x[2] == Target).Select(x => "nic|" + x[0] + "|" + x[1]).ToList(); }
+        string PathOf(string key) { return cls + "\\" + key.Split('|')[1]; }
+        static string NameOf(string key) { return key.Split('|')[2]; }
+        // A missing value means the driver's default: undoing deletes it again.
+        public override string Read(string key) { return RegOp.ReadValue(PathOf(key), NameOf(key)); }
+        public override void Write(string key, string value) { RegOp.WriteValue(PathOf(key), NameOf(key), value); }
+        public override string DefaultFor(string key)
+        {
+            string d = RegOp.ReadValue(PathOf(key) + "\\Ndi\\Params\\" + NameOf(key), "default");
+            return d == Target ? None : d;
+        }
+    }
+
+    // Refresh rate of the main display at the resolution Windows has saved, so a stretched one in use is not the one changed.
+    // "s:max" = the highest one that resolution offers; otherwise "d:" + Hz.
+    public class HzOp : Op
+    {
+        public HzOp() { Target = "s:max"; Default = "d:60"; }
+        public override bool Available()
+        {
+            try { return Display.MaxHz(Display.Saved()) > 0; }
+            catch (InvalidOperationException) { return false; }
+        }
+        public override List<string> CurrentKeys() { return One("hz|primary"); }
+        public override string Read(string key) { Res s = Display.Saved(); return s.Hz >= Display.MaxHz(s) ? Target : "d:" + s.Hz; }
+        int HzOf(string value)
+        {
+            if (value == Target) return Display.MaxHz(Display.Saved());
+            int hz;
+            if (!value.StartsWith("d:") || !int.TryParse(value.Substring(2), out hz)) throw new InvalidDataException("Valor guardado no valido: " + value);
+            return hz;
+        }
+        public override void Write(string key, string value) { Res s = Display.Saved(); Display.Store(new Res { W = s.W, H = s.H, Hz = HzOf(value) }); }
+        // 60 Hz on a 60 Hz display reads as the maximum: what counts is that the display is at the Hz asked for.
+        public override bool Took(string key, string value) { return Read(key) == value || Display.Saved().Hz == HzOf(value); }
     }
 
     public class IniOp : Op

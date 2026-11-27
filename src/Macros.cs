@@ -141,41 +141,56 @@ namespace Tablero
 
         // ---- Game mode, live ----
         static string logFile { get { return Path.Combine(FpsLog.Folder, "FortniteGame.log"); } }
+        // One reader for the macros thread and the crosshair (UI thread): the lock keeps its place in the log whole.
+        static readonly object gate = new object();
         static long at;
-        static string rest = "";
-        static bool creative;
-        // Any map that is not Creative, or loading, turns it off.
-        public static bool Mode(string line, bool was)
+        static string rest = "", world, head;
+        // The world being played: its path once it is brought up, null while a map loads; other lines leave it as it was.
+        public static string World(string line, string was)
         {
-            if (line.IndexOf("LogLoad: LoadMap:", StringComparison.Ordinal) == 30) return false;
-            if (line.IndexOf("LogWorld: Bringing World ", StringComparison.Ordinal) != 30) return was;
-            return line.IndexOf("Bringing World /VKPlay/", StringComparison.Ordinal) >= 0;
+            const string bring = "LogWorld: Bringing World ";
+            if (line.IndexOf("LogLoad: LoadMap:", StringComparison.Ordinal) == 30) return null;
+            if (line.IndexOf(bring, StringComparison.Ordinal) != 30) return was;
+            int s = 30 + bring.Length, e = line.IndexOf(' ', s);
+            return e < 0 ? line.Substring(s).TrimEnd() : line.Substring(s, e - s);
         }
-        // Reads only what is new in the log. If it cannot be read, there are no macros.
-        public static bool InCreative()
+        static bool Creative(string w) { return w != null && w.StartsWith("/VKPlay/", StringComparison.Ordinal); }
+        // The lobby is the Frontend map; any other world brought up is a match, Creative included.
+        static bool Match(string w) { return w != null && !w.StartsWith("/Game/Maps/Frontend", StringComparison.Ordinal); }
+        // Any map that is not Creative, or loading, turns it off.
+        public static bool Mode(string line, bool was) { return Creative(World(line, was ? "/VKPlay/" : null)); }
+        public static bool InCreative() { return Creative(Read()); }
+        public static bool InMatch() { return Match(Read()); }
+        // Reads only what is new in the log. If it cannot be read, there is no world (no macros, no crosshair in a match).
+        static string Read()
         {
-            try
+            lock (gate)
             {
-                using (FileStream f = new FileStream(logFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
+                try
                 {
-                    if (f.Length < at) { at = 0; rest = ""; creative = false; }
-                    f.Position = at;
-                    byte[] b = new byte[1 << 16];
-                    int n;
-                    while ((n = f.Read(b, 0, b.Length)) > 0)
+                    using (FileStream f = new FileStream(logFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
                     {
-                        at += n;
-                        string[] l = (rest + Encoding.ASCII.GetString(b, 0, n)).Split('\n');
-                        for (int i = 0; i < l.Length - 1; i++) creative = Mode(l[i], creative);
-                        rest = l[l.Length - 1];
+                        // Fortnite starts a new log on each launch ("Log file open, <date>"): it may already be longer than the old one.
+                        byte[] b = new byte[1 << 16];
+                        string top = Encoding.ASCII.GetString(b, 0, f.Read(b, 0, 64));
+                        if (f.Length < at || top != head) { at = 0; rest = ""; world = null; head = top; }
+                        f.Position = at;
+                        int n;
+                        while ((n = f.Read(b, 0, b.Length)) > 0)
+                        {
+                            at += n;
+                            string[] l = (rest + Encoding.ASCII.GetString(b, 0, n)).Split('\n');
+                            for (int i = 0; i < l.Length - 1; i++) world = World(l[i], world);
+                            rest = l[l.Length - 1];
+                        }
                     }
+                    return world;
                 }
-                return creative;
+                catch (IOException) { }
+                catch (UnauthorizedAccessException) { }
+                at = 0; rest = ""; world = null; head = null;
+                return null;
             }
-            catch (IOException) { }
-            catch (UnauthorizedAccessException) { }
-            at = 0; rest = ""; creative = false;
-            return false;
         }
 
         // ---- Thread ----
@@ -240,7 +255,7 @@ namespace Tablero
             if (!c.Accepted || c.On.Count == 0) { Stop(); return; }
             if (thread != null) return;
             stop = false;
-            at = 0; rest = ""; creative = false;
+            lock (gate) head = null; // the log is read again from the start
             thread = new Thread(Loop) { IsBackground = true, Name = "macros" };
             thread.Start();
         }

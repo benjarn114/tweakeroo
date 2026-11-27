@@ -31,6 +31,7 @@ namespace Tablero
         public bool SoundSaved { get; set; }  // false = saved before sound existed: it gets the defaults
         public string Theme { get; set; }     // "noche", "lluvia", "arcade" or "simple" (palette per game, no background)
         public bool CrossOn { get; set; }           // crosshair drawn over Fortnite
+        public bool CrossAlways { get; set; }       // also in the lobby and while loading; false = "Solo en partida" (the default)
         public string CrossNow { get; set; }        // Crosshair.Serialize() of the one being edited; null = default
         public List<string> CrossSaved { get; set; } // saved crosshairs, Serialize() each
 

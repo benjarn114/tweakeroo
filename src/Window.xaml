@@ -888,8 +888,13 @@
           <TextBlock Text="Crosshair" FontSize="32" FontWeight="Bold"/>
           <TextBlock Text="Se dibuja encima de Fortnite sin tocar el juego. Con Stretched se estira igual que en Valorant." Foreground="{DynamicResource Ink2}" FontSize="15" TextWrapping="Wrap" Margin="0,6,0,16" MaxWidth="600" HorizontalAlignment="Left"/>
           <Border Background="{DynamicResource Card}" CornerRadius="16" Padding="18,12" Margin="0,0,0,6">
-            <DockPanel><t:Switch x:Name="CrossOn" DockPanel.Dock="Right" Style="{StaticResource Switch}" AutomationProperties.Name="Mostrar en Fortnite" VerticalAlignment="Center" Margin="16,0,0,0"/><TextBlock Text="Mostrar en Fortnite" FontSize="16" FontWeight="Bold" VerticalAlignment="Center"/></DockPanel>
+            <StackPanel>
+              <DockPanel><t:Switch x:Name="CrossOn" DockPanel.Dock="Right" Style="{StaticResource Switch}" AutomationProperties.Name="Mostrar en Fortnite" VerticalAlignment="Center" Margin="16,0,0,0"/><TextBlock Text="Mostrar en Fortnite" FontSize="16" FontWeight="Bold" VerticalAlignment="Center"/></DockPanel>
+              <DockPanel Margin="0,10,0,0"><t:Switch x:Name="CrossMatch" DockPanel.Dock="Right" Style="{StaticResource Switch}" AutomationProperties.Name="Solo en partida" VerticalAlignment="Center" Margin="16,0,0,0"/><TextBlock Text="Solo en partida" FontSize="16" FontWeight="Bold" VerticalAlignment="Center"/></DockPanel>
+            </StackPanel>
           </Border>
+          <!-- Fortnite keeps this option in its cloud-synced ClientSettings.Sav, so it is only explained, never written -->
+          <TextBlock Text="La retícula propia de Fortnite se quita en el juego: Ajustes &gt; IU del juego &gt; Información de daño y retícula &gt; Retícula." Foreground="{DynamicResource Ink2}" FontSize="12.5" TextWrapping="Wrap" Margin="2,0,0,4"/>
           <TextBlock Text="Las reglas de los torneos de Epic pueden prohibir crosshairs externos." Foreground="{DynamicResource Ink2}" FontSize="12.5" TextWrapping="Wrap" Margin="2,0,0,18"/>
           <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
             <TextBlock Text="Crosshair seleccionado" Foreground="{DynamicResource Ink2}" FontSize="13" VerticalAlignment="Center" Margin="0,2,12,0"/>

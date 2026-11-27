@@ -925,6 +925,28 @@ Conviene cerrarlos o pausarlos antes de jugar.	Closing or pausing them before pl
 Ningún programa conocido de descargas abierto	No known download program open
 Si hay tirones, mira también otros equipos de la casa.	If there are stutters, also check other devices at home.
 Wi-Fi: sin cambiar de antena	Wi-Fi: no roaming
+Wi-Fi Intel: sin cambiar de antena	Intel Wi-Fi: no roaming
+La tarjeta solo busca otra antena si la señal cae mucho. Solo tarjetas Intel y si el PC no se mueve.	The card only looks for another access point when the signal drops a lot. Intel cards only, and only if the PC does not move.
+Pantalla a su frecuencia máxima	Display at its highest refresh rate
+El escritorio usa los Hz más altos del monitor. En ventana sin bordes es la frecuencia que manda. Hay que confirmarlo en 15 segundos.	The desktop uses the monitor's highest Hz. In borderless windowed mode this is the refresh rate that counts. It has to be confirmed within 15 seconds.
+Menos retraso de pantalla en cualquier juego.	Less display lag in every game.
+Retirado: no tiene efecto en los juegos.	Retired: it has no effect in games.
+Solo se muestra para poder deshacerlo.	It is only shown so it can be undone.
+Ya no se activa.	It is no longer turned on.
+Retirado: no tiene efecto en los juegos. Ya no se activa.	Retired: it has no effect in games. It is no longer turned on.
+¿La pantalla se ve bien? Sin respuesta en 15 segundos vuelve la frecuencia anterior.	Does the display look right? Without an answer within 15 seconds the previous refresh rate comes back.
+Vuelve la frecuencia anterior.	The previous refresh rate is back.
+No se pudo volver a la frecuencia anterior: {0}	Could not go back to the previous refresh rate: {0}
+{0} no recomendados para este PC quedaron sin tocar.	{0} not recommended for this PC were left alone.
+Fortnite: depuración de fallos de GPU activada	Fortnite: GPU crash debugging is on
+Cuesta rendimiento y solo sirve para diagnosticar cierres del juego.	It costs performance and is only useful to diagnose game crashes.
+1. Cierra Fortnite.	1. Close Fortnite.
+2. Abre GameUserSettings.ini en %LOCALAPPDATA%\FortniteGame\Saved\Config\WindowsClient.	2. Open GameUserSettings.ini in %LOCALAPPDATA%\FortniteGame\Saved\Config\WindowsClient.
+3. En [D3DRHIPreference], cambia bUseGPUCrashDebugging=True por False y guarda.	3. In [D3DRHIPreference], change bUseGPUCrashDebugging=True to False and save.
+Si el archivo es de solo lectura, se quita esa marca en Propiedades, se guarda y se vuelve a marcar.	If the file is read-only, that box is unticked in Properties, the file is saved and the box is ticked again.
+No se pudo leer la configuración de CS2.	CS2's settings could not be read.
+Cierra CS2 primero: el juego sobrescribe su configuración al salir.	Close CS2 first: the game overwrites its settings when it exits.
+No se encontró la configuración de CS2. Abre el juego una vez e inténtalo de nuevo.	CS2's settings weren't found. Open the game once and try again.
 La tarjeta busca menos otras antenas, que es cuando hay tirones. Solo tarjetas Realtek y si el PC no se mueve.	The card looks for other antennas less often, which is when stutters happen. Realtek cards only and if the PC doesn't move.
 Prioridad de red para Fortnite	Network priority for Fortnite
 Marca los paquetes del juego como urgentes. Solo ayuda si el router respeta la marca.	Marks the game's packets as urgent. It only helps if the router respects the mark.
@@ -1415,6 +1437,8 @@ Se dibuja encima de Fortnite sin tocar el juego. Con Stretched se estira igual q
 Mostrar en Fortnite	Show in Fortnite
 Las reglas de los torneos de Epic pueden prohibir crosshairs externos.	Epic's tournament rules may forbid external crosshairs.
 Ver estirado	View stretched
+Solo en partida	Only in a match
+La retícula propia de Fortnite se quita en el juego: Ajustes > IU del juego > Información de daño y retícula > Retícula.	Fortnite's own reticle is turned off in the game: Settings > Game UI > Reticle & Damage Feedback > Reticle.
 Copiar código	Copy code
 Importar	Import
 Pega un código de Valorant o CS2	Paste a Valorant or CS2 code

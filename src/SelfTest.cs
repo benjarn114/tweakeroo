@@ -163,6 +163,92 @@ namespace Tablero
                 Func<string, Level> lv = id => cat.First(x => x.Id == id).Level;
                 foreach (Hw h in new[] { desk, cable, lap }) Is(!yes("in-accel", h) && !yes("fn-mouse", h) && !yes("sv-lghub", h), "el raton no se recomienda");
                 Is(lv("in-accel") == Level.Avanzado && lv("fn-mouse") == Level.Avanzado && lv("sv-lghub") == Level.Riesgo, "niveles del raton y G HUB");
+                Is(yes("gfx-hz", desk) && yes("gfx-hz", lap) && yes("cs2-reflex", desk) && !yes("cs2-reflex", cable), "Hz para todos; Reflex de CS2 solo con NVIDIA");
+                Is(yes("net-roam-intel", desk) && !yes("net-roam-intel", cable) && !yes("net-roam-intel", lap), "Intel Wi-Fi como el de Realtek: solo Wi-Fi en un PC de mesa");
+                // retired for having no effect: not offered, but whoever has one applied still sees it and can undo it
+                Is(string.Join(",", cat.Where(x => x.Hidden).Select(x => x.Id)) == "lt-quantum,lt-games,lt-net" && !cat.Where(x => x.Hidden).Any(x => yes(x.Id, desk) || yes(x.Id, lap)), "retirados: lt-quantum, lt-games y lt-net, nunca recomendados");
+                {
+                    RegOp.WriteValue(Root, "ret", "d:2");
+                    Tweak tret = Mk("prueba-ret", new RegOp(Root, "ret", "d:38", "d:2")), tvis = Mk("prueba-vis", new RegOp(Root, "vis", "d:1", Op.None));
+                    tret.Hidden = true;
+                    Engine eret = new Engine(Path.Combine(dir, "ret"), new[] { tret, tvis });
+                    Is(!Ui.Listed(eret).Contains(tret) && Ui.Listed(eret).Contains(tvis), "retirado sin aplicar: no se lista");
+                    eret.Enable(tret); // as an older version left it
+                    Is(Ui.Listed(new Engine(Path.Combine(dir, "ret"), new[] { tret, tvis })).Contains(tret) && V("ret") == "d:38", "retirado pero aplicado: sigue en la lista");
+                    Is(!Ui.Offered(new Row(tret), false) && Ui.Offered(new Row(tvis), false), "retirado: activar todos no lo toca");
+                    eret.Disable(tret, true);
+                    Is(V("ret") == "d:2" && !eret.Mine(tret) && !Ui.Listed(eret).Contains(tret), "retirado: se deshace y deja de listarse");
+                }
+                // Activar todos follows the scan: pw-plan is left out on a dual-CCD X3D (cable = 7950X3D), and without a scan nothing is skipped
+                {
+                    Tweak plan = cat.First(x => x.Id == "pw-plan");
+                    Row x3d = new Row(plan), mesa = new Row(plan), sin = new Row(plan);
+                    x3d.SetAdvice(Advisor.For(plan, cable)); mesa.SetAdvice(Advisor.For(plan, desk));
+                    Is(!Ui.Offered(x3d, true) && Ui.Offered(x3d, false) && Ui.Offered(mesa, true) && Ui.Offered(sin, true), "activar todos se salta lo no recomendado");
+                    Row risky = new Row(cat.First(x => x.Id == "pw-hvci")); risky.SetAdvice(Advisor.For(risky.T, desk));
+                    Is(!Ui.Offered(risky, false), "activar todos nunca toca Riesgo");
+                }
+                // refresh rate: the highest one of the saved resolution, and back; while stretched only Windows' saved mode changes
+                {
+                    Func<Res> hzCur = Display.Current, hzSav = Display.Saved; Func<List<Res>> hzMod = Display.Modes; Action<Res> hzSto = Display.Store;
+                    try
+                    {
+                        Res reg = new Res { W = 1920, H = 1080, Hz = 60 }, now = reg;
+                        Display.Saved = () => reg; Display.Current = () => now;
+                        Display.Modes = () => new List<Res> { new Res { W = 1920, H = 1080, Hz = 60 }, new Res { W = 1920, H = 1080, Hz = 144 }, new Res { W = 1440, H = 1080, Hz = 240 } };
+                        Display.Store = x => { if (now.Same(reg)) now = x; reg = x; }; // like CDS_NORESET while stretched
+                        Tweak th = Mk("prueba-hz", new HzOp());
+                        Engine eh = new Engine(Path.Combine(dir, "hz"), new[] { th });
+                        Is(th.Available && th.Read() == State.Off, "hz: a 60 de 144 esta apagado");
+                        eh.Enable(th); Is(reg.Hz == 144 && now.Hz == 144 && th.Read() == State.On, "hz: escritorio a 144");
+                        eh.Disable(th, true); Is(reg.Hz == 60 && now.Hz == 60 && !eh.Mine(th), "hz: deshacer vuelve a 60");
+                        now = new Res { W = 1440, H = 1080, Hz = 240 };
+                        eh.Enable(th); Is(reg.W == 1920 && reg.Hz == 144 && now.W == 1440 && now.Hz == 240, "hz: con estirado cambia la guardada, no la estirada");
+                        eh.Disable(th, true); Is(reg.Hz == 60 && now.W == 1440, "hz: y se deshace igual");
+                        Display.Store = x => { throw new InvalidOperationException("no"); };
+                        bool hzFail = false; try { eh.Enable(th); } catch (InvalidOperationException) { hzFail = true; }
+                        Is(hzFail && reg.Hz == 60 && !eh.Mine(th), "hz: si la pantalla no acepta, nada cambia");
+                        reg = new Res { W = 1920, H = 1080, Hz = 144 }; Display.Store = x => reg = x;
+                        Is(th.Read() == State.On && new HzOp().DefaultFor("hz|primary") == "d:60", "hz: al maximo ya esta activado");
+                    }
+                    finally { Display.Current = hzCur; Display.Saved = hzSav; Display.Modes = hzMod; Display.Store = hzSto; }
+                }
+                // Intel Wi-Fi: the property is found by its ParamDesc, the option by its text "1."; Realtek and an Intel card without it are left alone
+                {
+                    string cls = Root + @"\Clase";
+                    Action<string, string> card = (nk, comp) => RegOp.WriteValue(cls + "\\" + nk, "ComponentId", "s:" + comp);
+                    card("0001", @"PCI\VEN_8086&DEV_2725&SUBSYS_00248086"); card("0002", @"PCI\VEN_10EC&DEV_8852"); card("0003", @"PCI\VEN_8086&DEV_15F3");
+                    string pa = cls + @"\0001\Ndi\Params\RoamAggressiveness";
+                    RegOp.WriteValue(pa, "ParamDesc", "s:Roaming Aggressiveness"); RegOp.WriteValue(pa, "default", "s:2");
+                    string[] opts = { "1. Lowest", "2. Medium-low", "3. Medium", "4. Medium-High", "5. Highest" };
+                    for (int i = 0; i < opts.Length; i++) RegOp.WriteValue(pa + @"\Enum", i.ToString(), "s:" + opts[i]);
+                    RegOp.WriteValue(cls + @"\0001", "RoamAggressiveness", "s:2");
+                    RegOp.WriteValue(cls + @"\0002\Ndi\Params\RegRoamLevel", "ParamDesc", "s:Roaming Sensitivity Level"); RegOp.WriteValue(cls + @"\0002\Ndi\Params\RegRoamLevel\Enum", "1", "s:1. Lowest");
+                    NicDescOp ro = new NicDescOp("8086", "Roaming Aggressiveness", "RoamAggressiveness", "1.", cls);
+                    Tweak ti = Mk("prueba-intel", ro);
+                    Engine ei = new Engine(Path.Combine(dir, "intel"), new[] { ti });
+                    Is(ti.Available && ro.Target == "s:0" && string.Join(",", ro.CurrentKeys()) == "nic|0001|RoamAggressiveness" && ti.Read() == State.Off, "intel: encuentra la propiedad y la opcion 1. Lowest = 0");
+                    ei.Enable(ti); Is(RegOp.ReadValue(cls + @"\0001", "RoamAggressiveness") == "s:0" && RegOp.ReadValue(cls + @"\0002", "RegRoamLevel") == Op.None, "intel: al minimo y Realtek sin tocar");
+                    ei.Disable(ti, true); Is(RegOp.ReadValue(cls + @"\0001", "RoamAggressiveness") == "s:2", "intel: deshacer vuelve a 3. Medium");
+                    ei.Enable(ti); Engine ei2 = new Engine(Path.Combine(dir, "intel2"), new[] { ti }); ei2.Disable(ti, false);
+                    Is(RegOp.ReadValue(cls + @"\0001", "RoamAggressiveness") == "s:2", "intel: sin original usa el default del driver");
+                    RegOp.WriteValue(pa, "ParamDesc", "s:Agresividad de itinerancia");
+                    Is(new NicDescOp("8086", "Roaming Aggressiveness", "RoamAggressiveness", "1.", cls).Available(), "intel: con el driver traducido vale el nombre interno");
+                    Is(!new NicDescOp("8086", "Roaming Aggressiveness", "RoamAggressiveness", "1.", Root + @"\SinTarjetas").Available(), "intel: sin tarjeta Intel no se ofrece");
+                }
+                // Fortnite GPU crash debugging: only reported, the file is not touched even if it is read-only
+                {
+                    string fdi = Path.Combine(dir, "fn-debug.ini");
+                    File.WriteAllText(fdi, "[/Script/FortniteGame.FortGameUserSettings]\r\nbUseGPUCrashDebugging=True\r\n[D3DRHIPreference]\r\nPreferredFeatureLevel=es31\r\nbUseGPUCrashDebugging=True\r\n");
+                    byte[] fdb = File.ReadAllBytes(fdi);
+                    File.SetAttributes(fdi, FileAttributes.ReadOnly);
+                    Check fc = Review.FortniteDebug(fdi);
+                    Is(fc != null && fc.Kind == Kind.Gratis && fc.HasDetail && !fc.HasUrl, "fortnite: avisa de la depuracion de GPU activada");
+                    Is(File.GetAttributes(fdi) == FileAttributes.ReadOnly && File.ReadAllBytes(fdi).SequenceEqual(fdb), "fortnite: el aviso no toca el archivo ni su solo lectura");
+                    File.SetAttributes(fdi, FileAttributes.Normal);
+                    File.WriteAllText(Path.Combine(dir, "fn-off.ini"), "[/Script/FortniteGame.FortGameUserSettings]\r\nbUseGPUCrashDebugging=True\r\n[D3DRHIPreference]\r\nbUseGPUCrashDebugging=False\r\n");
+                    Is(Review.FortniteDebug(Path.Combine(dir, "fn-off.ini")) == null && Review.FortniteDebug(Path.Combine(dir, "no-existe.ini")) == null, "fortnite: apagada o sin archivo no avisa; solo cuenta su seccion");
+                }
 
                 // stretched: only narrower than the display and with its best refresh rate
                 Res nat = new Res { W = 1920, H = 1080, Hz = 144 };
@@ -469,7 +555,7 @@ namespace Tablero
                 Is(Game.OfTweak("fn-vsync") == "fortnite" && Game.OfTweak("val-gpu") == "valorant" && Game.OfTweak("pw-plan") == null, "tweaks por juego");
                 Is(Game.OfTweak("cs2-gpu") == "cs2" && Game.Of("cs2") == Game.Cs2, "tweaks de CS2");
                 List<Tweak> cs2t = Catalog.Build().Where(x => x.Id.StartsWith("cs2-")).ToList();
-                Is(cs2t.Count == 10 && cs2t.All(x => Game.OfTweak(x.Id) == "cs2") && cs2t.SelectMany(x => x.Ops).OfType<NvOp>().Count() == 7 && cs2t.SelectMany(x => x.Ops).OfType<NvOp>().All(o => o.CurrentKeys()[0].StartsWith("nv|Counter-strike 2|")), "CS2 en su perfil NVIDIA");
+                Is(cs2t.Count == 11 && cs2t.All(x => Game.OfTweak(x.Id) == "cs2") && cs2t.SelectMany(x => x.Ops).OfType<NvOp>().Count() == 7 && cs2t.SelectMany(x => x.Ops).OfType<Cs2VideoOp>().Count() == 1 && cs2t.SelectMany(x => x.Ops).OfType<NvOp>().All(o => o.CurrentKeys()[0].StartsWith("nv|Counter-strike 2|")), "CS2 en su perfil NVIDIA");
 
                 // CS2: the KeyValues reader on the shapes Valve uses
                 Dictionary<string, object> kv = Kv.Parse("\"a\"\n{\n\t\"x\"\t\t\"1\" // nota\n\t\"x\"\t\"2\"\n\t\"b\" { \"p\" \"C:\\\\Juegos\" \"q\" \"di \\\"hola\\\"\" }\n\t\"fps_max_ui$2\" \"240\"\n}\n");
@@ -521,6 +607,28 @@ namespace Tablero
                     Is(Cs2.LaunchOptions() == "", "cs2 sin opciones de lanzamiento");
                     File.WriteAllText(lc, "\"UserLocalConfigStore\"\n{\n\t\"Software\" { \"Valve\" { \"Steam\" { \"apps\" { \"730\" { \"LaunchOptions\" \"-novid -vulkan\" } } } } }\n}\n");
                     Is(Cs2.LaunchOptions() == "-novid -vulkan", "opciones de lanzamiento de cs2");
+                    // Reflex On + Boost in cs2_video.txt: with CS2 closed, a copy first, and undo leaves the file byte for byte
+                    Func<bool> c2Run = Game.Cs2.Running;
+                    try
+                    {
+                        Game.Cs2.Running = () => false;
+                        string vf = Path.Combine(cfg2, "cs2_video.txt");
+                        byte[] vb = File.ReadAllBytes(vf);
+                        Tweak tr = Mk("prueba-reflex", new Cs2VideoOp("setting.r_low_latency", "2", "1"));
+                        Engine er = new Engine(Path.Combine(dir, "reflex"), new[] { tr });
+                        Is(tr.Available && tr.Read() == State.Off, "reflex de cs2: sin la linea esta apagado");
+                        er.Enable(tr);
+                        Is(Cs2.Video()["setting.r_low_latency"] == "2" && Cs2.Video()["setting.defaultres"] == "2560" && File.ReadAllBytes(vf + ".tweakeroo").SequenceEqual(vb), "reflex de cs2: 2 y copia del archivo de antes");
+                        er.Disable(tr, true); Is(File.ReadAllBytes(vf).SequenceEqual(vb), "reflex de cs2: deshacer deja el archivo byte a byte");
+                        File.WriteAllText(vf, "\"video.cfg\"\r\n{\r\n\t\"setting.r_low_latency\"\t\t\"1\"\r\n\t\"setting.defaultres\"\t\t\"2560\"\r\n}\r\n");
+                        er.Enable(tr); Is(Cs2.Video()["setting.r_low_latency"] == "2", "reflex de cs2: de 1 a 2");
+                        Game.Cs2.Running = () => true;
+                        bool c2Shut = false; try { er.Disable(tr, true); } catch (InvalidOperationException) { c2Shut = true; }
+                        Is(c2Shut && Cs2.Video()["setting.r_low_latency"] == "2" && er.Mine(tr), "reflex de cs2: con el juego abierto no se toca");
+                        Game.Cs2.Running = () => false;
+                        er.Disable(tr, true); Is(Cs2.Video()["setting.r_low_latency"] == "1" && !er.Mine(tr), "reflex de cs2: vuelve a 1");
+                    }
+                    finally { Game.Cs2.Running = c2Run; }
                 }
                 finally { Cs2.Steam = realSteam; }
                 // CS2's FPS (ETW) and maps (GSI): FramesTest.cs
@@ -784,6 +892,35 @@ namespace Tablero
                 Is(Macros.Mode(pre + "LogWorld: Bringing World /VKPlay/Maps/X.X up for play", false), "creativo");
                 Is(!Macros.Mode(pre + "LogWorld: Bringing World /Delilah/Maps/Delilah_Terrain.Delilah_Terrain up for play", true) && !Macros.Mode(pre + "LogLoad: LoadMap: 1.2.3.4/VKPlay/Maps/X", true) && !Macros.Mode(pre + "LogWorld: Bringing World /Game/Maps/Frontend.Frontend up for play", true), "otros modos y cargas");
                 Is(Macros.Mode(pre + "LogChat: Bringing World /Delilah/", true), "otras lineas no cambian el modo");
+                // the world being played, from real lines of FortniteGame.log: the lobby is /Game/Maps/Frontend, any other world is a match
+                {
+                    string lobby = "[2026.11.27-01.36.36:382][631]LogWorld: Bringing World /Game/Maps/Frontend.Frontend up for play (max tick rate 60) at 2026.11.26-22.36.36\r\n",
+                        loadBr = "[2026.11.27-01.38.57:660][482]LogLoad: LoadMap: 15.229.136.10:9042/Game/Athena/Maps/Athena_Empty?EncryptionToken=x\r\n",
+                        br = "[2026.11.27-01.38.58:323][482]LogWorld: Bringing World /Game/Athena/Maps/Athena_Empty.Athena_Empty up for play (max tick rate 60) at 2026.11.26-22.38.58\r\n",
+                        back = "[2026.11.27-01.54.38:534][356]LogLoad: LoadMap: /Game/Maps/Frontend?closed\r\n",
+                        reload = "[2026.11.24-22.23.59:811][808]LogWorld: Bringing World /Delilah/Maps/Delilah_Terrain.Delilah_Terrain up for play (max tick rate 60) at 2026.11.24-19.23.59\r\n",
+                        cre = "[2026.11.22-15.35.39:755][901]LogWorld: Bringing World /VKPlay/Maps/VKPlay_EmptyOcean_VolumeSupport.VKPlay_EmptyOcean_VolumeSupport up for play (max tick rate 60) at 2026.11.22-12.35.39\r\n";
+                    Is(Macros.World(br, null) == "/Game/Athena/Maps/Athena_Empty.Athena_Empty" && Macros.World(loadBr, "x") == null && Macros.World("[2026.11.27-01.38.57:980][482]LogWorld: UWorld::CleanupWorld for Frontend, bSessionEnded=true", "x") == "x", "mundo de cada linea");
+                    string wlogs = FpsLog.Folder;
+                    try
+                    {
+                        FpsLog.Folder = Path.Combine(dir, "mundo-logs"); Directory.CreateDirectory(FpsLog.Folder);
+                        string wf = Path.Combine(FpsLog.Folder, "FortniteGame.log");
+                        Is(!Macros.InMatch() && !Macros.InCreative(), "sin registro no hay partida");
+                        File.WriteAllText(wf, "Log file open, 11/26/26 22:36:27\r\n" + lobby);
+                        Is(!Macros.InMatch() && !Macros.InCreative(), "en el lobby no hay partida");
+                        File.AppendAllText(wf, loadBr); Is(!Macros.InMatch(), "cargando no hay partida");
+                        File.AppendAllText(wf, br.Substring(0, 90)); Is(!Macros.InMatch(), "media linea no cuenta");
+                        File.AppendAllText(wf, br.Substring(90)); Is(Macros.InMatch() && !Macros.InCreative(), "battle royale es partida");
+                        File.AppendAllText(wf, back + lobby); Is(!Macros.InMatch(), "de vuelta al lobby");
+                        File.AppendAllText(wf, reload); Is(Macros.InMatch() && !Macros.InCreative(), "reload es partida");
+                        File.AppendAllText(wf, back + lobby + cre); Is(Macros.InMatch() && Macros.InCreative(), "creativo es partida y creativo");
+                        // Fortnite restarted: a new log, already longer than what was read, with no world yet
+                        File.WriteAllText(wf, "Log file open, 11/27/26 10:00:00\r\n" + new string('x', 3000) + "\r\n");
+                        Is(!Macros.InMatch() && !Macros.InCreative(), "registro nuevo al abrir Fortnite");
+                    }
+                    finally { FpsLog.Folder = wlogs; }
+                }
                 string logs = FpsLog.Folder; Action<Act> send = Macros.Send; Func<int, bool> dn = Macros.IsDown; Func<bool> frontReal = Macros.Front;
                 try
                 {
@@ -974,6 +1111,9 @@ namespace Tablero
                     foreach (Game g in Game.All) foreach (string x in new[] { "Cierra {0} antes de cambiar de juego.", "Cierra {0} y vuelve a intentarlo.", "Cierra {0} primero: la resolución aún no se ha restaurado.", "Tweakeroo debe quedar abierto hasta cerrar {0} para restaurar la resolución.", "{0} cerrado: resolución restaurada.", "{0} no se abrió en 10 minutos: resolución restaurada.", "Abriendo {0}…", "Abrir {0}", "No se pudo abrir {0}: x", "No se pudieron leer los registros de {0}: x", "Se leen de los registros de {0}, segundo a segundo, sin modificar el juego.", "No hay partidas de más de un minuto en los registros de {0}.", "Se aplica al abrir {0}.", "Cierra {0} antes de medir la velocidad: la prueba llena la conexión.", "{0} no está instalado o no se encontró", "Si está en otra carpeta, elige su archivo {1}.", "Ese no es el archivo de {0}. Se llama {1}.", "{0} encontrado. Los tweaks del juego se actualizan al volver a abrir Tweakeroo." }) L.T(string.Format(x, g.Name, g.ExeName));
                     foreach (string x in new[] { "Colores", "Color: Carmesí", "Carmesí", "Estirar ahora", "Jugando", "Media de 10 partidas", "FPS estimados", "Abre Valorant y, si está activado, estira la pantalla al cargar un mapa. Al cerrarlo, todo se restaura.", "Abre Fortnite con la resolución elegida. Al cerrarlo, la pantalla y la configuración se restauran.", "Abriendo Riot Client: pulsa Jugar allí. La pantalla se estira al cargar un mapa; Tweakeroo debe quedar abierto.", "Abriendo Riot Client: pulsa Jugar allí.", "Algún monitor no se pudo desactivar: Windows no cambió el monitor (código 5).", "Pantalla estirada. Se restaura al cerrar Valorant.", "Pantalla restaurada.", "Tweakeroo debe quedar abierto durante la partida. Si la pantalla no se estira sola, el botón Estirar ahora lo hace a mano.", "No se encontró Riot Client. Abre Valorant una vez e inténtalo de nuevo.", "Windows no encontró el monitor (código 5).", "La gráfica no aceptó el color (código 5).", "La intensidad necesita una gráfica NVIDIA. ", "Windows no permite cambiar brillo, contraste y gamma en esta pantalla. Pasa con HDR o con el monitor desactivado en el Administrador de dispositivos.", "Ahora", "Ahora, intensidad 100 %", "Probando. Vuelve solo en unos segundos.", "Sin perfil: la pantalla no cambia.", "Windows no aceptó ese brillo. Prueba valores más cercanos a 50.", "No se pudo cambiar el color: x", "Se activa al abrir el juego.", "Activo ahora." }) L.T(x);
                     foreach (string x in new[] { "Tweaks", "Apagados", "Activados", "Nada activado en esta sección.", "Todo activado en esta sección." }) L.T(x);
+                    { Check fc = Review.FortniteDebug(Path.Combine(dir, "fn-debug.ini")); L.T(fc.Title); L.T(fc.Text); L.T(fc.Detail); }
+                    foreach (string x in new[] { "Retirado: no tiene efecto en los juegos. Ya no se activa.", "¿La pantalla se ve bien? Sin respuesta en 15 segundos vuelve la frecuencia anterior.", "Pantalla a su frecuencia máxima: activado. Vuelve la frecuencia anterior.", "Pantalla a su frecuencia máxima: activado. No se pudo volver a la frecuencia anterior: x",
+                        "3 activados. Fortnite está abierto: 2 ajustes del juego quedaron sin tocar. 4 no recomendados para este PC quedaron sin tocar.", "No queda nada por activar en esta sección. 4 no recomendados para este PC quedaron sin tocar.", "No se pudo leer la configuración de CS2.", "Cierra CS2 primero: el juego sobrescribe su configuración al salir.", "No se encontró la configuración de CS2. Abre el juego una vez e inténtalo de nuevo.", "La pantalla no aceptó 1920 × 1080 a 144 Hz (código -2)." }) L.T(x);
                     foreach (Look lk in Theme.Looks) { L.T(lk.Name); L.T("Temática: " + lk.Name); }
                     foreach (Problem hp in Assistant.All) { L.T(hp.Name); L.T(hp.Why); L.T(hp.Chip); }
                     foreach (string x in Ui.CrossWords.Concat(new[] { "Blanco", "Verde", "Amarillo verdoso", "Verde amarillento", "Amarillo", "Cian", "Rosa", "Rojo" })) L.T(x);

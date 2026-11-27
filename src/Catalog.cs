@@ -110,10 +110,13 @@ namespace Tablero
             T("cs2-power", "NVIDIA a máximo rendimiento en CS2", "La gráfica no baja de frecuencia durante la partida.", s, "Medio", "el juego", new NvOp(cs2, 0x1057EB71, 1));
             T("cs2-filter", "Filtrado de texturas rápido en CS2", "Menos trabajo de textura, solo en CS2.", s, "Bajo", "el juego", new NvOp(cs2, 0x00CE2691, 20));
             T("cs2-vsync", "VSync apagado en CS2", "Quita la espera al monitor desde el perfil de NVIDIA, sin tocar el juego.", s, "Medio", "el juego", new NvOp(cs2, 0x00A879CF, 0x08416747));
+            // 0 = off, 1 = on, 2 = on + boost (string in the game files, reported by the dataminer Thour, Sep 2023).
+            T("cs2-reflex", "NVIDIA Reflex en On + Boost", "Menos retraso entre el clic y la pantalla. Confírmalo en los ajustes del juego.", s, "Medio", "", new Cs2VideoOp("setting.r_low_latency", "2", "1"));
 
             Own("cs2", "CS2", "cs2.exe", Tablero.Game.Cs2.Exe, cs2);
 
             cat = "Gráficos y captura";
+            T("gfx-hz", "Pantalla a su frecuencia máxima", "El escritorio usa los Hz más altos del monitor. En ventana sin bordes es la frecuencia que manda. Hay que confirmarlo en 15 segundos.", s, "Alto", "", new HzOp());
             T("gfx-gamemode", "Modo Juego", "Windows aparta tareas y actualizaciones mientras juegas.", s, "Medio", "", D(@"HKCU\Software\Microsoft\GameBar", "AutoGameModeEnabled", 1, 0), D(@"HKCU\Software\Microsoft\GameBar", "AllowAutoGameMode", 1, null));
             T("gfx-hags", "Programación de GPU por hardware", "La tarjeta gestiona su propia cola.", s, "Medio", "el PC", D(Ccs + @"Control\GraphicsDrivers", "HwSchMode", 2, 1));
             T("gfx-windowed", "Optimización para juegos en ventana", "Menos retraso en ventana y sin bordes.", s, "Medio", "el juego", new TokenOp(@"HKCU\Software\Microsoft\DirectX\UserGpuPreferences", "DirectXUserGlobalSettings", "SwapEffectUpgradeEnable", "s:1", "s:0"));
@@ -186,6 +189,7 @@ namespace Tablero
             T("net-im", "Ethernet: apagar moderación de interrupciones", "Menos espera por paquete a cambio de CPU. Solo por cable.", a, "Bajo", "el PC", new NicOp("*InterruptModeration", "0"));
             T("net-flow", "Ethernet: apagar control de flujo", "El router no puede pausar tu tráfico. Solo por cable.", a, "Bajo", "el PC", new NicOp("*FlowControl", "0"));
             T("net-roam", "Wi-Fi: sin cambiar de antena", "La tarjeta busca menos otras antenas, que es cuando hay tirones. Solo tarjetas Realtek y si el PC no se mueve.", s, "Medio", "el PC", new NicOp("RegRoamLevel", "1"));
+            T("net-roam-intel", "Wi-Fi Intel: sin cambiar de antena", "La tarjeta solo busca otra antena si la señal cae mucho. Solo tarjetas Intel y si el PC no se mueve.", s, "Medio", "el PC", new NicDescOp("8086", "Roaming Aggressiveness", "RoamAggressiveness", "1."));
             const string q = P + @"QoS\Tweakeroo Fortnite";
             T("net-qos", "Prioridad de red para Fortnite", "Marca los paquetes del juego como urgentes. Solo ayuda si el router respeta la marca.", a, "Bajo", "el PC",
                 S(q, "Version", "1.0", null), S(q, "Application Name", "FortniteClient-Win64-Shipping.exe", null), S(q, "Protocol", "UDP", null), S(q, "Local Port", "*", null), S(q, "Local IP", "*", null), S(q, "Local IP Prefix Length", "*", null),
@@ -320,6 +324,10 @@ namespace Tablero
             T("ui-peek", "Apagar vista previa del escritorio", "Sin miniatura al rozar la esquina.", s, "Bajo", "la sesión", D(@"HKCU\Software\Microsoft\Windows\DWM", "EnableAeroPeek", 0, 1));
             T("ui-startup", "Apps de inicio sin espera", "Windows no retrasa tus programas al arrancar.", s, "Bajo", "la sesión", D(U + @"Explorer\Serialize", "StartupDelayInMSec", 0, null));
 
+            // No effect (siguiente-sesion\tweaks-nuevos.md): 38 is the client default of Win32PrioritySeparation; MMCSS ignores
+            // SFIO Priority and treats Priority as 2 with High; the network limit is 10 packets/ms, far above a game's.
+            // They are no longer offered, but whoever has one applied still sees it and can undo it.
+            foreach (Tweak t in list.Where(x => x.Id == "lt-quantum" || x.Id == "lt-games" || x.Id == "lt-net")) t.Hidden = true;
             return list;
         }
     }

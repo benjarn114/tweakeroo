@@ -169,4 +169,30 @@ namespace Tablero
             StretchSession.Open(Address);
         }
     }
+
+    // One setting of cs2_video.txt, the file the game's own menu writes. Only with CS2 closed, since it rewrites the file on exit,
+    // and with a copy .tweakeroo of the file before the first change. None = the line is not there.
+    public class Cs2VideoOp : Op
+    {
+        readonly string name;
+        public Cs2VideoOp(string name, string target, string def) { this.name = name; Target = "s:" + target; Default = "s:" + def; }
+        static string Video() { string c = Cs2.Cfg(); return c == null ? null : Path.Combine(c, "cs2_video.txt"); }
+        public override bool Available() { return Video() != null; }
+        public override List<string> CurrentKeys() { return One("cs2|" + name); }
+        public override string Read(string key)
+        {
+            Dictionary<string, string> v = Cs2.Video();
+            if (v == null) throw new InvalidDataException("No se pudo leer la configuración de CS2.");
+            string s;
+            return v.TryGetValue(name, out s) ? "s:" + s : None;
+        }
+        public override void Write(string key, string value)
+        {
+            if (Game.Cs2.Running()) throw new InvalidOperationException("Cierra CS2 primero: el juego sobrescribe su configuración al salir.");
+            string f = Video();
+            if (f == null) throw new InvalidOperationException("No se encontró la configuración de CS2. Abre el juego una vez e inténtalo de nuevo.");
+            if (!File.Exists(f + ".tweakeroo")) File.Copy(f, f + ".tweakeroo");
+            Cs2Session.Put(f, new Dictionary<string, string> { { name, value == None ? null : value.Substring(2) } });
+        }
+    }
 }

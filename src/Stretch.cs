@@ -100,6 +100,18 @@ namespace Tablero
         public static Action<Res> Set = RealSet;
         public static Action Reset = RealReset;
 
+        const int UpdateRegistry = 1, NoReset = 0x10000000;
+        // Saves r as Windows' mode (it survives a restart). While stretched only the saved mode changes: the stretch goes on and restores to it.
+        static void RealStore(Res r)
+        {
+            DevMode d = Blank();
+            d.Width = r.W; d.Height = r.H; d.Hz = r.Hz;
+            d.Fields = FieldWidth | FieldHeight | FieldHz;
+            int e = ChangeDisplaySettingsExW(null, ref d, IntPtr.Zero, Test, IntPtr.Zero) == Ok ? ChangeDisplaySettingsExW(null, ref d, IntPtr.Zero, UpdateRegistry | (Current().Same(r) ? 0 : NoReset), IntPtr.Zero) : -2;
+            if (e != Ok) throw new InvalidOperationException("La pantalla no aceptó " + r.Name + " a " + r.Hz + " Hz (código " + e + ").");
+        }
+        public static Action<Res> Store = RealStore;
+
         static readonly string[] Popular = { "1720 × 1080", "1440 × 1080" };
         // Narrower than the display, with the highest refresh rate of each.
         public static List<Res> Stretched(IEnumerable<Res> modes, Res native, double least = 0)
@@ -385,7 +397,7 @@ namespace Tablero
             return Regex.Match(t, "^([ \\t]*\"" + Regex.Escape(key) + "\"[ \\t]+\")([^\"\\r\\n]*)\"[^\\r\\n]*(\\r?\\n)?", RegexOptions.Multiline | RegexOptions.IgnoreCase);
         }
         // Sets those values; null removes the key's line. A missing key goes in its own line before the } of "video.cfg".
-        static void Put(string file, Dictionary<string, string> values)
+        internal static void Put(string file, Dictionary<string, string> values)
         {
             string before = Bytes.GetString(File.ReadAllBytes(file)), t = before, nl = t.Contains("\r\n") ? "\r\n" : "\n";
             foreach (KeyValuePair<string, string> v in values)

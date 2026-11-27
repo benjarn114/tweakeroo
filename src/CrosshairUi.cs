@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
@@ -169,6 +170,9 @@ namespace Tablero
             Switch on = F<Switch>("CrossOn");
             on.State = Prefs.Now.CrossOn;
             on.Click += (s, e) => { Prefs.Now.CrossOn = on.State != true; on.State = Prefs.Now.CrossOn; SavePrefs(); CrossWatch(); };
+            Switch match = F<Switch>("CrossMatch");
+            match.State = !Prefs.Now.CrossAlways;
+            match.Click += (s, e) => { Prefs.Now.CrossAlways = match.State == true; match.State = !Prefs.Now.CrossAlways; SavePrefs(); CrossWatch(); };
             crossPoll.Tick += (s, e) => CrossTick();
             crossSave.Tick += (s, e) => CrossStore();
             w.Closed += (s, e) => { crossPoll.Stop(); if (overlay != null) overlay.Close(); CrossFlush(); };
@@ -497,15 +501,23 @@ namespace Tablero
         }
 
         // The overlay only exists while it is on, and only shows with Fortnite in front, so it never covers the desktop.
+        // With "Solo en partida" also only while a match world is loaded (Macros.InMatch), never in the lobby or while loading.
         void CrossWatch()
         {
             if (Prefs.Now.CrossOn) { crossPoll.Start(); CrossTick(); return; }
             crossPoll.Stop();
             if (overlay != null) overlay.Hide();
         }
-        void CrossTick()
+        bool crossBusy;
+        async void CrossTick()
         {
-            bool want = Prefs.Now.CrossOn && Macros.Front();
+            if (crossBusy) return;
+            crossBusy = true;
+            bool want;
+            // the first log read can be 100+ MB: off the UI thread
+            try { want = Prefs.Now.CrossOn && Macros.Front() && (Prefs.Now.CrossAlways || await Task.Run(() => Macros.InMatch())); }
+            finally { crossBusy = false; }
+            want = want && Prefs.Now.CrossOn; // it may have been turned off meanwhile
 #if SHOT
             want = false; // tests never draw over the real screen
 #endif

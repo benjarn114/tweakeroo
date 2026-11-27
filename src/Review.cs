@@ -110,6 +110,8 @@ namespace Tablero
                     r.Add(new Check { Kind = Kind.Gratis, Title = "La pantalla usa " + h.Hz + " Hz y admite " + h.MaxHz, Text = "Es la mejora gratis más notable. Se cambia en Frecuencia de actualización.", Url = "ms-settings:display-advanced" });
                 else add(Kind.Bien, "Pantalla a " + h.Hz + " Hz", "Es el máximo disponible a " + h.ScreenW + " × " + h.ScreenH + ".");
             }
+            Check gpuDebug = FortniteDebug(IniOp.File);
+            if (gpuDebug != null) r.Add(gpuDebug);
             if (!h.Laptop && h.Ddr > 0)
             {
                 bool slow = h.Ddr == 5 ? h.RamMhz <= 4800 : h.RamMhz <= 2666;
@@ -142,6 +144,33 @@ namespace Tablero
 
             Buy(h, matches, hz, add);
             return r.OrderBy(c => (int)c.Kind).ToList();
+        }
+
+        // Fortnite's GPU crash debugging, on in [D3DRHIPreference]; null if off or unread. Only reads: the player may keep the file
+        // read-only on purpose, so neither its contents nor its attributes are touched here.
+        public static Check FortniteDebug(string ini)
+        {
+            try
+            {
+                if (!System.IO.File.Exists(ini)) return null;
+                string section = "", v = null;
+                using (System.IO.StreamReader rd = new System.IO.StreamReader(new System.IO.FileStream(ini, System.IO.FileMode.Open, System.IO.FileAccess.Read, System.IO.FileShare.ReadWrite | System.IO.FileShare.Delete)))
+                    for (string l = rd.ReadLine(); l != null; l = rd.ReadLine())
+                    {
+                        string t = l.Trim();
+                        if (t.StartsWith("[")) section = t;
+                        else if (section == "[D3DRHIPreference]" && t.StartsWith("bUseGPUCrashDebugging=", StringComparison.OrdinalIgnoreCase)) v = t.Substring(22).Trim();
+                    }
+                if (!string.Equals(v, "True", StringComparison.OrdinalIgnoreCase)) return null;
+            }
+            catch (System.IO.IOException) { return null; }
+            catch (UnauthorizedAccessException) { return null; }
+            return new Check
+            {
+                Kind = Kind.Gratis, Title = "Fortnite: depuración de fallos de GPU activada",
+                Text = "Cuesta rendimiento y solo sirve para diagnosticar cierres del juego.",
+                Detail = "1. Cierra Fortnite.\n2. Abre GameUserSettings.ini en %LOCALAPPDATA%\\FortniteGame\\Saved\\Config\\WindowsClient.\n3. En [D3DRHIPreference], cambia bUseGPUCrashDebugging=True por False y guarda.\nSi el archivo es de solo lectura, se quita esa marca en Propiedades, se guarda y se vuelve a marcar."
+            };
         }
 
         static void Buy(Hw h, List<Match> matches, int hz, Action<Kind, string, string> add)

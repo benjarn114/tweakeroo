@@ -464,7 +464,7 @@ namespace Tablero
             SetWorking(true, "Leyendo el estado del PC…");
             try { engine = await Task.Run(() => new Engine(dir, Source())); }
             catch (Exception ex) { Say("No se pudieron leer los datos de la app y no se hará ningún cambio. Revisa " + dir + ". Detalle: " + ex.Message, true); Task hid = HideSkeletons(); loaded.TrySetResult(true); return; }
-            every = engine.Tweaks.Select(t => new Row(t)).ToList();
+            every = Listed(engine).Select(t => new Row(t)).ToList();
             circuits = new ObservableCollection<Circuit> { new Circuit { Name = "Jugar", Icon = Ico("Launch"), Page = "StretchPage" }, new Circuit { Name = "Stretched Resolution", Icon = Ico("Wide"), Page = "ResPage" }, new Circuit { Name = "Colores", Icon = Ico("Drop"), Page = "ColorPage" }, new Circuit { Name = "Al jugar", Icon = Ico("Bolt"), Page = "BoostPage" }, new Circuit { Name = "Mi PC", Icon = Ico("Pc"), Page = "PcPage" },
                 new Circuit { Name = "Mis FPS", Icon = Ico("Gauge"), Page = "FpsPage" } };
             circuits.Add(new Circuit { Name = "Conexión", Icon = Ico("Net"), Page = "NetPage" });
@@ -521,9 +521,9 @@ namespace Tablero
             F<Btn>("Scan").Click += async (s, e) => { if (hw == null) await Scan(); else await Bulk(Wanted(), true); };
             F<Btn>("Rescan").Click += async (s, e) => await Scan();
             F<Btn>("ShowRec").Click += (s, e) => Open(Recommended);
-            F<Btn>("AllOn").Click += async (s, e) => await Bulk(rows, true);
+            F<Btn>("AllOn").Click += async (s, e) => await Bulk(rows, true, true);
             F<Btn>("AllOff").Click += async (s, e) => await Bulk(rows, false);
-            F<Btn>("CatOn").Click += async (s, e) => await Bulk(Shown(), true);
+            F<Btn>("CatOn").Click += async (s, e) => await Bulk(Shown(), true, true);
             F<Btn>("CatOff").Click += async (s, e) => await Bulk(Shown(), false);
             F<Btn>("SaveNow").Click += async (s, e) => await SaveNow();
             F<TextBox>("SaveName").KeyDown += async (s, e) => { if (e.Key == Key.Enter) await SaveNow(); };
@@ -1405,6 +1405,7 @@ namespace Tablero
             Row r = b == null ? null : b.DataContext as Row;
             if (r == null || working) return;
             bool on = r.State != State.On;
+            if (on && r.T.Hidden) { r.SetError("Retirado: no tiene efecto en los juegos. Ya no se activa."); return; }
             if (on && r.T.Level == Level.Riesgo && MessageBox.Show(w, L.T(r.T.Desc) + "\n\n" + L.T("¿Activar de todas formas?"), L.T(r.T.Name), MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No) != MessageBoxResult.Yes) return;
             Sound.Effect(on ? "toggle-on" : "toggle-off");
             SetWorking(true, null);
@@ -1419,17 +1420,41 @@ namespace Tablero
             r.SetError(err ?? "");
             if (err == null) pending.Change(r.T);
             else Sound.Effect("error");
+            if (err == null && on) note += ConfirmHz(r.T);
             await SafeRefresh();
             SetWorking(false, err != null ? "No se cambió: " + r.Name + "." : r.Name + (on ? ": activado." : ": quitado.") + (pending.Need(r.T) ? " Reinicia " + r.T.Restart + " para que haga efecto." : "") + note);
         }
 
-        async Task Bulk(List<Row> target, bool on)
+        // Retired tweaks are only listed while the app has them applied, so they can still be undone.
+        public static List<Tweak> Listed(Engine e) { return e.Tweaks.Where(t => !t.Hidden || e.Mine(t)).ToList(); }
+        // What a bulk "turn on" touches: never Riesgo nor retired ones; advised (Activar todos) also skips what the scan advises against for this PC.
+        public static bool Offered(Row r, bool advised) { return r.State != State.On && r.T.Level != Level.Riesgo && !r.T.Hidden && (!advised || r.Advice == null || r.Advice.Yes || r.Advice.Why.StartsWith("Opcional")); } // "Opcional" is a choice, not a problem for this PC
+
+        // A new refresh rate can leave some monitors black: without a yes within 15 s the previous one comes back. "" if it stays.
+        string ConfirmHz(Tweak t)
+        {
+            if (!t.Ops.Any(o => o is HzOp) || !engine.Mine(t)) return "";
+            bool answered = false, back = false;
+            string fail = null;
+            Action undo = () => { back = true; try { engine.Disable(t, true); } catch (Exception ex) { fail = ex.Message; } };
+            DispatcherTimer timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(15) };
+            timer.Tick += (s, e) => { timer.Stop(); if (!answered) undo(); };
+            timer.Start();
+            MessageBoxResult a = MessageBox.Show(w, L.T("¿La pantalla se ve bien? Sin respuesta en 15 segundos vuelve la frecuencia anterior."), L.T(t.Name), MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No);
+            answered = true;
+            timer.Stop();
+            if (!back && a != MessageBoxResult.Yes) undo();
+            return !back ? "" : fail != null ? " No se pudo volver a la frecuencia anterior: " + fail : " Vuelve la frecuencia anterior.";
+        }
+
+        async Task Bulk(List<Row> target, bool on, bool advised = false)
         {
             if (working) return;
-            List<Row> todo = target.Where(r => on ? r.State != State.On && r.T.Level != Level.Riesgo : r.State != State.Off && engine.Mine(r.T)).ToList();
+            List<Row> todo = target.Where(r => on ? Offered(r, advised) : r.State != State.Off && engine.Mine(r.T)).ToList();
+            int unadvised = on && advised ? target.Count(r => Offered(r, false) && !Offered(r, true)) : 0;
             bool game = IniOp.GameRunning();
             int skipped = game ? todo.RemoveAll(r => r.T.Ops.Any(o => o is IniOp)) : 0;
-            string skip = skipped > 0 ? " Fortnite está abierto: " + skipped + " ajustes del juego quedaron sin tocar." : "";
+            string skip = (skipped > 0 ? " Fortnite está abierto: " + skipped + " ajustes del juego quedaron sin tocar." : "") + (unadvised > 0 ? " " + unadvised + " no recomendados para este PC quedaron sin tocar." : "");
             if (todo.Count == 0)
             {
                 SetWorking(false, (on ? "No queda nada por activar en esta sección." : "Nada que deshacer: lo activado ya estaba así antes de usar Tweakeroo. Se puede quitar uno a uno.") + skip);
@@ -1454,6 +1479,7 @@ namespace Tablero
                 }
             });
             foreach (Row r in todo) { r.SetError(errs.ContainsKey(r) ? errs[r] : ""); if (stop == null && !errs.ContainsKey(r)) pending.Change(r.T); }
+            if (on && stop == null) foreach (Row r in todo.Where(x => !errs.ContainsKey(x))) note += ConfirmHz(r.T);
             await SafeRefresh();
             string msg = stop != null ? "Ningún cambio aplicado: falló el guardado previo: " + stop
                 : ok + (on ? " activados." : " deshechos.") + (errs.Count > 0 ? " " + errs.Count + " fallaron y quedaron como estaban; el motivo está en cada fila." : "")

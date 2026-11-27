@@ -145,12 +145,14 @@ namespace Tablero
         public static Advice For(Tweak t, Hw h)
         {
             if (t.Level == Level.Riesgo) return A(false, "Con riesgo: activación solo manual.");
+            if (t.Hidden) return A(false, "Retirado: no tiene efecto en los juegos. Solo se muestra para poder deshacerlo.");
             switch (t.Id)
             {
+                case "gfx-hz": return A(true, "Menos retraso de pantalla en cualquier juego.");
                 case "net-eee": case "net-green": case "net-giga":
                     return h.Ethernet ? A(true, "Conexión por cable.") : A(false, "Sin conexión por cable.");
                 case "net-im": return h.Ethernet && h.Cores >= 6 ? A(true, "Conexión por cable y CPU con margen.") : A(false, h.Ethernet ? "CPU con poco margen." : "Sin conexión por cable.");
-                case "net-roam": return h.Wifi && !h.Ethernet && !h.Laptop ? A(true, "Conexión por Wi-Fi en un PC de mesa.") : A(false, h.Laptop ? "En un portátil conviene que cambie de antena al moverse." : "Sin conexión por Wi-Fi.");
+                case "net-roam": case "net-roam-intel": return h.Wifi && !h.Ethernet && !h.Laptop ? A(true, "Conexión por Wi-Fi en un PC de mesa.") : A(false, h.Laptop ? "En un portátil conviene que cambie de antena al moverse." : "Sin conexión por Wi-Fi.");
                 case "net-qos": return A(false, "Opcional: depende del router.");
                 case "pw-wifi": return h.Wifi && !h.Ethernet ? A(true, "Conexión por Wi-Fi.") : A(false, "Sin conexión por Wi-Fi.");
                 case "pw-plan": case "pw-park":
@@ -161,7 +163,7 @@ namespace Tablero
                 case "pw-boost": case "pw-epp": case "pw-cool": case "pw-aspm": case "pw-usb": case "pw-usb3": case "pw-sleep": case "pw-disk": case "pw-throttle":
                     return h.Laptop ? A(false, "En un portátil gasta batería.") : A(true, "PC de mesa: no hay batería que cuidar.");
                 case "fn-gpu": case "val-gpu": return h.GpuCount > 1 ? A(true, "Detectadas " + h.GpuCount + " gráficas.") : A(false, "Una sola gráfica.");
-                case "fn-reflex": return h.Nvidia ? A(true, "Compatible con la gráfica NVIDIA.") : A(false, "Solo funciona con NVIDIA.");
+                case "fn-reflex": case "cs2-reflex": return h.Nvidia ? A(true, "Compatible con la gráfica NVIDIA.") : A(false, "Solo funciona con NVIDIA.");
                 case "fn-texture": return h.VramGb > 0 && h.VramGb < 6 ? A(true, "Detectados " + h.VramGb + " GB de vídeo.") : A(false, h.VramGb > 0 ? "Con " + h.VramGb + " GB de vídeo apenas cambia los FPS." : "No se pudo leer la memoria de vídeo.");
                 case "fn-viewdistance": return h.Cores < 6 ? A(true, "Alivia la CPU de " + h.Cores + " núcleos.") : A(false, "Los " + h.Cores + " núcleos son suficientes.");
                 case "gfx-vrr": return A(false, "Solo con monitor G-Sync o FreeSync; no se puede detectar.");
