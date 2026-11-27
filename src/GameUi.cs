@@ -256,7 +256,7 @@ namespace Tablero
             Visibility fort = fn ? Visibility.Visible : Visibility.Collapsed, valo = val ? Visibility.Visible : Visibility.Collapsed;
             foreach (string n in new[] { "LimitTitle", "Limits", "SetLimitBox", "EstBox" }) F<FrameworkElement>(n).Visibility = fort;
             F<FrameworkElement>("ValBox").Visibility = valo;
-            F<TextBlock>("PlayText").Text = game == Game.Cs2 ? "Abre CS2 por Steam con la resolución elegida. Al cerrarlo, la pantalla se restaura." : val ? "Abre Valorant y, si está activado, estira la pantalla al cargar un mapa. Al cerrarlo, todo se restaura." : "Abre Fortnite con la resolución elegida en Stretched Resolution. Al cerrarlo, la pantalla y la configuración se restauran.";
+            F<TextBlock>("PlayText").Text = game == Game.Cs2 ? "Abre CS2 por Steam con la resolución elegida. Al cerrarlo, la pantalla se restaura." : val ? "Abre Valorant y estira la pantalla cuando el juego termina de cargar. Al cerrarlo, todo se restaura." : "Abre Fortnite con la resolución elegida en Stretched Resolution. Al cerrarlo, la pantalla y la configuración se restauran.";
             F<TextBlock>("SetGameTitle").Text = game.Name;
             F<TextBlock>("PlayEstLabel").Text = fn ? "FPS estimados" : "Media de 10 partidas";
             ShowNote();
@@ -753,8 +753,6 @@ namespace Tablero
             CheckBox min = F<CheckBox>("Minimize");
             min.IsChecked = stretch.Minimize;
             min.Click += (s, e) => Try(() => { foreach (StretchSession x in sessions.Values) x.Minimize = min.IsChecked == true; });
-            CheckBox val = F<CheckBox>("ValOn");
-            val.Click += (s, e) => { ValorantSession v = (ValorantSession)sessions[Game.Valorant.Id]; Try(() => v.Stretch = val.IsChecked == true); LoadSession(); };
             play.Click += (s, e) => Play();
             F<Btn>("Back").Click += (s, e) => StopStretch("Resolución restaurada.");
             // The app closed halfway last time.
@@ -775,8 +773,8 @@ namespace Tablero
             StretchSession s;
             ValorantSession v = sessions.TryGetValue(Game.Valorant.Id, out s) ? s as ValorantSession : null;
             Res r = v == null ? null : v.Last;
-            // Off, already open from Play, a resolution never confirmed, under 1.45:1 or the normal one: nothing to do.
-            try { if (r == null || !v.Stretch || v.Pending || v.Asks(r) || r.Aspect < Display.ValorantRatio - 0.0001 || r.Same(Display.Saved()) || !Game.Visible.Contains(Game.Valorant)) return true; }
+            // Already open from Play, a resolution never confirmed, under 1.45:1 or the same shape as the screen: nothing to do.
+            try { if (r == null || v.Pending || v.Asks(r) || r.Aspect < Display.ValorantRatio - 0.0001 || !ValorantSession.Stretches(r) || !Game.Visible.Contains(Game.Valorant)) return true; }
             catch (InvalidOperationException) { return true; }
             if (working) return false;
             // Another game's session is open: not retried, the match may have started by then.
@@ -787,7 +785,7 @@ namespace Tablero
             // With the game open a failed start stays pending: watching it restores everything on close.
             if (v.Pending) { gameSeen = true; watch.Start(); }
             ShowStretch();
-            Say(err ?? (v.Warning != null ? "Algún monitor no se pudo desactivar: " + v.Warning : "Valorant abierto: la pantalla se estira al cargar un mapa y vuelve al cerrarlo."), err != null);
+            Say(err ?? (v.Warning != null ? "Algún monitor no se pudo desactivar: " + v.Warning : "Valorant abierto: la pantalla se estira cuando el juego termina de cargar y vuelve al cerrarlo."), err != null);
             return true;
         }
 
@@ -808,7 +806,6 @@ namespace Tablero
             ValorantSession v = Val;
             F<FrameworkElement>("ResBox").Visibility = v == null || v.Stretch ? Visibility.Visible : Visibility.Collapsed;
             F<FrameworkElement>("ValChecks").Visibility = v != null && v.Stretch || game == Game.Cs2 ? Visibility.Visible : Visibility.Collapsed;
-            F<CheckBox>("ValOn").IsChecked = v != null && v.Stretch;
             Preview();
             F<TextBlock>("ResHint").Text = game == Game.Cs2 ? "La pantalla se estira al pulsar Jugar y vuelve al cerrar CS2. Jugar también pone esa resolución y su relación de aspecto en el vídeo de CS2, y las repone al cerrarlo." : val ? "Valorant solo estira con una relación de aspecto de 1,45:1 o más: las más cuadradas, como 4:3, no funcionan." : "La pantalla se estira al pulsar Jugar y vuelve al cerrar el juego. No hace falta crear nada en el panel de la gráfica: se usan los Hz más altos de cada resolución.";
             if (list.Count == 1 && val) F<TextBlock>("StretchInfo").Text = "La pantalla no ofrece resoluciones estiradas que cumplan 1,45:1. Para estirar Valorant, crea " + Display.ValorantBest(list[0]).Name + " en el panel de la gráfica y reinicia la app.";

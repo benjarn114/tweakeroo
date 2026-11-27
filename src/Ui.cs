@@ -748,11 +748,11 @@ namespace Tablero
         {
             Btn play = F<Btn>("Play");
             ValorantSession v = Val;
-            bool on = stretch.Pending, open = on && game.Running(), hand = v != null && open && v.CanApply && !confirming;
+            bool on = stretch.Pending, open = on && game.Running(), wait = v != null && open && v.CanApply && !confirming && v.Loading, hand = v != null && open && v.CanApply && !confirming && !wait;
             play.IsEnabled = !on && game.Installed() || confirming || hand;
-            play.Content = confirming ? play.Content : hand ? "Estirar ahora" : on ? (open ? "Jugando" : "Abriendo " + game.Name + "…") : "Jugar";
+            play.Content = confirming ? play.Content : wait ? "Esperando el menú de Valorant…" : hand ? "Estirar ahora" : on ? (open ? "Jugando" : "Abriendo " + game.Name + "…") : "Jugar";
             F<Btn>("Back").Visibility = on && !(v != null && open && !v.Applied) ? Visibility.Visible : Visibility.Collapsed;
-            F<Drop>("ResDrop").IsEnabled = F<Drop>("ResOpen").IsEnabled = F<Btn>("CustomGo").IsEnabled = F<ListBox>("Limits").IsEnabled = F<CheckBox>("ValOn").IsEnabled = !on;
+            F<Drop>("ResDrop").IsEnabled = F<Drop>("ResOpen").IsEnabled = F<Btn>("CustomGo").IsEnabled = F<ListBox>("Limits").IsEnabled = !on;
             CardState();
         }
 
@@ -791,10 +791,10 @@ namespace Tablero
             watch.Start();
             ShowStretch();
             ValorantSession v = Val;
-            Say(v != null && v.Warning != null ? "Algún monitor no se pudo desactivar: " + v.Warning : game == Game.Cs2 ? "Abriendo CS2 por Steam. La resolución se restaura al cerrarlo; Tweakeroo debe quedar abierto." : v == null ? "Abriendo Fortnite. La resolución se restaura al cerrarlo; Tweakeroo debe quedar abierto." : v.CanApply ? "Abriendo Riot Client: pulsa Jugar allí. La pantalla se estira al cargar un mapa; Tweakeroo debe quedar abierto." : "Abriendo Riot Client: pulsa Jugar allí.", false);
+            Say(v != null && v.Warning != null ? "Algún monitor no se pudo desactivar: " + v.Warning : game == Game.Cs2 ? "Abriendo CS2 por Steam. La resolución se restaura al cerrarlo; Tweakeroo debe quedar abierto." : v == null ? "Abriendo Fortnite. La resolución se restaura al cerrarlo; Tweakeroo debe quedar abierto." : v.CanApply ? "Abriendo Riot Client: pulsa Jugar allí. La pantalla se estira cuando el juego termina de cargar; Tweakeroo debe quedar abierto." : "Abriendo Riot Client: pulsa Jugar allí.", false);
         }
 
-        // Valorant: when a map loads, or with the button.
+        // Valorant: once the game has loaded, or with the button.
         void Widen(bool byHand)
         {
             ValorantSession v = Val;

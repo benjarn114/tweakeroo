@@ -465,7 +465,6 @@ namespace Tablero
                     else tip("Resolución elegida: " + d.Last.Name, Kind.Bien, "Se aplica al pulsar Jugar y se restaura al cerrar el juego.");
                     if (d.Game == Game.Valorant)
                     {
-                        if (!d.ValOn) r.Add(go("Stretched Resolution", "Abrir Stretched Resolution", "Estirar Valorant desactivado", "Se activa en Stretched Resolution."));
                         int mon = 0;
                         try { mon = Monitors.On().Count; } catch (InvalidOperationException) { }
                         r.AddRange(Valorant.Checks(Valorant.Settings(), mon, gpu, dir));

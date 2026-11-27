@@ -378,7 +378,7 @@ namespace Tablero
         }
     }
 
-    // Says whether a map is loaded, reading only what is new in the log.
+    // Says whether the game is ready to stretch (its menu or a map has loaded), reading only what is new in the log.
     public class MapWatch
     {
         const string Mark = "LogMapLoadModel: Update: [Map Name: ";
@@ -398,12 +398,13 @@ namespace Tablero
             catch (UnauthorizedAccessException) { }
         }
 
-        // null = the line is not about maps.
+        // null = the line is not about maps. Any ready map counts except Init (the game still starting): Valorant only takes
+        // the desktop size when a map starts loading, so a stretch made once the match map is ready shows only from the next map.
         public static bool? Loaded(string line)
         {
             int i = line.IndexOf(Mark, StringComparison.Ordinal);
             if (i != 30) return null;
-            return line.IndexOf("[Local World: TRUE", i, StringComparison.Ordinal) > 0 && line.IndexOf("[Map Ready: TRUE", i, StringComparison.Ordinal) > 0;
+            return line.IndexOf("[Map Ready: TRUE", i, StringComparison.Ordinal) > 0 && string.CompareOrdinal(line, i + Mark.Length, "Init |", 0, 6) != 0;
         }
         public bool Read()
         {
@@ -435,7 +436,7 @@ namespace Tablero
         }
     }
 
-    // Valorant stretch: monitors disabled before playing and desktop resolution when the map loads.
+    // Valorant stretch: monitors disabled before playing and desktop resolution once the game has loaded (menu or map).
     public class ValorantSession : StretchSession
     {
         MapWatch maps;
@@ -456,12 +457,19 @@ namespace Tablero
             catch (UnauthorizedAccessException) { }
         }
         public override Game Game { get { return Game.Valorant; } }
-        public bool Stretch { get { return data.Stretch; } set { data.Stretch = value; Save(); } }
+        public bool Stretch { get { return true; } set { } } // always on: the chosen resolution decides, the native one means no stretch
         public bool Applied { get { return data.Applied; } }
-        bool Wide { get { return data.Stretch && data.Res != null && !data.Res.Same(Display.Saved()); } }
+        // Only a different shape stretches: a smaller 16:9 on a 16:9 screen has nothing to stretch.
+        public static bool Stretches(Res r) { return r != null && Math.Abs(r.Aspect - Display.Saved().Aspect) > 0.01; }
+        bool Wide { get { return Stretches(data.Res); } }
         // Still needs stretching: the game is open and the display is still normal.
         public bool CanApply { get { return Pending && Wide && !data.Applied; } }
-        public override bool Asks(Res r) { return data.Stretch && !Known(r); }
+        // The game is still loading toward its menu, which stretches by itself: the button would only be pressed too early.
+        // A log that cannot be read, or 60 s without a menu, gives the button back.
+        public bool Loading { get { return maps != null && !maps.InMap && maps.Error == null && DateTime.UtcNow - began < TimeSpan.FromSeconds(60); } }
+        DateTime began;
+        // One that does not stretch is never shown, so there is nothing to confirm.
+        public override bool Asks(Res r) { return !Known(r) && Stretches(r); }
         public string Warning { get; private set; }
 
         public override void Begin(Res r)
@@ -470,7 +478,7 @@ namespace Tablero
             Warning = null;
             held = false;
             noted = null;
-            maps = new MapWatch(DateTime.UtcNow);
+            maps = new MapWatch(began = DateTime.UtcNow);
             data.Trial = data.Applied = false;
             data.Res = r;
             // Windows' saved mode, not the current one: the desktop may still be stretched after a crash.
@@ -479,7 +487,7 @@ namespace Tablero
             data.Old = new Dictionary<string, string>();
             Save();
             bool wide = Wide;
-            Note("inicio: " + r.Name + " sobre " + data.Native.Name + (wide ? ", se estira al cargar un mapa" : ", sin estirar"), true);
+            Note("inicio: " + r.Name + " sobre " + data.Native.Name + (wide ? ", se estira cuando el juego termine de cargar" : ", sin estirar"), true);
             if (!wide) return;
             try
             {
@@ -505,7 +513,7 @@ namespace Tablero
             Back();
         }
         public override void Launch(string dir) { if (!Game.Running()) Valorant.Launch(dir); }
-        // When a map loads, or by hand with the button.
+        // Once the game has loaded (menu or map), or by hand with the button.
         public bool Arrive(bool byHand)
         {
             if (!CanApply || maps == null && !byHand || !byHand && (held || !MapNow())) return false;
@@ -513,7 +521,7 @@ namespace Tablero
             catch (Exception ex) { Note("no se estiró: " + ex.Message); throw; }
             data.Applied = true;
             Save();
-            Note(byHand ? "estirada a mano" : "estirada al cargar el mapa");
+            Note(byHand ? "estirada a mano" : "estirada al terminar de cargar el juego");
             return true;
         }
         // Notes when reading the log starts working or failing, once per change.

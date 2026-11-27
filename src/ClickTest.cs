@@ -340,14 +340,14 @@ namespace Tablero
                 Go(w, "Jugar"); ((ListBox)w.FindName("Games")).SelectedItem = Game.Valorant; await Task.Delay(1400);
                 Is(string.Join(",", nav.Items.Cast<Circuit>().Reverse().Take(2).Select(c => c.Name)) == "Ayuda,Mejoras" && nav.Items.Cast<Circuit>().Count(c => c.Name == "Apagados") == 1, "Valorant: Mejoras y Ayuda al final: " + string.Join(",", nav.Items.Cast<Circuit>().Select(c => c.Name)));
                 Is(pn.Text == "Color: Carmesí" && !nav.Items.Cast<Circuit>().Any(c => c.Name == "Macros") && ((UIElement)w.FindName("Limits")).Visibility != Visibility.Visible && Prefs.Now.Game == "valorant", "todo pasa a Valorant");
-                Is((string)play.Content == "Jugar" && ((UIElement)w.FindName("ResBox")).Visibility != Visibility.Visible, "estirar viene apagado: " + play.Content);
-                int was = opened; Press(play); Is(opened == was + 1 && screen.W == 2560 && mons.Count == 2, "abrir sin estirar no toca nada");
+                Is((string)play.Content == "Jugar" && ((UIElement)w.FindName("ResBox")).Visibility == Visibility.Visible && rl.SelectedIndex == 0, "siempre activo: Valorant empieza en la normal: " + play.Content);
+                int was = opened; Press(play); Is(opened == was + 1 && screen.W == 2560 && mons.Count == 2, "la normal abre sin tocar nada");
                 vrunning = true; await Task.Delay(3200); Is((string)play.Content == "Jugando" && !live.SwitchGame(Game.Fortnite, true) && pn.Text == "Color: Carmesí", "jugando no se cambia de juego: " + play.Content);
                 vrunning = false; await Task.Delay(3200); Is(play.IsEnabled && (string)play.Content == "Jugar", "cerrar Valorant: " + play.Content);
                 // a 4:3 saved by an older version goes back to the recommended one
                 ValorantSession vs = (ValorantSession)((Dictionary<string, StretchSession>)typeof(Ui).GetField("sessions", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(live))[Game.Valorant.Id];
                 vs.Choose(new Res { W = 1440, H = 1080, Hz = 200 });
-                CheckBox von = (CheckBox)w.FindName("ValOn"); von.IsChecked = true; von.RaiseEvent(ck); await Task.Delay(300);
+                typeof(Ui).GetMethod("LoadSession", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(live, null); await Task.Delay(300);
                 Is(names() == "2560 × 1440,1720 × 1080,1500 × 1000,2091 × 1440" && ((ItemsControl)w.FindName("ValChecks")).Items.Count >= 3, "Valorant, solo las de 1,45 o mas: " + names());
                 Is(((ResRow)rl.Items[3]).Best && rl.Items.Cast<ResRow>().Count(x => x.Best) == 1 && rl.SelectedIndex == 3 && vs.Last.W == 2091, "4:3 guardada vuelve a la recomendada: " + rl.SelectedIndex + " " + vs.Last.Name);
                 Press(ro); await Task.Delay(400); Is(rol.Items.Count == 4, "el desplegable de Jugar tampoco la ofrece"); ro.Close();
@@ -373,9 +373,9 @@ namespace Tablero
                 Press(play); Is(screen.W == 1720 && mons.Count == 0 && ((string)play.Content).StartsWith("Conservar"), "prueba la resolucion");
                 Press(back); Is(screen.W == 2560 && mons.Count == 2, "sin confirmar vuelve todo");
                 Press(play); Press(play); Is(screen.W == 2560 && mons.Count == 0 && opened == was + 2, "confirmada abre el juego con la pantalla normal");
-                vrunning = true; await Task.Delay(3200); Is(screen.W == 2560 && (string)play.Content == "Estirar ahora", "el mapa de antes no cuenta: " + play.Content);
-                File.AppendAllText(vlog, Map(DateTime.UtcNow, "MainMenuV2", false)); await Task.Delay(2200); Is(screen.W == 2560, "en el menu no estira");
-                File.AppendAllText(vlog, Map(DateTime.UtcNow, "Jam", true)); await Task.Delay(2500); Is(screen.W == 1720 && (string)play.Content == "Jugando", "estira al cargar el mapa");
+                vrunning = true; await Task.Delay(3200); Is(screen.W == 2560 && (string)play.Content == "Esperando el menú de Valorant…" && !play.IsEnabled, "el mapa de antes no cuenta y no ofrece el boton antes del menu: " + play.Content);
+                File.AppendAllText(vlog, Map(DateTime.UtcNow, "MainMenuV2", false)); await Task.Delay(2200); Is(screen.W == 2560, "el menu cargando no estira");
+                File.AppendAllText(vlog, Map(DateTime.UtcNow, "MainMenuV2", true)); await Task.Delay(2500); Is(screen.W == 1720 && (string)play.Content == "Jugando", "estira con el menu listo, antes de la partida");
                 Press(back); await Task.Delay(2500); Is(screen.W == 2560 && mons.Count == 0 && (string)play.Content == "Estirar ahora", "a mitad de partida vuelve y no insiste");
                 Press(play); Is(screen.W == 1720, "estirar a mano");
                 vrunning = false; await Task.Delay(3200); Is(screen.W == 2560 && mons.Count == 2 && play.IsEnabled, "al cerrar vuelven pantalla y monitores");
@@ -393,6 +393,17 @@ namespace Tablero
                 Go(w, "Al jugar"); Press((Button)w.FindName("BoostAll")); Is(boosted == 0 && Prefs.Now.BoostsOf(Game.Valorant).Count == 1 && Prefs.Now.BoostsOf(Game.Fortnite).Count == 0, "elegir no cambia nada");
                 vrunning = true; await Task.Delay(2800); Is(boosted == 1, "puesto al abrir"); vrunning = false; await Task.Delay(2800); Is(boosted == 0 && undo == "viejo", "quitado al cerrar");
                 Press((Button)w.FindName("BoostNone")); Is(Prefs.Now.BoostsOf(Game.Valorant).Count == 0, "quitar todos");
+                // opened from Riot Client, not from Play: the session joins and stretches by itself once the menu is ready
+                Go(w, "Jugar"); await Task.Delay(300);
+                vrunning = true; await Task.Delay(2600); Is(mons.Count == 0 && screen.W == 2560, "abierto fuera de Jugar: se une sin estirar aun");
+                File.AppendAllText(vlog, Map(DateTime.UtcNow, "MainMenuV2", true)); await Task.Delay(2500); Is(screen.W == 1720 && (string)play.Content == "Jugando", "y se estira solo con el menu listo: " + play.Content);
+                vrunning = false; await Task.Delay(3200); Is(screen.W == 2560 && mons.Count == 2 && (string)play.Content == "Jugar", "al cerrarlo vuelve todo");
+                // same shape as the screen: nothing to stretch, nothing to confirm and no Estirar ahora
+                cw.Text = "1920"; ch.Text = "1080"; Press(cg); Is(((Res)ro.Content).Name == "1920 × 1080", "misma forma elegida: " + ro.Content);
+                Press(play); Is(opened == was + 4 && screen.W == 2560 && mons.Count == 2 && (string)play.Content != "Estirar ahora" && !((string)play.Content).StartsWith("Conservar"), "misma forma: abre sin estirar ni preguntar: " + play.Content);
+                vrunning = true; await Task.Delay(3200); File.AppendAllText(vlog, Map(DateTime.UtcNow, "Jam", true)); await Task.Delay(2200);
+                Is(screen.W == 2560 && mons.Count == 2 && (string)play.Content == "Jugando", "misma forma: sin Estirar ahora: " + play.Content);
+                vrunning = false; await Task.Delay(3200); Is(play.IsEnabled && (string)play.Content == "Jugar", "misma forma: se cierra");
                 Go(w, "Mis FPS"); await Task.Delay(500); Is(((UIElement)w.FindName("EstBox")).Visibility != Visibility.Visible, "sin estimacion para Valorant");
                 Go(w, "Conexión"); await Task.Delay(300); Is(((ItemsControl)w.FindName("NetTiles")).Items.Count == 2, "sin servidores de Epic");
                 // opening Fortnite brings its part of the app

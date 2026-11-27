@@ -1520,3 +1520,8 @@ Sin efecto por Wi-Fi: solo cambia la tarjeta de cable.	No effect over Wi-Fi: it 
 Sin efecto con cable: solo cambia la antena Wi-Fi.	No effect when wired: it only changes the Wi-Fi radio.
 Sin efecto con cable: solo cambia la tarjeta Wi-Fi.	No effect when wired: it only changes the Wi-Fi card.
 En portátiles modestos a 720p pasó de 24 a 61 FPS (Intel UHD 620) y de 18 a 45 (Radeon HD 8610G), según Epic.	On modest laptops at 720p it went from 24 to 61 FPS (Intel UHD 620) and from 18 to 45 (Radeon HD 8610G), according to Epic.
+Cambia la resolución de Windows cuando el juego termina de cargar. No toca la memoria del juego. Riot no ha publicado una norma clara sobre esto: se usa bajo responsabilidad propia.	Changes the Windows resolution once the game has finished loading. It does not touch the game memory. Riot has not published a clear rule about this: use it at your own risk.
+Abre Valorant y estira la pantalla cuando el juego termina de cargar. Al cerrarlo, todo se restaura.	Opens Valorant and stretches the screen once the game has finished loading. Everything is restored when it closes.
+Abriendo Riot Client: pulsa Jugar allí. La pantalla se estira cuando el juego termina de cargar; Tweakeroo debe quedar abierto.	Opening Riot Client: press Play there. The screen stretches once the game has finished loading; Tweakeroo must stay open.
+Valorant abierto: la pantalla se estira cuando el juego termina de cargar y vuelve al cerrarlo.	Valorant open: the screen stretches once the game has finished loading and goes back when it closes.
+Esperando el menú de Valorant…	Waiting for the Valorant menu…

@@ -1,3 +1,7 @@
+## 1.4.1 2026-11-27
+- Valorant: sin la casilla Estirar Valorant. Se usa siempre la resolución elegida; con la normal no se estira.	Valorant: no more Stretch Valorant checkbox. The chosen resolution is always used; the native one means no stretch.
+- Una resolución con la misma forma que la pantalla, como otra 16:9, ya no cuenta como estirada.	A resolution with the same shape as the screen, such as another 16:9, no longer counts as stretched.
+- Mientras Valorant carga, el botón espera al menú en vez de ofrecer Estirar ahora antes de tiempo. Si en 60 segundos no llega, vuelve el botón manual.	While Valorant loads, the button waits for the menu instead of offering Stretch now too early. If it does not arrive within 60 seconds, the manual button comes back.
 ## 1.4.0 2026-11-27
 - Cada tweak indica qué mejora: FPS, retraso, tirones, estabilidad de red y más. Cuando hay una medición publicada, también cuánto, con la fuente y adaptado a este PC.	Each tweak shows what it improves: FPS, delay, stutters, network stability and more. When there is a published measurement, also how much, with the source and adapted to this PC.
 - Mis FPS: tarjeta Desde tus cambios, que compara las partidas de antes y de después de cambiar tweaks, en el mismo juego y modo. Si la diferencia está dentro de lo normal entre partidas, dice sin cambio claro.	My FPS: a Since your changes card that compares matches from before and after changing tweaks, in the same game and mode. If the difference is within the normal spread between matches, it says no clear change.

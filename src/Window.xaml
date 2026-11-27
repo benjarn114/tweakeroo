@@ -731,7 +731,7 @@
         <StackPanel Margin="28,24,28,110">
           <TextBlock Text="Stretched Resolution" FontSize="32" FontWeight="Bold" TextWrapping="Wrap"/>
           <TextBlock x:Name="ResHint" Foreground="{DynamicResource Ink2}" FontSize="15" TextWrapping="Wrap" Margin="0,6,0,18" MaxWidth="620" HorizontalAlignment="Left"/>
-          <Border x:Name="ValBox" Background="{DynamicResource Card}" CornerRadius="16" Padding="18,12" Margin="0,0,0,20" Visibility="Collapsed"><DockPanel><CheckBox x:Name="ValOn" DockPanel.Dock="Right" Style="{StaticResource Check}" AutomationProperties.Name="Estirar Valorant" Margin="16,0,0,0" VerticalAlignment="Center"/><StackPanel VerticalAlignment="Center"><TextBlock Text="Estirar Valorant" FontSize="16" FontWeight="Bold"/><TextBlock Text="Cambia la resolución de Windows al cargar un mapa. No toca la memoria del juego. Riot no ha publicado una norma clara sobre esto: se usa bajo responsabilidad propia." Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,2,0,0"/></StackPanel></DockPanel></Border>
+          <Border x:Name="ValBox" Background="{DynamicResource Card}" CornerRadius="16" Padding="18,12" Margin="0,0,0,20" Visibility="Collapsed"><TextBlock Text="Cambia la resolución de Windows cuando el juego termina de cargar. No toca la memoria del juego. Riot no ha publicado una norma clara sobre esto: se usa bajo responsabilidad propia." Foreground="{DynamicResource Ink2}" TextWrapping="Wrap"/></Border>
           <StackPanel x:Name="ResBox">
           <DockPanel Margin="0,0,0,18">
             <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" Margin="0,0,10,0">

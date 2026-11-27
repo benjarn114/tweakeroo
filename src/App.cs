@@ -13,7 +13,7 @@ using System.Windows.Media.Imaging;
 
 [assembly: AssemblyTitle("Tweakeroo")]
 [assembly: AssemblyProduct("Tweakeroo")]
-[assembly: AssemblyVersion("1.4.0.0")]
+[assembly: AssemblyVersion("1.4.1.0")]
 
 namespace Tablero
 {
@@ -192,7 +192,6 @@ namespace Tablero
                     // args: output width height section palette [scan]
                     int half = Array.IndexOf(args, "medio");
                     if (half >= 0) { ui.SwitchGame(Game.Fortnite, true); await Task.Delay(2500); ui.SwitchGame(Game.Valorant, true); await Task.Delay(int.Parse(args[half + 1])); }
-                    if (Array.IndexOf(args, "estirar") >= 0) { CheckBox vo = (CheckBox)w.FindName("ValOn"); vo.IsChecked = true; vo.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent)); }
                     if (args[4] != "-") ((ListBox)w.FindName("Palettes")).SelectedIndex = int.Parse(args[4]);
                     if (Array.IndexOf(args, "scan") >= 0)
                     {
