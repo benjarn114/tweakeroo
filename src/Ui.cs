@@ -60,6 +60,13 @@ namespace Tablero
         public string Error { get { return error; } }
         public bool HasError { get { return error.Length > 0; } }
         public void SetAdvice(Advice a) { Advice = a; Raise("AdviceText"); Raise("HasAdvice"); }
+        // What it improves and, with a source, how much on this PC (generic text until there is a scan).
+        Hw hw;
+        public string[] GainTags { get { return T.Gain ?? new string[0]; } }
+        public bool HasGain { get { return GainTags.Length > 0; } }
+        public string GainText { get { return T.Estimate == null ? null : L.T(T.Estimate.For(hw)); } } // translated here: a Run does not translate itself like Tb
+        public string GainTip { get { return string.IsNullOrEmpty(GainText) ? null : L.T("Fuente: " + Gains.Domain(T.Estimate.Source)); } }
+        public void SetHw(Hw h) { hw = h; Raise("GainText"); Raise("GainTip"); }
         public void SetError(string e) { error = e; Raise("Error"); Raise("HasError"); }
         public void SetState(State s) { State = s; Raise("Checked"); Raise("Spoken"); Raise("StateText"); }
     }
@@ -550,6 +557,7 @@ namespace Tablero
             StartMacros();
             StartSettings();
             StartNet();
+            F<Btn>("SinceMore").Click += (s, e) => { FrameworkElement x = F<FrameworkElement>("SinceWhat"); x.Visibility = x.Visibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible; };
             StartGames();
             StartColors();
             StartBoosts();
@@ -1021,8 +1029,36 @@ namespace Tablero
             ShowFps();
         }
 
+        // "Desde tus cambios": the matches and Connection tests on each side of the last change to the tweaks (Since.cs).
+        void ShowSince()
+        {
+            BeforeAfter s = BeforeAfter.Compare(matches, Changes.For(Changes.Read(dir), game.Id), game == Game.Fortnite);
+            F<TextBlock>("SinceTitle").Text = s.Title;
+            F<TextBlock>("SinceEmpty").Text = s.Text ?? "";
+            F<FrameworkElement>("SinceEmpty").Visibility = s.Ok ? Visibility.Collapsed : Visibility.Visible;
+            F<FrameworkElement>("SinceBody").Visibility = s.Ok ? Visibility.Visible : Visibility.Collapsed;
+            if (s.Ok)
+            {
+                F<TextBlock>("SinceMed").Text = BeforeAfter.R(s.MedA) + " → " + BeforeAfter.R(s.MedB);
+                F<TextBlock>("SinceLow").Text = BeforeAfter.R(s.LowA) + " → " + BeforeAfter.R(s.LowB);
+                F<TextBlock>("SinceMedDelta").Text = BeforeAfter.Delta(s.MedA, s.MedB, s.MedTrend);
+                F<TextBlock>("SinceLowDelta").Text = BeforeAfter.Delta(s.LowA, s.LowB, s.LowTrend);
+                F<TextBlock>("SinceMedDelta").SetResourceReference(TextBlock.ForegroundProperty, s.MedTrend > 0 ? "On" : s.MedTrend == 0 ? "Ink2" : "Ink");
+                F<TextBlock>("SinceLowDelta").SetResourceReference(TextBlock.ForegroundProperty, s.LowTrend > 0 ? "On" : s.LowTrend == 0 ? "Ink2" : "Ink");
+                F<TextBlock>("SinceCount").Text = s.Counts;
+            }
+            // Only Fortnite's tests are saved (Epic's servers).
+            string ping = game == Game.Fortnite ? BeforeAfter.Ping(NetTest.History(dir), s) : "";
+            F<TextBlock>("SincePing").Text = ping;
+            F<FrameworkElement>("SincePing").Visibility = ping == "" ? Visibility.Collapsed : Visibility.Visible;
+            F<FrameworkElement>("SinceMore").Visibility = s.Change == null ? Visibility.Collapsed : Visibility.Visible;
+            F<FrameworkElement>("SinceWhat").Visibility = Visibility.Collapsed;
+            F<TextBlock>("SinceWhat").Text = s.Change == null ? "" : (s.Change.On ? "Activados:" : "Quitados:") + "\n" + string.Join("\n", s.Change.Ids.Select(id => { Tweak t = engine == null ? null : engine.Tweaks.FirstOrDefault(x => x.Id == id); return t == null ? id : t.Name; }));
+        }
+
         void ShowFps()
         {
+            ShowSince();
             bool any = matches.Count > 0;
             F<FrameworkElement>("FpsNow").Visibility = any ? Visibility.Visible : Visibility.Collapsed;
             F<TextBlock>("FpsText").Text = game == Game.Cs2 ? (any ? "Se miden mientras Tweakeroo está abierto, contando los fotogramas que el juego entrega a Windows, sin tocar el juego." : "No hay partidas de más de un minuto medidas en CS2.") + (FpsRecorder.Status == null ? "" : " " + FpsRecorder.Status)
@@ -1034,9 +1070,6 @@ namespace Tablero
                 Fx.CountTo(F<TextBlock>("FpsLow"), a.Low);
                 Fx.CountTo(F<TextBlock>("FpsMax"), a.Max);
                 F<TextBlock>("FpsLast").Text = "Última partida: " + FpsRow.Day(a) + ", " + a.Map + (a.Cap > 0 ? ", con límite de " + a.Cap + " FPS" : ", sin límite");
-                // The last bulk change separates before from after.
-                Snapshot last = engine.List().Where(s => s.Kind == "auto" && s.Name.StartsWith("Antes de activar")).OrderByDescending(s => s.Date, StringComparer.Ordinal).FirstOrDefault();
-                F<TextBlock>("FpsCompare").Text = FpsLog.Compare(matches, last == null ? null : last.Date);
                 List<FpsRow> list = matches.Take(30).Select(m => new FpsRow { M = m }).ToList();
                 double top = Math.Max(1, list.Max(x => x.M.Median));
                 foreach (FpsRow x in list) x.BarW = 100 * x.M.Median / top;
@@ -1068,6 +1101,9 @@ namespace Tablero
             int todo = c.Count(x => x.Kind == Kind.Gratis), buy = c.Count(x => x.Kind == Kind.Comprar);
             F<TextBlock>("UpTitle").Text = todo + buy == 0 ? "Configuración correcta" : "Mejoras disponibles";
             F<TextBlock>("UpText").Text = (todo == 0 ? "Ninguna mejora gratis pendiente" : todo == 1 ? "1 mejora gratis" : todo + " mejoras gratis") + (buy == 0 ? " y ninguna compra recomendada." : buy == 1 ? " y 1 compra recomendada." : " y " + buy + " compras recomendadas.");
+            BeforeAfter since = BeforeAfter.Compare(PlayedIn(Game.Fortnite), Changes.For(Changes.Read(dir), Game.Fortnite.Id), true);
+            F<TextBlock>("UpSince").Text = since.Ok ? since.Line : "";
+            F<FrameworkElement>("UpSince").Visibility = since.Ok ? Visibility.Visible : Visibility.Collapsed;
             F<Btn>("Review").Content = "Revisar otra vez";
             F<Btn>("Review").Glint = false;
             F<ItemsControl>("Plan").ItemsSource = Review.Plan(hw, PlayedIn(Game.Fortnite));
@@ -1332,7 +1368,7 @@ namespace Tablero
             hw = d.Hw;
             foreach (Part p in parts) ShowPart(p, d.Text[p.Key]);
             ShowReview();
-            foreach (Row r in every) r.SetAdvice(Advisor.For(r.T, hw));
+            foreach (Row r in every) { r.SetAdvice(Advisor.For(r.T, hw)); r.SetHw(hw); }
             Circuit rec = subs.FirstOrDefault(c => c.Name == Recommended);
             if (rec == null) BuildSubs();
             else rec.Rows = Wanted();

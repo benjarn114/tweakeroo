@@ -15,6 +15,8 @@ namespace Tablero
         public string Id, Cat, Name, Desc, Effect, Restart;
         public Level Level;
         public bool Hidden; // retired for having no effect: listed only while applied, so it can still be undone
+        public string[] Gain;      // what it improves (Gains.Kinds), filled from Gains.cs
+        public GainEstimate Estimate;  // how much, only with a source; null for most
         public string Game { get { return Tablero.Game.OfTweak(Id); } }
         public List<Op> Ops;
         List<Op> usable;
@@ -124,6 +126,7 @@ namespace Tablero
             SaveOriginals();
             try { Commit(ch); }
             catch { foreach (string k in added) originals.Remove(k); SaveOriginals(); throw; }
+            if (ch.Count > 0) Changes.Add(dir, new[] { t.Id }, true, DateTime.Now);
             Live.After(t);
         }
 
@@ -142,6 +145,7 @@ namespace Tablero
             Commit(ch);
             foreach (Change c in ch) originals.Remove(c.Key);
             SaveOriginals();
+            if (ch.Count > 0) Changes.Add(dir, new[] { t.Id }, false, DateTime.Now);
             Live.After(t);
         }
 
@@ -221,7 +225,9 @@ namespace Tablero
                 try { Commit(new List<Change> { c }); restored++; }
                 catch (Exception ex) { errors.Add(c.Key + ": " + ex.Message); }
             }
-            foreach (Tweak t in Tweaks.Where(x => x.Usable.Any(o => ch.Any(c => c.Op == o)))) Live.After(t);
+            List<Tweak> touched = Tweaks.Where(x => x.Usable.Any(o => ch.Any(c => c.Op == o))).ToList();
+            foreach (Tweak t in touched) Live.After(t);
+            if (restored > 0) foreach (var g in touched.GroupBy(x => x.Read() != State.Off)) Changes.Add(dir, g.Select(x => x.Id), g.Key, DateTime.Now);
             foreach (Tweak t in Tweaks)
                 foreach (Op o in t.Usable)
                     foreach (string k in o.AllKeys().Where(x => originals.ContainsKey(x)))

@@ -328,6 +328,7 @@ namespace Tablero
             // SFIO Priority and treats Priority as 2 with High; the network limit is 10 packets/ms, far above a game's.
             // They are no longer offered, but whoever has one applied still sees it and can undo it.
             foreach (Tweak t in list.Where(x => x.Id == "lt-quantum" || x.Id == "lt-games" || x.Id == "lt-net")) t.Hidden = true;
+            Gains.Fill(list);
             return list;
         }
     }

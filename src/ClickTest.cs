@@ -30,7 +30,16 @@ namespace Tablero
             Fakes(dir);
             Ui.Source = () => new List<Tweak> { M("a", Level.Seguro, new RegOp(Root, "a", "d:1", "d:0")), M("b", Level.Avanzado, new RegOp(Root, "b", "d:1", Op.None)), M("ya", Level.Seguro, new RegOp(Root, "ya", "d:1", "d:0")), M("r", Level.Riesgo, new RegOp(Root, "r", "d:1", Op.None)), M("mal", Level.Seguro, new Bad()) };
         }
-        static Tweak M(string id, Level l, Op o) { return new Tweak { Id = id, Cat = "Prueba", Name = id, Desc = id, Effect = "Bajo", Restart = "", Level = l, Ops = new List<Op> { o } }; }
+        static Tweak M(string id, Level l, Op o) { return new Tweak { Id = id, Cat = "Prueba", Name = id, Desc = id, Effect = "Bajo", Restart = "", Level = l, Ops = new List<Op> { o }, Gain = new[] { "FPS" }, Estimate = id == "a" ? new GainEstimate { Text = "Medido en prueba.", Source = "https://www.nvidia.com/x" } : null }; }
+        static IEnumerable<T> Drawn<T>(DependencyObject o) where T : DependencyObject
+        {
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(o); i++)
+            {
+                DependencyObject c = VisualTreeHelper.GetChild(o, i);
+                if (c is T) yield return (T)c;
+                foreach (T x in Drawn<T>(c)) yield return x;
+            }
+        }
         static string V(string n) { return RegOp.ReadValue(Root, n); }
         static void Is(bool ok, string what) { if (!ok) throw new Exception("FALLA: " + what); }
         // Also finds what is not drawn yet (collapsed or out of view).
@@ -153,6 +162,14 @@ namespace Tablero
                 Go(w, "Apagados"); await Task.Delay(300); Is(rowsL.Items.Count == 4, "Apagados al volver");
                 Go(w, "Todos");
                 await Task.Delay(700);
+                {
+                    Func<string, DependencyObject> item = id => { DependencyObject d = RowBtn(w, id); while (d != null && !(d is ListBoxItem)) d = VisualTreeHelper.GetParent(d); return d; };
+                    DependencyObject ia = item("a"), ib = item("b");
+                    Func<DependencyObject, TextBlock> line = r => Drawn<TextBlock>(r).FirstOrDefault(t => t.Inlines.OfType<System.Windows.Documents.InlineUIContainer>().Any());
+                    TextBlock la = line(ia), lb = line(ib);
+                    Is(la != null && la.IsVisible && la.Inlines.OfType<System.Windows.Documents.Run>().Any(x => x.Text == "Medido en prueba.") && la.ToolTip as string == "Fuente: nvidia.com" && Drawn<TextBlock>(la).Any(t => t.Text == "FPS" && t.IsVisible), "la fila muestra qué mejora, cuánto y la fuente");
+                    Is(lb != null && lb.IsVisible && Drawn<TextBlock>(lb).Any(t => t.Text == "FPS" && t.IsVisible) && !lb.Inlines.OfType<System.Windows.Documents.Run>().Any(x => !string.IsNullOrEmpty(x.Text)) && lb.ToolTip == null, "sin estimación, solo las etiquetas");
+                }
                 await Click(w, RowBtn(w, "a")); Is(V("a") == "d:1", "prender uno");
                 await Click(w, RowBtn(w, "a")); Is(V("a") == "d:5", "apagar uno devuelve 5");
                 await Click(w, RowBtn(w, "mal")); Is(((Row)RowBtn(w, "mal").DataContext).HasError, "el error se ve en su fila");
@@ -425,6 +442,16 @@ namespace Tablero
                     typeof(FpsRecorder).GetProperty("Status").SetValue(null, null, null);
                     Go(w, "Jugar"); await Task.Delay(800);
                     Is(((TextBlock)w.FindName("PlayEst")).Text == "280 FPS", "media de 10 partidas en CS2: " + ((TextBlock)w.FindName("PlayEst")).Text);
+                    // "Desde tus cambios" from fakes: 3 matches before a change 5 days ago and 3 after (with the one above)
+                    Func<int, int, Match> fake = (days, med) => new Match { Start = DateTime.Now.AddDays(days).ToString("yyyy-MM-dd HH:mm:ss"), Map = "Partida", Seconds = 300, Median = med, Low = 190, Max = 400, Cap = 400 };
+                    foreach (Match fm in new[] { fake(-10, 240), fake(-9, 244), fake(-8, 236), fake(-3, 280), fake(-2, 282) }) FpsLog.Add(cd2, Game.Cs2, fm);
+                    Changes.Add(cd2, new[] { "prueba-cambio" }, true, DateTime.Now.AddDays(-5));
+                    Go(w, "Mis FPS"); await Task.Delay(1500);
+                    Func<string, string> tx = n => ((TextBlock)w.FindName(n)).Text;
+                    Is(((UIElement)w.FindName("SinceCard")).IsVisible && ((UIElement)w.FindName("SinceBody")).IsVisible && tx("SinceTitle") == "Desde tus cambios del " + DateTime.Now.AddDays(-5).ToString("dd/MM") && tx("SinceMed") == "240 → 281" && tx("SinceMedDelta") == "+41 FPS (+17 %)" && tx("SinceLowDelta") == "sin cambio claro" && tx("SinceCount").StartsWith("Partidas usadas: 3 antes y 3 después."),
+                        "tarjeta Desde tus cambios: " + tx("SinceTitle") + " | " + tx("SinceMed") + " " + tx("SinceMedDelta") + " | " + tx("SinceLowDelta") + " | " + tx("SinceCount"));
+                    Is(!((UIElement)w.FindName("SinceWhat")).IsVisible, "lo que cambió empieza plegado");
+                    Press((Button)w.FindName("SinceMore")); Is(((UIElement)w.FindName("SinceWhat")).IsVisible && tx("SinceWhat") == "Activados:\nprueba-cambio", "ver qué cambió: " + tx("SinceWhat"));
                     Go(w, "Conexión"); await Task.Delay(300); Is(((ItemsControl)w.FindName("NetTiles")).Items.Count == 2, "Conexión de CS2: 2 casillas");
                     // the themes keep their own colors with CS2; Simple brings back CS2's
                     ListBox th2 = (ListBox)w.FindName("Themes");

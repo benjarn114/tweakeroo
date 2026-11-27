@@ -526,9 +526,23 @@ Sin datos suficientes de esta gráfica o procesador para una estimación fiable.
 Aproximado, en modo Rendimiento y sin límite de FPS. A la resolución nativa limita la gráfica.	Approximate, in Performance mode with no FPS limit. At native resolution the GPU is the limit.
 Aproximado, en modo Rendimiento y sin límite de FPS. A la resolución nativa limita el procesador.	Approximate, in Performance mode with no FPS limit. At native resolution the processor is the limit.
 Al activar tweaks se comparan aquí los FPS de antes y de después.	After tweaks are turned on, before and after FPS are compared here.
-La comparación requiere dos partidas antes y dos después del último cambio grande, del mismo modo y con el mismo límite de FPS.	The comparison requires two matches before and two after the last big change, in the same mode and with the same FPS limit.
-Antes del último cambio grande: {0} FPS en {1} partidas. Después: {2} FPS en {3} partidas. Modo: {4}, sin límite.	Before the last big change: {0} FPS over {1} matches. After: {2} FPS over {3} matches. Mode: {4}, no limit.
-Antes del último cambio grande: {0} FPS en {1} partidas. Después: {2} FPS en {3} partidas. Modo: {4}, con límite de {5} FPS. Con límite, una mejora puede no verse: conviene comparar también los peores momentos.	Before the last big change: {0} FPS over {1} matches. After: {2} FPS over {3} matches. Mode: {4}, limited to {5} FPS. With a limit, an improvement may not show: the worst moments should be compared too.
+Desde tus cambios del {0}	Since your changes on {0}
+sin cambio claro	no clear change
+{0} FPS ({1} %)	{0} FPS ({1}%)
+Partidas usadas: {0} antes y {1} después.	Matches used: {0} before and {1} after.
+Modo: {0}.	Mode: {0}.
+Con límite de {0} FPS.	Limited to {0} FPS.
+Sin límite de FPS.	No FPS limit.
+Con límite de FPS distinto no se compara: las partidas de antes y de después de los cambios tienen límites diferentes.	With a different FPS limit there is no comparison: the matches before and after the changes have different limits.
+No hay suficientes partidas de antes de los cambios para comparar.	Not enough matches from before the changes to compare.
+Faltan partidas para comparar: juega {0} más.	Not enough matches to compare: play {0} more.
+Comparar el ping necesita al menos 3 pruebas de Conexión antes de los cambios y 3 después.	Comparing ping needs at least 3 Connection tests before the changes and 3 after.
+Ping: {0} → {1} ms, variación {2} → {3} ms, pérdida {4} → {5} %.	Ping: {0} → {1} ms, jitter {2} → {3} ms, loss {4} → {5}%.
+Sin cambio claro.	No clear change.
+Desde tus cambios del {0}: {1} → {2} FPS, {3}.	Since your changes on {0}: {1} → {2} FPS, {3}.
+Ver qué cambió	See what changed
+Activados:	Turned on:
+Quitados:	Turned off:
 Mejoras para este PC	Upgrades for this PC
 Analiza la configuración y los FPS. Primero las mejoras gratis; las compras, solo si el cambio es notable.	Analyzes the setup and FPS. Free improvements first; purchases only if the change is noticeable.
 Revisar PC	Check PC
@@ -1472,3 +1486,37 @@ Crosshair seleccionado	Selected crosshair
 Falta el nombre.	The name is missing.
 Ya hay un crosshair con ese nombre.	A crosshair with that name already exists.
 Partes del crosshair	Crosshair parts
+Ping	Ping
+Estabilidad de red	Network stability
+Tirones	Stutter
+Arranque	Startup
+Privacidad	Privacy
+Escritorio	Desktop
+Visibilidad	Visibility
+Puntería	Aim
+Temperatura	Temperature
+Limpieza	Cleanup
+Fuente: {0}	Source: {0}
+Hasta un 46 % menos de retraso que sin Reflex, según NVIDIA (RTX 40). Desde On, Boost solo ayuda si manda la CPU.	Up to 46% less latency than without Reflex, according to NVIDIA (RTX 40). From On, Boost only helps when the CPU is the limit.
+Sin efecto: Reflex solo funciona con gráficas NVIDIA.	No effect: Reflex only works with NVIDIA graphics cards.
+Hasta un 35 % menos de retraso que sin Reflex, según NVIDIA. Desde Activado, Boost solo ayuda si manda la CPU.	Up to 35% less latency than without Reflex, according to NVIDIA. From Enabled, Boost only helps when the CPU is the limit.
+Con Reflex activado en el juego no cambia nada: Reflex lo sustituye, según NVIDIA.	With Reflex on in the game it changes nothing: Reflex replaces it, according to NVIDIA.
+Cada imagen dura 1000 ÷ Hz ms: 16,7 a 60 Hz y 6,9 a 144 Hz. Según NVIDIA, es lo que más baja el retraso de pantalla.	Each frame lasts 1000 ÷ Hz ms: 16.7 at 60 Hz and 6.9 at 144 Hz. According to NVIDIA, it is what lowers display latency the most.
+Sin cambio: la pantalla ya va a su frecuencia máxima.	No change: the display already runs at its highest refresh rate.
+Un 5 % más de FPS de media y hasta un 10 % en algunos juegos, según Tom's Hardware (i9-13900K, RTX 4090). En 4K, un 2 %.	5% more FPS on average and up to 10% in some games, according to Tom's Hardware (i9-13900K, RTX 4090). At 4K, 2%.
+Sin tareas de fondo casi no cambia. Con tareas pesadas de fondo, los FPS mínimos se doblaron en un portátil modesto (PCWorld, Windows 10).	Without background tasks it barely changes. With heavy background tasks, minimum FPS doubled on a modest laptop (PCWorld, Windows 10).
+Efecto pequeño y desigual en las pruebas de Tom's Hardware: unos juegos ganan y otros pierden.	Small and uneven effect in Tom's Hardware's tests: some games gain and others lose.
+Según Microsoft, baja el retraso de los juegos DirectX 10 y 11 en ventana o sin bordes; los DirectX 12 ya funcionan así.	According to Microsoft, it lowers latency in DirectX 10 and 11 games in windowed or borderless mode; DirectX 12 games already work this way.
+Microsoft: Auto HDR usa algo de GPU, pero no espera que se note al jugar.	Microsoft: Auto HDR uses some GPU, but it does not expect it to be noticeable in games.
+Microsoft: grabar en segundo plano resta rendimiento salvo en las gráficas más potentes.	Microsoft: background recording costs performance except on the most powerful graphics cards.
+Microsoft: sin la grabación en segundo plano, solo actúa al usarlo y no resta rendimiento.	Microsoft: without background recording, it only runs when used and costs no performance.
+Microsoft: con sus optimizaciones, casi todos los PC rinden igual que en pantalla completa exclusiva.	Microsoft: with its optimizations, almost every PC performs the same as in exclusive fullscreen.
+Microsoft: solo frena el trabajo en segundo plano; el juego en primer plano no se frena.	Microsoft: it only slows down background work; the game in the foreground is not slowed.
+Sin efecto: 38 da el mismo reparto de CPU que Windows ya usa para programas, según Microsoft.	No effect: 38 gives the same CPU split Windows already uses for programs, according to Microsoft.
+Sin efecto: Windows no usa SFIO Priority y, con categoría High, trata Priority como 2, según Microsoft.	No effect: Windows does not use SFIO Priority and, with the High category, treats Priority as 2, according to Microsoft.
+Sin efecto en el ping: el tope es de 10.000 paquetes por segundo y solo con audio sonando, según Microsoft.	No effect on ping: the cap is 10,000 packets per second and only while audio plays, according to Microsoft.
+Despertar el puerto tarda como mucho 16,5 µs a 1 Gb/s, según IEEE 802.3: no se nota en el ping.	Waking the port takes at most 16.5 µs at 1 Gb/s, according to IEEE 802.3: it does not show in ping.
+Sin efecto por Wi-Fi: solo cambia la tarjeta de cable.	No effect over Wi-Fi: it only changes the wired card.
+Sin efecto con cable: solo cambia la antena Wi-Fi.	No effect when wired: it only changes the Wi-Fi radio.
+Sin efecto con cable: solo cambia la tarjeta Wi-Fi.	No effect when wired: it only changes the Wi-Fi card.
+En portátiles modestos a 720p pasó de 24 a 61 FPS (Intel UHD 620) y de 18 a 45 (Radeon HD 8610G), según Epic.	On modest laptops at 720p it went from 24 to 61 FPS (Intel UHD 620) and from 18 to 45 (Radeon HD 8610G), according to Epic.

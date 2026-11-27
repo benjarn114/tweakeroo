@@ -185,19 +185,6 @@ namespace Tablero
             Engine.WriteFile(file, json.Serialize(st));
             return st.Matches;
         }
-
-        static string FpsOf(List<Match> m) { return (int)Math.Round(m.Average(x => (double)x.Median)) + " FPS en " + m.Count + " partidas"; }
-        // Only compares matches of the same mode and the same cap: otherwise the difference would not be due to the change.
-        public static string Compare(List<Match> all, string change)
-        {
-            if (change == null) return "Al activar tweaks se comparan aquí los FPS de antes y de después.";
-            var best = all.GroupBy(m => new { m.Map, m.Cap })
-                .Select(g => new { g.Key, Before = g.Where(m => string.CompareOrdinal(m.Start, change) < 0).ToList(), After = g.Where(m => string.CompareOrdinal(m.Start, change) >= 0).ToList() })
-                .Where(g => g.Before.Count >= 2 && g.After.Count >= 2).OrderByDescending(g => Math.Min(g.Before.Count, g.After.Count)).FirstOrDefault();
-            if (best == null) return "La comparación requiere dos partidas antes y dos después del último cambio grande, del mismo modo y con el mismo límite de FPS.";
-            string s = "Antes del último cambio grande: " + FpsOf(best.Before) + ". Después: " + FpsOf(best.After) + ". Modo: " + best.Key.Map + (best.Key.Cap > 0 ? ", con límite de " + best.Key.Cap + " FPS." : ", sin límite.");
-            return best.Key.Cap > 0 ? s + " Con límite, una mejora puede no verse: conviene comparar también los peores momentos." : s;
-        }
     }
 
     public class Estimate { public int Low, High; public bool GpuLimits; }

@@ -157,8 +157,25 @@ namespace Tablero
             }
             catch (Exception) { return null; }
         }
+        // Every test too, to compare before and after the tweak changes (BeforeAfter.Ping).
+        static string HistoryOf(string dir) { return Path.Combine(dir, "red-historial.json"); }
+        internal const int KeepTests = 100;
+        public static List<NetResult> History(string dir)
+        {
+            try
+            {
+                List<NetResult> r = File.Exists(HistoryOf(dir)) ? new JavaScriptSerializer().Deserialize<List<NetResult>>(File.ReadAllText(HistoryOf(dir))) : null;
+                return r == null ? new List<NetResult>() : r.Where(x => x != null && x.Epic != null && x.Date != null).ToList();
+            }
+            catch (Exception) { return new List<NetResult>(); }
+        }
         public static void Save(string dir, NetResult r)
         {
+            List<NetResult> h = History(dir);
+            h.Add(r);
+            try { Engine.WriteFile(HistoryOf(dir), new JavaScriptSerializer().Serialize(h.Skip(Math.Max(0, h.Count - KeepTests)).ToList())); }
+            catch (IOException) { }
+            catch (UnauthorizedAccessException) { }
             try { Engine.WriteFile(FileOf(dir), new JavaScriptSerializer().Serialize(r)); }
             catch (IOException) { }
             catch (UnauthorizedAccessException) { }

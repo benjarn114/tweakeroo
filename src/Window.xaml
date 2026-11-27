@@ -979,6 +979,23 @@
         <StackPanel Margin="28,24,28,110">
           <TextBlock Text="FPS reales" FontSize="32" FontWeight="Bold"/>
           <TextBlock x:Name="FpsText" Foreground="{DynamicResource Ink2}" FontSize="15" TextWrapping="Wrap" Margin="0,6,0,18" MaxWidth="580" HorizontalAlignment="Left"/>
+          <!-- Before and after the last change to the tweaks (Since.cs) -->
+          <Border x:Name="SinceCard" Background="{DynamicResource Card}" CornerRadius="18" Padding="22,18" Margin="0,0,0,18">
+            <StackPanel>
+              <TextBlock x:Name="SinceTitle" FontSize="15" FontWeight="SemiBold" TextWrapping="Wrap"/>
+              <TextBlock x:Name="SinceEmpty" Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,4,0,0"/>
+              <StackPanel x:Name="SinceBody" Visibility="Collapsed">
+                <WrapPanel Margin="0,10,0,0">
+                  <StackPanel Margin="0,0,44,0"><TextBlock x:Name="SinceMed" FontSize="32" FontWeight="Bold" Typography.NumeralAlignment="Tabular"/><TextBlock x:Name="SinceMedDelta" FontSize="15" FontWeight="SemiBold"/><TextBlock Text="FPS la mitad del tiempo o más" Foreground="{DynamicResource Ink2}"/></StackPanel>
+                  <StackPanel><TextBlock x:Name="SinceLow" FontSize="32" FontWeight="Bold" Typography.NumeralAlignment="Tabular"/><TextBlock x:Name="SinceLowDelta" FontSize="15" FontWeight="SemiBold"/><TextBlock Text="en los peores momentos" Foreground="{DynamicResource Ink2}"/></StackPanel>
+                </WrapPanel>
+                <TextBlock x:Name="SinceCount" Foreground="{DynamicResource Ink2}" FontSize="13" TextWrapping="Wrap" Margin="0,10,0,0"/>
+              </StackPanel>
+              <TextBlock x:Name="SincePing" Foreground="{DynamicResource Ink2}" FontSize="13" TextWrapping="Wrap" Margin="0,4,0,0" Visibility="Collapsed"/>
+              <t:Btn x:Name="SinceMore" Style="{StaticResource LinkBtn}" Content="Ver qué cambió" HorizontalAlignment="Left" Margin="0,6,0,0" Visibility="Collapsed"/>
+              <TextBlock x:Name="SinceWhat" FontSize="13" TextWrapping="Wrap" Margin="0,4,0,0" Visibility="Collapsed"/>
+            </StackPanel>
+          </Border>
           <StackPanel x:Name="FpsNow" Visibility="Collapsed">
             <Border Background="{DynamicResource Card}" CornerRadius="18" Padding="22,18">
               <StackPanel>
@@ -1008,10 +1025,6 @@
               </DataTemplate>
             </ItemsControl.ItemTemplate>
           </ItemsControl>
-          </StackPanel>
-          <StackPanel Visibility="{Binding Visibility, ElementName=FpsNow}">
-            <Label Style="{StaticResource Head}" Content="Antes y después de los tweaks" Margin="0,24,0,4"/>
-            <TextBlock x:Name="FpsCompare" FontSize="15" TextWrapping="Wrap" MaxWidth="640" HorizontalAlignment="Left"/>
           </StackPanel>
           <StackPanel Visibility="{Binding Visibility, ElementName=FpsNow}">
             <Label Style="{StaticResource Head}" Content="Partidas" Margin="0,24,0,8"/>
@@ -1049,6 +1062,7 @@
         <StackPanel Margin="28,24,28,110">
           <TextBlock x:Name="UpTitle" Text="Mejoras para este PC" FontSize="32" FontWeight="Bold" TextWrapping="Wrap"/>
           <TextBlock x:Name="UpText" Text="Analiza la configuración y los FPS. Primero las mejoras gratis; las compras, solo si el cambio es notable." Foreground="{DynamicResource Ink2}" FontSize="15" TextWrapping="Wrap" Margin="0,6,0,18" MaxWidth="580" HorizontalAlignment="Left"/>
+          <TextBlock x:Name="UpSince" FontSize="15" TextWrapping="Wrap" Margin="0,0,0,18" MaxWidth="580" HorizontalAlignment="Left" Visibility="Collapsed"/>
           <t:Btn x:Name="Review" Style="{StaticResource BtnCta}" Icon="{StaticResource IcoScan}" Content="Revisar PC" HorizontalAlignment="Left" Margin="0,0,0,22"/>
           <ItemsControl x:Name="Checks" Focusable="False">
             <ItemsControl.ItemTemplate>
@@ -1146,6 +1160,12 @@
                     <StackPanel Grid.Column="1" Margin="4,0,16,0" VerticalAlignment="Center">
                       <TextBlock Text="{Binding Name}" FontSize="16.5" FontWeight="Bold" TextWrapping="Wrap"/>
                       <TextBlock Text="{Binding Desc}" FontSize="14" Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                      <!-- What it improves (Gains.cs) and, with a source, how much; the source domain on hover. The text wraps under the tags, not in a column beside them -->
+
+                      <TextBlock Margin="0,5,0,0" FontSize="12.5" Foreground="{DynamicResource Ink2}" TextWrapping="Wrap" Background="Transparent" ToolTip="{Binding GainTip}" Visibility="{Binding HasGain, Converter={StaticResource Vis}}"><InlineUIContainer BaselineAlignment="Center"><ItemsControl ItemsSource="{Binding GainTags}" Focusable="False">
+                          <ItemsControl.ItemsPanel><ItemsPanelTemplate><StackPanel Orientation="Horizontal"/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                          <ItemsControl.ItemTemplate><DataTemplate><Border Background="{DynamicResource On}" CornerRadius="6" Padding="7,1,7,2" Margin="0,0,6,0"><TextBlock Text="{Binding}" Foreground="{DynamicResource OnInk}" FontSize="11.5" FontWeight="SemiBold"/></Border></DataTemplate></ItemsControl.ItemTemplate>
+                        </ItemsControl></InlineUIContainer><Run Text="{Binding GainText, Mode=OneWay}"/></TextBlock>
                       <TextBlock Text="{Binding AdviceText}" FontSize="13.5" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,5,0,0" Visibility="{Binding HasAdvice, Converter={StaticResource Vis}}"/>
                       <TextBlock Text="{Binding Error}" FontSize="13.5" FontWeight="SemiBold" Foreground="{DynamicResource Danger}" TextWrapping="Wrap" Margin="0,5,0,0" Visibility="{Binding HasError, Converter={StaticResource Vis}}"/>
                     </StackPanel>

@@ -268,9 +268,73 @@ namespace Tablero
                 line(301, "LogLoad: LoadMap: /Game/Maps/Frontend?closed");
                 List<Match> ms = FpsLog.Read(new StringReader(log.ToString()));
                 Is(ms.Count == 1 && ms[0].Map == "Creativo" && ms[0].Median == 240 && ms[0].Cap == 240 && ms[0].Low >= 100 && ms[0].Low <= 240 && ms[0].Max == 240 && ms[0].Seconds > 100, "fps del registro");
-                Func<string, int, Match> mk = (s, f) => new Match { Start = s, Map = "Creativo", Median = f, Cap = 0 };
-                Is(FpsLog.Compare(new List<Match> { mk("2026-01-03", 300), mk("2026-01-04", 320), mk("2026-01-01", 200), mk("2026-01-02", 220) }, "2026-01-02 12:00").Contains("210 FPS en 2 partidas. Después: 310"), "comparacion antes y despues");
-                Is(FpsLog.Compare(new List<Match> { mk("2026-01-03", 300) }, "2026-01-02").StartsWith("La comparación"), "sin datos no compara");
+                // before and after the last change to the tweaks (Since.cs)
+                List<string> said = new List<string> { "Activados:", "Quitados:" };
+                {
+                    Func<string, int, int, int, string, Match> fm = (d, med, low, cap, map) => new Match { Start = d, Map = map, Median = med, Low = low, Cap = cap };
+                    Func<string[], List<TweakChange>> at = ts => ts.Select(x => new TweakChange { Time = x, Ids = new List<string> { "x" }, On = true }).ToList();
+                    Func<int, int, int, string, List<Match>> two = (after, low, cap, map) =>
+                    {
+                        List<Match> l = new int[] { 200, 204, 196, 202 }.Select((x, i) => fm("2026-01-0" + (i + 1) + " 20:00:00", x, 150, 0, "Otro modo")).ToList();
+                        for (int i = 0; i < 3; i++) l.Add(fm("2026-01-1" + i + " 20:00:00", after, low, cap, map));
+                        return l;
+                    };
+                    BeforeAfter ba = BeforeAfter.Compare(two(230, 150, 0, "Otro modo"), at(new[] { "2026-01-05 12:00:00" }), true);
+                    Is(ba.Ok && ba.Before == 4 && ba.After == 3 && ba.MedA == 200.5 && ba.MedB == 230 && ba.MedTrend == 1 && ba.LowTrend == 0 && ba.Title == "Desde tus cambios del 05/01", "antes y despues: mejora clara, peores sin cambio");
+                    Is(BeforeAfter.Delta(ba.MedA, ba.MedB, ba.MedTrend) == "+30 FPS (+15 %)" && BeforeAfter.Delta(ba.LowA, ba.LowB, ba.LowTrend) == "sin cambio claro" && ba.Counts == "Partidas usadas: 4 antes y 3 después. Modo: Otro modo. Sin límite de FPS.", "antes y despues: textos " + ba.Counts);
+                    said.AddRange(new[] { ba.Title, ba.Counts, ba.Line, BeforeAfter.Delta(ba.MedA, ba.MedB, ba.MedTrend), BeforeAfter.Delta(ba.LowA, ba.LowB, ba.LowTrend) });
+                    BeforeAfter noise = BeforeAfter.Compare(two(202, 120, 0, "Otro modo"), at(new[] { "2026-01-05 12:00:00" }), true);
+                    Is(noise.Ok && noise.MedTrend == 0 && noise.LowTrend == -1, "dentro de la dispersion de antes: sin cambio claro; peores bajan");
+                    List<Match> few = two(230, 150, 0, "Otro modo"); few.RemoveAt(few.Count - 1);
+                    BeforeAfter f1 = BeforeAfter.Compare(few, at(new[] { "2026-01-05 12:00:00" }), true);
+                    Is(!f1.Ok && f1.Text == "Faltan partidas para comparar: juega 1 más." && f1.Title == "Desde tus cambios del 05/01", "faltan partidas: " + f1.Text);
+                    Is(BeforeAfter.Compare(two(230, 150, 0, "Otro modo"), at(new[] { "2025-12-01 12:00:00" }), true).Text == "No hay suficientes partidas de antes de los cambios para comparar.", "sin partidas de antes");
+                    BeforeAfter none = BeforeAfter.Compare(two(230, 150, 0, "Otro modo"), new List<TweakChange>(), true);
+                    Is(!none.Ok && none.Change == null && none.Text.StartsWith("Al activar tweaks"), "sin cambios anotados");
+                    BeforeAfter capd = BeforeAfter.Compare(two(240, 150, 240, "Otro modo"), at(new[] { "2026-01-05 12:00:00" }), true);
+                    Is(!capd.Ok && capd.Text.StartsWith("Con límite de FPS distinto no se compara"), "limite distinto no se compara");
+                    BeforeAfter mode = BeforeAfter.Compare(two(230, 150, 0, "Creativo"), at(new[] { "2026-01-05 12:00:00" }), true);
+                    Is(!mode.Ok && mode.Text == "Faltan partidas para comparar: juega 3 más.", "otro modo no se compara: " + mode.Text);
+                    Is(BeforeAfter.Compare(two(230, 150, 0, "Ascent"), at(new[] { "2026-01-05 12:00:00" }), false).Ok, "sin modos, el mapa no separa");
+                    Is(!BeforeAfter.Compare(two(230, 150, 0, "Campo de tiro"), at(new[] { "2026-01-05 12:00:00" }), false).Ok, "el campo de tiro no se mezcla con partidas");
+                    BeforeAfter old = BeforeAfter.Compare(two(230, 150, 0, "Otro modo"), at(new[] { "2026-01-12 21:00:00", "2026-01-05 12:00:00" }), true);
+                    Is(old.Ok && old.Change.Time == "2026-01-05 12:00:00" && old.Until == "2026-01-12 21:00:00" && old.After == 3, "sin partidas tras el ultimo cambio se usa el anterior");
+                    BeforeAfter split = BeforeAfter.Compare(two(230, 150, 0, "Otro modo"), at(new[] { "2026-01-11 12:00:00", "2026-01-05 12:00:00" }), true);
+                    Is(!split.Ok && split.Change.Time == "2026-01-11 12:00:00", "despues termina en el cambio siguiente");
+                    List<Match> many = two(230, 150, 0, "Otro modo"); for (int i = 0; i < 12; i++) many.Add(fm("2025-12-" + (10 + i) + " 20:00:00", 200, 150, 0, "Otro modo"));
+                    Is(BeforeAfter.Compare(many, at(new[] { "2026-01-05 12:00:00" }), true).Before == 10, "como mucho 10 partidas por lado");
+                    said.AddRange(new[] { f1.Text, capd.Text, none.Text, none.Title, BeforeAfter.Compare(two(230, 150, 0, "Otro modo"), at(new[] { "2025-12-01 12:00:00" }), true).Text, new BeforeAfter { Before = 3, After = 4, Cap = 240 }.Counts });
+                    // ping around the same change
+                    Func<string, int, NetResult> nt = (d, pm) => new NetResult { Date = d, Router = new PingStats(), Internet = new PingStats(), Epic = new PingStats { Sent = 10, Median = pm, Jitter = 2 } };
+                    List<NetResult> tests = new List<NetResult> { nt("2026-01-01 10:00:00", 30), nt("2026-01-02 10:00:00", 31), nt("2026-01-03 10:00:00", 29), nt("2026-01-06 10:00:00", 20), nt("2026-01-07 10:00:00", 20), nt("2026-01-08 10:00:00", 21) };
+                    string pg = BeforeAfter.Ping(tests, ba);
+                    Is(pg == "Ping: 30 → 20,3 ms, variación 2 → 2 ms, pérdida 0 → 0 %.".Replace("20,3", NetTest.Num(61 / 3.0)), "ping antes y despues: " + pg);
+                    tests.RemoveAt(5);
+                    string pg2 = BeforeAfter.Ping(tests, ba);
+                    Is(pg2.StartsWith("Comparar el ping necesita"), "ping sin pruebas a ambos lados");
+                    tests.Add(nt("2026-01-08 10:00:00", 30));
+                    said.AddRange(new[] { pg, pg2, BeforeAfter.Ping(tests, ba) });
+                    Is(BeforeAfter.Ping(tests, ba).EndsWith(" Sin cambio claro.") == false && BeforeAfter.Ping(new List<NetResult> { nt("2026-01-01 10:00:00", 30), nt("2026-01-02 10:00:00", 31), nt("2026-01-03 10:00:00", 29), nt("2026-01-06 10:00:00", 30), nt("2026-01-07 10:00:00", 30), nt("2026-01-08 10:00:00", 31) }, ba).EndsWith(" Sin cambio claro."), "ping dentro del ruido");
+                    said.Add(BeforeAfter.Ping(new List<NetResult> { nt("2026-01-01 10:00:00", 30), nt("2026-01-02 10:00:00", 31), nt("2026-01-03 10:00:00", 29), nt("2026-01-06 10:00:00", 30), nt("2026-01-07 10:00:00", 30), nt("2026-01-08 10:00:00", 31) }, ba));
+                    // the history: one moment per bulk, capped, unreadable = empty; the engine writes it
+                    string cd = Path.Combine(dir, "cambios"); Directory.CreateDirectory(cd);
+                    DateTime c0 = new DateTime(2026, 3, 1, 18, 0, 0);
+                    Changes.Add(cd, new[] { "a" }, true, c0); Changes.Add(cd, new[] { "b", "a" }, true, c0.AddSeconds(30)); Changes.Add(cd, new[] { "a" }, false, c0.AddSeconds(40));
+                    List<TweakChange> cr = Changes.Read(cd);
+                    Is(cr.Count == 2 && cr[0].On && cr[0].Ids.SequenceEqual(new[] { "a", "b" }) && cr[0].Time == "2026-03-01 18:00:30" && !cr[1].On, "historial de cambios: activar en bloque es un momento");
+                    for (int i = 0; i < 250; i++) Changes.Add(cd, new[] { "n" + i }, true, c0.AddHours(1 + i));
+                    cr = Changes.Read(cd);
+                    Is(cr.Count == Changes.Keep && cr[cr.Count - 1].Ids[0] == "n249" && cr[0].Ids[0] == "n50", "historial de cambios: solo los ultimos 200");
+                    File.WriteAllText(Path.Combine(cd, "cambios.json"), "{roto");
+                    Is(Changes.Read(cd).Count == 0, "historial de cambios ilegible: vacio");
+                    Changes.Add(cd, new[] { "z" }, true, c0); Is(Changes.Read(cd).Count == 1, "y se vuelve a escribir");
+                    Is(Changes.Read(dir).Any(c => c.On && c.Ids.Contains("t1")) && Changes.Read(dir).Any(c => !c.On && c.Ids.Contains("t1")), "el motor anota activar y quitar");
+                    List<TweakChange> fc = Changes.For(new List<TweakChange> { new TweakChange { Time = "2026-01-01 00:00:00", On = true, Ids = new List<string> { "val-x", "fn-y", "net-z" } }, new TweakChange { Time = "2026-01-02 00:00:00", On = true, Ids = new List<string> { "cs2-q" } } }, "fortnite");
+                    Is(fc.Count == 1 && fc[0].Ids.SequenceEqual(new[] { "fn-y", "net-z" }), "cambios de otro juego no cuentan");
+                    string nd = Path.Combine(dir, "red-h"); Directory.CreateDirectory(nd);
+                    for (int i = 0; i < NetTest.KeepTests + 5; i++) NetTest.Save(nd, nt("2026-02-01 10:00:" + (i % 60).ToString("00"), i));
+                    Is(NetTest.History(nd).Count == NetTest.KeepTests && NetTest.History(nd).Last().Epic.Median == NetTest.KeepTests + 4 && NetTest.Load(nd).Epic.Median == NetTest.KeepTests + 4, "historial de pruebas de red: solo las ultimas 100");
+                }
 
                 // estimate and review
                 Hw my = new Hw { Cpu = "AMD Ryzen 5 9600X", Gpu = "NVIDIA GeForce RTX 3060", RamGb = 32, RamMhz = 6400, Ddr = 5, RamModules = 2, Hz = 200, MaxHz = 200, ScreenW = 2560, ScreenH = 1440, Ssd = true, DiskName = "x", DiskFreeGb = 200, Wifi = true, Nvidia = true, Socket = "AM5" };
@@ -1086,7 +1150,7 @@ namespace Tablero
                         foreach (string x in Advisor.Notes(h)) L.T(x);
                         foreach (Check c in Review.For(h, new List<Match>()).Concat(Review.For(h, new List<Match> { new Match { Median = 238, Cap = 240 } })).Concat(Review.Plan(h, new List<Match>()))) { L.T(c.Title); L.T(c.Text); L.T(c.Tag); }
                     }
-                    L.T(FpsLog.Compare(new List<Match>(), null)); L.T(FpsLog.Compare(new List<Match>(), "2026")); L.T(FpsLog.Compare(new List<Match> { mk("2026-01-03", 300), mk("2026-01-04", 320), mk("2026-01-01", 200), mk("2026-01-02", 220) }, "2026-01-02 12:00"));
+                    foreach (string x in said) L.T(x);
                     string xaml; using (StreamReader rd = new StreamReader(System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("Window.xaml"))) xaml = rd.ReadToEnd();
                     L.Xaml(xaml);
                     foreach (Check c in Wifi.Advice(true, 50, 6, new List<string> { "steam" }).Concat(Wifi.Advice(true, 90, 36, new List<string>())).Concat(Wifi.Advice(false, 0, 0, new List<string>()))) { L.T(c.Title); L.T(c.Text); }
@@ -1111,6 +1175,8 @@ namespace Tablero
                     foreach (Game g in Game.All) foreach (string x in new[] { "Cierra {0} antes de cambiar de juego.", "Cierra {0} y vuelve a intentarlo.", "Cierra {0} primero: la resolución aún no se ha restaurado.", "Tweakeroo debe quedar abierto hasta cerrar {0} para restaurar la resolución.", "{0} cerrado: resolución restaurada.", "{0} no se abrió en 10 minutos: resolución restaurada.", "Abriendo {0}…", "Abrir {0}", "No se pudo abrir {0}: x", "No se pudieron leer los registros de {0}: x", "Se leen de los registros de {0}, segundo a segundo, sin modificar el juego.", "No hay partidas de más de un minuto en los registros de {0}.", "Se aplica al abrir {0}.", "Cierra {0} antes de medir la velocidad: la prueba llena la conexión.", "{0} no está instalado o no se encontró", "Si está en otra carpeta, elige su archivo {1}.", "Ese no es el archivo de {0}. Se llama {1}.", "{0} encontrado. Los tweaks del juego se actualizan al volver a abrir Tweakeroo." }) L.T(string.Format(x, g.Name, g.ExeName));
                     foreach (string x in new[] { "Colores", "Color: Carmesí", "Carmesí", "Estirar ahora", "Jugando", "Media de 10 partidas", "FPS estimados", "Abre Valorant y, si está activado, estira la pantalla al cargar un mapa. Al cerrarlo, todo se restaura.", "Abre Fortnite con la resolución elegida. Al cerrarlo, la pantalla y la configuración se restauran.", "Abriendo Riot Client: pulsa Jugar allí. La pantalla se estira al cargar un mapa; Tweakeroo debe quedar abierto.", "Abriendo Riot Client: pulsa Jugar allí.", "Algún monitor no se pudo desactivar: Windows no cambió el monitor (código 5).", "Pantalla estirada. Se restaura al cerrar Valorant.", "Pantalla restaurada.", "Tweakeroo debe quedar abierto durante la partida. Si la pantalla no se estira sola, el botón Estirar ahora lo hace a mano.", "No se encontró Riot Client. Abre Valorant una vez e inténtalo de nuevo.", "Windows no encontró el monitor (código 5).", "La gráfica no aceptó el color (código 5).", "La intensidad necesita una gráfica NVIDIA. ", "Windows no permite cambiar brillo, contraste y gamma en esta pantalla. Pasa con HDR o con el monitor desactivado en el Administrador de dispositivos.", "Ahora", "Ahora, intensidad 100 %", "Probando. Vuelve solo en unos segundos.", "Sin perfil: la pantalla no cambia.", "Windows no aceptó ese brillo. Prueba valores más cercanos a 50.", "No se pudo cambiar el color: x", "Se activa al abrir el juego.", "Activo ahora." }) L.T(x);
                     foreach (string x in new[] { "Tweaks", "Apagados", "Activados", "Nada activado en esta sección.", "Todo activado en esta sección." }) L.T(x);
+                    foreach (string x in Gains.Kinds) L.T(x);
+                    foreach (GainEstimate x in Gains.Table.Values) { L.T(x.Text); L.T(x.Else); Is(L.T("Fuente: " + Gains.Domain(x.Source)) == "Source: " + Gains.Domain(x.Source), "fuente en inglés"); }
                     { Check fc = Review.FortniteDebug(Path.Combine(dir, "fn-debug.ini")); L.T(fc.Title); L.T(fc.Text); L.T(fc.Detail); }
                     foreach (string x in new[] { "Retirado: no tiene efecto en los juegos. Ya no se activa.", "¿La pantalla se ve bien? Sin respuesta en 15 segundos vuelve la frecuencia anterior.", "Pantalla a su frecuencia máxima: activado. Vuelve la frecuencia anterior.", "Pantalla a su frecuencia máxima: activado. No se pudo volver a la frecuencia anterior: x",
                         "3 activados. Fortnite está abierto: 2 ajustes del juego quedaron sin tocar. 4 no recomendados para este PC quedaron sin tocar.", "No queda nada por activar en esta sección. 4 no recomendados para este PC quedaron sin tocar.", "No se pudo leer la configuración de CS2.", "Cierra CS2 primero: el juego sobrescribe su configuración al salir.", "No se encontró la configuración de CS2. Abre el juego una vez e inténtalo de nuevo.", "La pantalla no aceptó 1920 × 1080 a 144 Hz (código -2)." }) L.T(x);
@@ -1153,6 +1219,21 @@ namespace Tablero
                 // catalog
                 List<Tweak> all = Catalog.Build();
                 Is(all.Select(x => x.Id).Distinct().Count() == all.Count, "ids unicos");
+                // gains: every tweak says what it improves; every estimate has a source and a tweak; texts follow the scan
+                {
+                    Func<string, bool> known = id => all.Any(x => x.Id == id) || id == "lt-msi"; // lt-msi only exists with an NVIDIA or AMD card
+                    Is(all.All(x => x.Gain != null && x.Gain.Length > 0 && x.Gain.All(k => Gains.Kinds.Contains(k))), "sin ganancia: " + string.Join(", ", all.Where(x => x.Gain == null || !x.Gain.All(k => Gains.Kinds.Contains(k))).Select(x => x.Id)));
+                    Is(Gains.Of.Keys.Concat(Gains.Table.Keys).All(known), "ganancias de tweaks que no existen: " + string.Join(", ", Gains.Of.Keys.Concat(Gains.Table.Keys).Where(k => !known(k))));
+                    Is(Gains.Table.Values.All(x => x.Source != null && x.Source.StartsWith("https://") && (x.Text != null || x.Else != null) && (x.Else == null || x.If != null)), "toda estimación con fuente y texto");
+                    Func<string, Hw, string> est = (id, h) => Gains.Table[id].For(h);
+                    Hw nv = new Hw { Nvidia = true, Ethernet = true, Hz = 60, MaxHz = 144 }, amd = new Hw { Wifi = true, Hz = 144, MaxHz = 144 };
+                    Is(est("cs2-reflex", null) == Gains.Table["cs2-reflex"].Text && est("cs2-reflex", nv) == Gains.Table["cs2-reflex"].Text && est("cs2-reflex", amd) == "Sin efecto: Reflex solo funciona con gráficas NVIDIA.", "Reflex según la gráfica");
+                    Is(est("net-eee", nv).StartsWith("Despertar") && est("net-eee", amd).StartsWith("Sin efecto por Wi-Fi") && est("pw-wifi", nv).StartsWith("Sin efecto con cable") && est("pw-wifi", amd) == null && est("pw-wifi", null) == null, "Wi-Fi y cable");
+                    Is(est("gfx-hz", nv).StartsWith("Cada imagen") && est("gfx-hz", amd).StartsWith("Sin cambio"), "Hz según el monitor");
+                    Row gr = new Row(all.First(x => x.Id == "cs2-reflex")), plain = new Row(all.First(x => x.Id == "tl-level"));
+                    Is(gr.GainText == Gains.Table["cs2-reflex"].Text && gr.GainTip == "Fuente: nvidia.com" && plain.HasGain && plain.GainText == null && plain.GainTip == null, "fila con y sin estimación");
+                    gr.SetHw(amd); Is(gr.GainText.StartsWith("Sin efecto") && gr.GainTip == "Fuente: nvidia.com", "la fila cambia con el escaneo");
+                }
                 HashSet<string> keys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 foreach (Tweak t in all)
                     foreach (Op o in t.Usable)
